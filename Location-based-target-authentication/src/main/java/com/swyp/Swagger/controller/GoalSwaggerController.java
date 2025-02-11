@@ -92,25 +92,6 @@ public class GoalSwaggerController {
     }
 
     @Operation(
-        summary = "목표 상세 조회",
-        description = "목표 상세 정보를 조회합니다.",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "조회 성공",
-                content = @Content(schema = @Schema(implementation = GoalResponse.class))
-            )
-        }
-    )
-    @GetMapping("/api/v1/goals/{goalID}")
-    public GoalResponse getGoal(
-        @Parameter(description = "목표 ID", example = "1") 
-        @PathVariable Long goalID
-    ) {
-        return null;
-    }
-
-    @Operation(
         summary = "임시 저장된 목표 수정",
         description = "임시 저장된 목표를 수정합니다.",
         responses = {

@@ -12,10 +12,10 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI openAPI() {
         return new OpenAPI()
-                .addServersItem(new Server().url("/"))
-                .info(new Info()
-                        .title("Location Based Target Authentication API")
-                        .description("위치 기반 목표 인증 서비스 API 문서")
-                        .version("1.0.0"));
+            .info(new Info()
+                .title("Location Based Target Authentication API")
+                .description("위치 기반 목표 인증 API 문서")
+                .version("1.0.0"))
+            .addServersItem(new Server().url("/"));
     }
 } 

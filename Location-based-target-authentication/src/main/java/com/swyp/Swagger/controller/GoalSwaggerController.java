@@ -165,27 +165,4 @@ public class GoalSwaggerController {
     ) {
         return null;
     }
-
-    @Operation(
-        summary = "위치 인증",
-        description = "현재 위치가 목표 장소 반경 내에 있는지 확인합니다.",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "위치 인증 성공",
-                content = @Content(schema = @Schema(implementation = Boolean.class))
-            )
-        }
-    )
-    @GetMapping("/api/v1/goals/{goalID}/location/verify")
-    public Boolean verifyLocation(
-        @Parameter(description = "목표 ID", example = "1") 
-        @PathVariable Long goalID,
-        @Parameter(description = "현재 위도", example = "37.5665") 
-        @RequestParam Double latitude,
-        @Parameter(description = "현재 경도", example = "126.9780") 
-        @RequestParam Double longitude
-    ) {
-        return null;
-    }
 } 

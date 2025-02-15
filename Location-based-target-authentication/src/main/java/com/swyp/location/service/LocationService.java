@@ -78,16 +78,23 @@ public class LocationService {
     }
 
     public Boolean verifyLocation(Long goalId, Double currentLatitude, Double currentLongitude) {
+        // 1. 목표 위치 조회 (실제로는 DB에서 가져와야 함. 현재는 테스트데이터.)
+        double goalLatitude = 37.623367069197776;  
+        double goalLongitude = 127.08487221991373;
+        int radiusMeters = 100;  
 
-        double goalLatitude = 37.5665;
-        double goalLongitude = 126.9780;
-        int radiusMeters = 100;
+        log.info("목표 위치: ({}, {})", goalLatitude, goalLongitude);
+        log.info("현재 위치: ({}, {})", currentLatitude, currentLongitude);
+        log.info("허용 반경: {}m", radiusMeters);
 
-        return isWithinRadius(
+        boolean isWithin = isWithinRadius(
             currentLatitude, currentLongitude,
             goalLatitude, goalLongitude,
             radiusMeters
         );
+
+        log.info("위치 검증 결과: {}", isWithin);
+        return isWithin;
     }
 
     private boolean isWithinRadius(

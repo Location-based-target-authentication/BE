@@ -31,6 +31,8 @@ public class LocationService {
                         .path("/v2/local/search/keyword.json")
                         .queryParam("query", keyword)
                         .queryParam("size", 15)
+                        .queryParam("analyze_type", "similar")
+                        .queryParam("sort", "accuracy")
                         .build())
                     .header("Authorization", "KakaoAK " + kakaoApiKey)
                     .accept(MediaType.APPLICATION_JSON)
@@ -41,8 +43,28 @@ public class LocationService {
             log.debug("Raw API Response: {}", response);
 
             if (response == null || response.documents().isEmpty()) {
-                log.warn("No search results found for keyword: {}", keyword);
-                throw new LocationNotFoundException("검색 결과가 없습니다. 다른 키워드로 검색해보세요.");
+                if (keyword.toLowerCase().contains("gs25") || 
+                    keyword.toLowerCase().contains("cu") || 
+                    keyword.toLowerCase().contains("seven")) {
+                    response = webClient.get()
+                            .uri(uriBuilder -> uriBuilder
+                                .path("/v2/local/search/keyword.json")
+                                .queryParam("query", keyword + "점")
+                                .queryParam("size", 15)
+                                .queryParam("analyze_type", "similar")
+                                .queryParam("sort", "accuracy")
+                                .build())
+                            .header("Authorization", "KakaoAK " + kakaoApiKey)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .retrieve()
+                            .bodyToMono(KakaoApiResponse.class)
+                            .block();
+                }
+                
+                if (response == null || response.documents().isEmpty()) {
+                    log.warn("No search results found for keyword: {}", keyword);
+                    throw new LocationNotFoundException("검색 결과가 없습니다. 다른 키워드로 검색해보세요.");
+                }
             }
 
             return LocationSearchResponse.from(response);

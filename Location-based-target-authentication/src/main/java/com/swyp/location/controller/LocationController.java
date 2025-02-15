@@ -1,6 +1,8 @@
 package com.swyp.location.controller;
 
+import com.swyp.global.dto.ErrorResponse;
 import com.swyp.location.dto.LocationSearchResponse;
+import com.swyp.location.exception.LocationNotFoundException;
 import com.swyp.location.service.LocationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -11,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 @Tag(name = "위치", description = "위치 관련 API")
 @RestController
@@ -28,14 +31,24 @@ public class LocationController {
                 responseCode = "200",
                 description = "검색 성공",
                 content = @Content(schema = @Schema(implementation = LocationSearchResponse.class))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "검색 결과 없음",
+                content = @Content(schema = @Schema(implementation = ErrorResponse.class))
             )
         }
     )
     @GetMapping("/locations/search")
-    public ResponseEntity<LocationSearchResponse> searchLocation(
+    public ResponseEntity<?> searchLocation(
             @Parameter(description = "검색 키워드", example = "스타벅스 강남") 
             @RequestParam String keyword) {
-        return ResponseEntity.ok(locationService.searchLocation(keyword));
+        try {
+            return ResponseEntity.ok(locationService.searchLocation(keyword));
+        } catch (LocationNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse(e.getMessage()));
+        }
     }
 
     @Operation(

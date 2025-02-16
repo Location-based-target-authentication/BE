@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소셜 로그인</title>
+    <style>
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* 버튼 간 간격 조정 */
+            margin-top: 20px;
+        }
+
+        .google-login img {
+            width: 250px; /* 구글 로그인 버튼 크기 조정 */
+            height: auto; /* 비율 유지 */
+        }
+    </style>
+</head>
+<body>
+
+<h2>소셜 로그인</h2>
+
+<div class="login-container">
+    <!-- 카카오 로그인 버튼 -->
+    <a href="https://kauth.kakao.com/oauth/authorize?client_id=03e9dfc1580d15c03171193156cf0c23&redirect_uri=http://localhost:8080/api/v1/auth/kakao/callback&response_type=code&prompt=login">
+        <img src="/static/kakao_login_medium_wide.png" alt="카카오 로그인 버튼">
+    </a>
+
+    <!-- 구글 로그인 버튼 (크기 조정) -->
+    <a class="google-login" href="https://accounts.google.com/o/oauth2/auth?client_id=1059210361342-hd9ptunp002mrc9or3f7e8m1pnmaq817.apps.googleusercontent.com&redirect_uri=http://localhost:8080/api/v1/auth/google/callback&response_type=code&scope=profile%20email">
+        <img src="/static/google_login_medium_wide.png" alt="구글 로그인 버튼">
+    </a>
+</div>
+
+</body>
+</html>
+

@@ -53,7 +53,7 @@ public class LocationController {
 
     @Operation(
         summary = "위치 검증",
-        description = "현재 위치가 목표 장소 반경 내에 있는지 확인합니다.",
+        description = "현재 위치를 기준으로 100m 반경 내에 목표 장소가 있는지 확인합니다.",
         responses = {
             @ApiResponse(
                 responseCode = "200",
@@ -66,9 +66,9 @@ public class LocationController {
     public ResponseEntity<Boolean> verifyLocation(
             @Parameter(description = "목표 ID", example = "1") 
             @PathVariable Long goalId,
-            @Parameter(description = "현재 위도", example = "37.5665") 
+            @Parameter(description = "현재 위도 (기준점)", example = "37.5665") 
             @RequestParam Double latitude,
-            @Parameter(description = "현재 경도", example = "126.9780") 
+            @Parameter(description = "현재 경도 (기준점)", example = "126.9780") 
             @RequestParam Double longitude) {
         return ResponseEntity.ok(locationService.verifyLocation(goalId, latitude, longitude));
     }

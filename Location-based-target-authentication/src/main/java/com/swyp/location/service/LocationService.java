@@ -78,18 +78,19 @@ public class LocationService {
     }
 
     public Boolean verifyLocation(Long goalId, Double currentLatitude, Double currentLongitude) {
-        // 1. 목표 위치 조회 (실제로는 DB에서 가져와야 함. 현재는 테스트데이터.)
-        double goalLatitude = 37.623367069197776;  
+        // TODO: 실제로는 goalId로 DB에서 목표 위치를 조회해야 함
+        double goalLatitude = 37.623367069197776;  // 테스트용 목표 위치
         double goalLongitude = 127.08487221991373;
-        int radiusMeters = 100;  
+        int radiusMeters = 100;  // 100m 반경
 
-        log.info("목표 위치: ({}, {})", goalLatitude, goalLongitude);
         log.info("현재 위치: ({}, {})", currentLatitude, currentLongitude);
+        log.info("목표 위치: ({}, {})", goalLatitude, goalLongitude);
         log.info("허용 반경: {}m", radiusMeters);
 
+        // 현재 위치를 중심으로 목표 위치가 반경 내에 있는지 확인
         boolean isWithin = isWithinRadius(
-            currentLatitude, currentLongitude,
-            goalLatitude, goalLongitude,
+            currentLatitude, currentLongitude,  // 현재 위치 (중심)
+            goalLatitude, goalLongitude,        // 목표 위치
             radiusMeters
         );
 
@@ -98,22 +99,22 @@ public class LocationService {
     }
 
     private boolean isWithinRadius(
-            double lat1, double lon1,
-            double lat2, double lon2,
+            double centerLat, double centerLon,  // 현재 위치 (중심)
+            double targetLat, double targetLon,  // 목표 위치
             int radiusMeters) {
         
         final int R = 6371000; // 지구의 반지름 (미터)
 
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
+        double latDistance = Math.toRadians(targetLat - centerLat);
+        double lonDistance = Math.toRadians(targetLon - centerLon);
 
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                + Math.cos(Math.toRadians(centerLat)) * Math.cos(Math.toRadians(targetLat))
                 * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-        double distance = R * c;
+        double distance = R * c;  // 미터 단위 거리
 
         return distance <= radiusMeters;
     }

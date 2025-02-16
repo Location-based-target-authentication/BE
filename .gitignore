@@ -39,3 +39,4 @@ out/
 ###social-login, db password 무시###
 application-secret.properties
 .env
+.DS_Store

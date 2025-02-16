@@ -66,7 +66,6 @@ public class SecurityConfig {
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class); // JWT 필터를 OAuth2Login 필터보다 뒤에 추가!
         return http.build();
     }
-
     @Value("${cors.allowed-origins:*}") // 환경 변수에서 CORS 도메인 읽기
     private String allowedOrigins;
     @Bean

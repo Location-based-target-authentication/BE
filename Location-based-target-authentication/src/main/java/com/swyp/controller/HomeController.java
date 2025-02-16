@@ -13,7 +13,7 @@ public class HomeController {
 
     @GetMapping
     public String home() {
-        return "home"; // home.jsp를 반환1
+        return "home"; // home.jsp를 반환11
     }
 
 } 

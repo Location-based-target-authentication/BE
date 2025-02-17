@@ -18,7 +18,11 @@ import com.swyp.entity.Goal;
 import com.swyp.service.GoalService;
 
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "목표", description = "목표 관련 API")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -57,8 +61,12 @@ public class GoalRestController {
     }
 
     //목표 상태 변경 (ACTIVE, COMPLETE, DRAFT), 프론트에서 status를 보내줘야함
+    @Operation(summary = "목표 활성화")
     @PostMapping("/v1/goals/{goalID}/activate")
-    public ResponseEntity<Goal> updateGoalStatus(@PathVariable("goalID") Long goalID, @RequestParam("status") String status) {
+    public ResponseEntity<Goal> updateGoalStatus(
+        @Parameter(description = "목표 ID") @PathVariable Long goalID,
+        @RequestParam String status
+    ) {
         Goal updatedGoal = goalService.updateGoalStatus(goalID, status);
         return new ResponseEntity<>(updatedGoal, HttpStatus.OK);
     }

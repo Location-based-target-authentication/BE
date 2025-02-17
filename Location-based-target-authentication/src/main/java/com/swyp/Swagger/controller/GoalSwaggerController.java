@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Tag(name = "목표", description = "목표 관련 API")
-@RestController
 public class GoalSwaggerController {
 
     @Operation(

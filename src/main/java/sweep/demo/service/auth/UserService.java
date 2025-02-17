@@ -63,11 +63,6 @@ public class UserService {
         }
 
         AuthUser user = userOptional.get();
-        // 데이터 확인용 로그 추가
-        System.out.println("[UserService] DB에서 가져온 사용자: " + user.getUsername());
-        System.out.println("[UserService] email: " + user.getEmail());
-        System.out.println("[UserService] phoneNumber: " + user.getPhoneNumber());
-
         return userOptional.map(SocialUserResponseDto::new).orElse(null);
     }
 

@@ -19,37 +19,29 @@ import java.util.Map;
 public class GoogleAuthController {
 
     private final AuthService authService;
-    private final UserService userService;
     private final GoogleAuthService googleAuthService;
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "구글 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
     public ResponseEntity<SocialUserResponseDto> googleLogin(@RequestParam(name="code") String code) {
-        System.out.println("[GoogleAuthController] googleLogin() 실행됨!");
         // 1. 인증 코드로 Access Token 받기
         String accessToken = googleAuthService.getAccessToken(code);
         // 2. Access Token으로 사용자 정보 가져오기
         Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
-        System.out.println("[GoogleAuthController] 받은 사용자 정보: " + googleUserInfo);
 
-        // 3. 사용자 정보 update / 저장
+        // 3. 사용자 정보 update&저장
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
         // 4. JWT 토큰 생성
         userResponse = authService.generateJwtTokens(userResponse);
-        System.out.println("[GoogleAuthController] 생성된 JWT Access Token: " + userResponse.getAccessToken());
         return ResponseEntity.ok(userResponse);
     }
     //access token으로 직접 넘겨서 테스트
     @PostMapping("/userinfo")
     public ResponseEntity<SocialUserResponseDto> getGoogleUserInfo(@RequestParam(name = "accessToken") String accessToken) {
-        System.out.println("[GoogleAuthController] /userinfo 호출됨 - Access Token: " + accessToken);
         if (accessToken == null || accessToken.isEmpty()) {
-            System.out.println("Access Token이 전달되지 않음");
             return ResponseEntity.badRequest().body(null);
         }
         Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
-        System.out.println("[GoogleAuthController] 사용자 정보: " + googleUserInfo);
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
         return ResponseEntity.ok(userResponse);
     }

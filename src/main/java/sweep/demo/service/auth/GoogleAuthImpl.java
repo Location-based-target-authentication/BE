@@ -48,7 +48,6 @@ public class GoogleAuthImpl implements GoogleAuthService {
     // 2. Access Token으로 구글 사용자 정보 가져오기
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
-        System.out.println("[GoogleAuthImpl] getUserInfo() 호출됨 - Access Token: " + accessToken);
         String userInfoUrl = "https://www.googleapis.com/oauth2/v2/userinfo";
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);

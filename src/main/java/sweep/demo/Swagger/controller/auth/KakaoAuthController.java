@@ -43,13 +43,10 @@ public class KakaoAuthController {
     //access token을 직접 넘겨서 테스트함
     @PostMapping("/userinfo")
     public ResponseEntity<SocialUserResponseDto> getKakaoUserInfo(@RequestParam(name = "accessToken") String accessToken) {
-        System.out.println("[KakaoAuthController] /userinfo 호출됨 - Access Token: " + accessToken);
         if (accessToken == null || accessToken.isEmpty()) {
-            System.out.println("⚠️ Access Token이 전달되지 않음");
             return ResponseEntity.badRequest().body(null);
         }
         Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
-        System.out.println("[KakaoAuthController] 사용자 정보: " + kakaoUserInfo);
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
         return ResponseEntity.ok(userResponse);
     }

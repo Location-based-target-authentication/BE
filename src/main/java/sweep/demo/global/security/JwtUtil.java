@@ -49,12 +49,10 @@ public boolean validateToken(String token, boolean isRefreshToken) {
     System.out.println("[DEBUG] validateToken() 호출됨 - isRefreshToken: " + isRefreshToken);
     System.out.println("[DEBUG] 검증할 토큰: " + token);
     if (token == null || token.isEmpty()) {
-        System.out.println("[JwtUtil] 토큰이 비어 있음!");
         return false;
     }
     try {
         Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
-        System.out.println("[JwtUtil] JWT 토큰이 유효함");
         return true;
     } catch (ExpiredJwtException e) {
         if (isRefreshToken) {
@@ -84,7 +82,7 @@ public boolean validateToken(String token, boolean isRefreshToken) {
         }
         return userId;
     }
-    // 토큰에서 사용자 정보 추출 후 sprin security에서 사용할 Authentication 객체 생성
+    // 토큰에서 사용자 정보 추출 후 spring security에서 사용할 Authentication 객체 생성
     public Authentication getAuthentication(String token) {
         String userId = extractUserId(token);
         UserDetails userDetails = new User(userId, "", Collections.emptyList());

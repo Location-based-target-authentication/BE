@@ -40,7 +40,6 @@ public class UserController {
         }
         // 2. socialId 추출
         String socialId = jwtUtil.extractUserId(accessToken);
-        System.out.println("현재 로그인한 사용자 ID: " + socialId);
 
         // 3. 전화번호 저장
         try {

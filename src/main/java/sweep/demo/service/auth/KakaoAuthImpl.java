@@ -57,7 +57,6 @@ public class KakaoAuthImpl implements KakaoAuthService {
     // 2. Access Token으로 카카오 사용자 정보 가져오기
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
-        System.out.println("[KakaoAuthImpl] getUserInfo() 호출됨 - Access Token: " + accessToken);
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
@@ -68,7 +67,6 @@ public class KakaoAuthImpl implements KakaoAuthService {
         ResponseEntity<String> response = restTemplate.exchange(KAKAO_USER_INFO_URL, HttpMethod.GET, entity, String.class);
 
         try {
-            System.out.println("[KakaoAuthImpl] 카카오 응답: " + response.getBody());
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 

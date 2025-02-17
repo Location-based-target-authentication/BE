@@ -21,10 +21,8 @@ public class AuthService {
 
     //1. 카카오 로그인 처리
     public SocialUserResponseDto loginWithKakao(String code) {
-        System.out.println("loginWithKakao로 받은 code: " + code);
         // 1. 카카오에서 OAuth2 Access Token 발급
         String kakaoAccessToken = kakaoAuthImpl.getAccessToken(code);
-        System.out.println("발급된 OAuth access token: " + kakaoAccessToken);
         // 2. 카카오에서 사용자 정보 가져오기
         Map<String, Object> userInfo = kakaoAuthImpl.getUserInfo(kakaoAccessToken);
         return saveOrUpdateUser(userInfo, kakaoAccessToken, SocialType.KAKAO);
@@ -32,10 +30,8 @@ public class AuthService {
 
     //2. 구글 로그인 처리
     public SocialUserResponseDto loginWithGoogle(String code) {
-        System.out.println("loginWithGoogle로 받은 code: " + code);
         // 1. 구글에서 OAuth2 Access Token 발급
         String googleAccessToken = googleAuthImpl.getAccessToken(code);
-        System.out.println("발급된 OAuth access token: " + googleAccessToken);
         // 2. 구글에서 사용자 정보 가져오기
         Map<String, Object> userInfo = googleAuthImpl.getUserInfo(googleAccessToken);
         return saveOrUpdateUser(userInfo, googleAccessToken, SocialType.GOOGLE);
@@ -44,7 +40,6 @@ public class AuthService {
     // 3. 사용자 정보 저장 또는 업데이트 (카카오 & 구글)
     public SocialUserResponseDto saveOrUpdateUser(Map<String, Object> userInfo, String accessToken, SocialType socialType) {
         System.out.println("[AuthService] saveOrUpdateUser() 호출됨");
-        System.out.println("받은 사용자 정보: " + userInfo);
         // 필수 사용자 정보 가져오기
         String socialId = userInfo.getOrDefault("socialId", "").toString();
         String username = userInfo.getOrDefault("username", "Unknown").toString();
@@ -74,8 +69,6 @@ public class AuthService {
         // 1) JWT Access Token & Refresh Token 생성
         String accessToken = jwtUtil.generateAccessToken(userResponse.getSocialId());
         String refreshToken = jwtUtil.generateRefreshToken(userResponse.getSocialId());
-        System.out.println("JWT Access Token: " + accessToken);
-        System.out.println("JWT Refresh Token: " + refreshToken);
         // 2) Refresh Token을 DB에 저장
         Optional<AuthUser> optionalUser = userRepository.findBySocialId(userResponse.getSocialId());
         optionalUser.ifPresent(user -> {

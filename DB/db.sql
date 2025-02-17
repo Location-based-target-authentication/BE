@@ -40,6 +40,8 @@ CREATE TABLE goals (
     start_date DATE NOT NULL,               -- 목표 시작일
     end_date DATE NOT NULL,                 -- 목표 종료일
     location_name VARCHAR(100) NOT NULL,    -- 목표 장소명
+    target_count INT NOT NULL,             -- 목표 수행 횟수 (예: 12회) 추가ㅁㅁ
+    achieved_count INT DEFAULT 0 NOT NULL, -- 실제 수행 횟수 추가ㅁㅁ
     latitude DECIMAL(10, 8) NOT NULL,       -- 위도
     longitude DECIMAL(11, 8) NOT NULL,      -- 경도
     radius INT DEFAULT 5 NOT NULL,          -- 인증 반경 

@@ -20,11 +20,9 @@ public class GoogleAuthImpl implements GoogleAuthService {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // 1. 구글 code로 access token 요청
     @Override
     public String getAccessToken(String code) {
         String tokenUrl = "https://oauth2.googleapis.com/token";
-
         Map<String, String> requestBody = new HashMap<>();
         requestBody.put("code", code);
         requestBody.put("client_id", GOOGLE_CLIENT_ID);

@@ -16,12 +16,11 @@ import java.util.Collections;
 public class UserServiceImpl implements UserDetailsService {
 
     private final UserRepository userRepository;
-    // Spring Security에서 사용하는 메서드 (로그인 시 호출되어 로그인이 가능한 유저인지 확인)
+    // Spring Security에서 사용하는 메서드 (로그인이 가능한 유저인지 확인)
     @Override
     public UserDetails loadUserByUsername(String socialId) throws UsernameNotFoundException {
         AuthUser user = userRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with socialId: " + socialId));
-
         return new org.springframework.security.core.userdetails.User(
                 user.getSocialId(), "",
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))

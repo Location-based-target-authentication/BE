@@ -1,4 +1,4 @@
-package com.swyp.service;
+package com.swyp.goal.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -6,15 +6,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.swyp.point.enums.PointType;
+import com.swyp.point.service.PointService;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.swyp.entity.DayOfWeek;
-import com.swyp.entity.Goal;
-import com.swyp.entity.GoalDay;
-import com.swyp.entity.GoalStatus;
-import com.swyp.repository.GoalDayRepository;
-import com.swyp.repository.GoalRepository;
+import com.swyp.goal.entity.DayOfWeek;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.entity.GoalDay;
+import com.swyp.goal.entity.GoalStatus;
+import com.swyp.goal.repository.GoalDayRepository;
+import com.swyp.goal.repository.GoalRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +29,8 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
+    private final PointService pointService;
+    private final UserRepository userRepository;
 
     //전체 목표 조회
     public List<Goal> getGoalList(Long uesrId){
@@ -93,6 +99,11 @@ public class GoalService {
         // 목표 수행 횟수 계산
         int targetCount = calculateTargetCount(startDate, endDate, selectedDays);
         goal.setTargetCount(targetCount); // 목표 수행 횟수 설정
+
+        // (포인트) 차감
+        AuthUser authUser = userRepository.findBySocialId(String.valueOf(goal.getId())).orElseThrow(()-> new RuntimeException("사용자를 찾을 수 없음"));
+        boolean success = pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
+        if(!success) throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);

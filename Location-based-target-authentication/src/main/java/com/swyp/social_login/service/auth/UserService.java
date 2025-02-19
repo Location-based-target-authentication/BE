@@ -13,7 +13,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    //사용자 ID로 DB에서 AccessToken 조회 후 사용자 정보 가져오기
     public SocialUserResponseDto getUserInfoFromDb(String socialId) {
         Optional<AuthUser> userOptional = userRepository.findBySocialId(socialId);
         if (userOptional.isEmpty()) {

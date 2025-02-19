@@ -1,12 +1,12 @@
-package com.swyp.repository;
+package com.swyp.goal.repository;
 
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import com.swyp.entity.Goal;
-import com.swyp.entity.GoalStatus;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.entity.GoalStatus;
 
 // JpaRepository를 상속받으면 기본적인 CRUD 메서드를 자동으로 사용할 수 있습니다
 // <Goal, Long>에서 Goal은 엔티티 타입, Long은 기본키의 타입입니다

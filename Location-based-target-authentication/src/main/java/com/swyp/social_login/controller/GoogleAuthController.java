@@ -1,10 +1,8 @@
 package com.swyp.social_login.controller;
-import com.swyp.global.security.JwtUtil;
 import com.swyp.social_login.dto.SocialUserResponseDto;
 import com.swyp.social_login.enums.SocialType;
 import com.swyp.social_login.service.auth.AuthService;
 import com.swyp.social_login.service.auth.GoogleAuthService;
-import com.swyp.social_login.service.auth.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -19,9 +17,7 @@ import java.util.Map;
 public class GoogleAuthController {
 
     private final AuthService authService;
-    private final UserService userService;
     private final GoogleAuthService googleAuthService;
-    private final JwtUtil jwtUtil;
 
     @Operation(summary = "구글 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")

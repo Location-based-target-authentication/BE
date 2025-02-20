@@ -1,4 +1,4 @@
-package com.swyp.service;
+package com.swyp.goal.service;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -6,15 +6,20 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.swyp.point.enums.PointType;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.point.service.PointService;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.swyp.entity.DayOfWeek;
-import com.swyp.entity.Goal;
-import com.swyp.entity.GoalDay;
-import com.swyp.entity.GoalStatus;
-import com.swyp.repository.GoalDayRepository;
-import com.swyp.repository.GoalRepository;
+import com.swyp.goal.entity.DayOfWeek;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.entity.GoalDay;
+import com.swyp.goal.entity.GoalStatus;
+import com.swyp.goal.repository.GoalDayRepository;
+import com.swyp.goal.repository.GoalRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +30,7 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
+    private final GoalPointHandler goalPointHandler;
 
     //전체 목표 조회
     public List<Goal> getGoalList(Long uesrId){
@@ -96,6 +102,7 @@ public class GoalService {
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
+        goalPointHandler.handleGoalCreation(savedGoal);
 
         // 선택된 요일 저장
         for (DayOfWeek day : selectedDays) {

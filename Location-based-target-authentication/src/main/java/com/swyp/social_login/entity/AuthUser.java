@@ -1,7 +1,12 @@
 package com.swyp.social_login.entity;
+import com.swyp.point.entity.Point;
+import com.swyp.point.entity.PointHistory;
 import com.swyp.social_login.enums.SocialType;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -38,6 +43,14 @@ public class AuthUser {
     @Enumerated(EnumType.STRING) // ENUM('GOOGLE', 'KAKAO')로 저장
     @Column(nullable = false)
     private SocialType socialType;
+
+    @OneToOne(mappedBy = "authUser", cascade = CascadeType.ALL)
+    private Point point;
+
+    @OneToMany(mappedBy = "authUser", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<PointHistory> pointHistories = new ArrayList<>();
+
 
     public AuthUser(String socialId, String username, String email, String accessToken, SocialType socialType) {
         this.socialId = socialId;

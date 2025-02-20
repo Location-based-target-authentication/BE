@@ -1,4 +1,4 @@
-package com.swyp.entity;
+package com.swyp.goal.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

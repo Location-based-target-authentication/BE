@@ -14,7 +14,6 @@ public class SocialUserResponseDto {
     private String accessToken;
     private String refreshToken;
     private SocialType socialType;
-
     private String username;
     private String email;
     private String phoneNumber;

@@ -31,16 +31,13 @@ public class KakaoAuthController {
         String kakaoId = kakaoUserInfo.get("socialId").toString();
         // 3. 사용자 정보 update / 저장
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
-        // 4. JWT 토큰 생성
         userResponse = authService.generateJwtTokens(userResponse);
         return ResponseEntity.ok(userResponse);
     }
     //access token을 직접 넘겨서 테스트함
     @PostMapping("/userinfo")
     public ResponseEntity<SocialUserResponseDto> getKakaoUserInfo(@RequestParam(name = "accessToken") String accessToken) {
-        System.out.println("[KakaoAuthController] /userinfo 호출됨 - Access Token: " + accessToken);
         if (accessToken == null || accessToken.isEmpty()) {
-            System.out.println("Access Token이 전달되지 않음");
             return ResponseEntity.badRequest().body(null);
         }
         Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);

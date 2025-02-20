@@ -54,7 +54,6 @@ public class KakaoAuthImpl implements KakaoAuthService {
         }
     }
 
-    // 2. Access Token으로 카카오 사용자 정보 가져오기
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();

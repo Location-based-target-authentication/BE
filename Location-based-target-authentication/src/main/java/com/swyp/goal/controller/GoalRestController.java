@@ -1,4 +1,4 @@
-package com.swyp.controller;
+package com.swyp.goal.controller;
 
 import java.util.List;
 
@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.swyp.entity.DayOfWeek;
-import com.swyp.entity.Goal;
-import com.swyp.service.GoalService;
+import com.swyp.goal.entity.DayOfWeek;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.service.GoalService;
 
 import lombok.RequiredArgsConstructor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -53,7 +53,7 @@ public class GoalRestController {
         Goal goal = goalService.getGoalDetail(goalId);
         return new ResponseEntity<Goal>(goal,HttpStatus.ACCEPTED); //JSON형식으로 데이터 보냄
     }
-         //임시저장된 목표조회 
+    //임시저장된 목표조회
     @GetMapping("/v1/goals/{userId}/check/draft")
     public ResponseEntity<List<Goal>> getGoalDraft(@PathVariable("userId") Long userId) {
         List<Goal> goalListDraft = goalService.getDraftGoalList(userId);

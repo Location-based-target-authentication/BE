@@ -1,4 +1,4 @@
-package com.swyp.entity;
+package com.swyp.goal.entity;
 
 public enum GoalStatus {
     DRAFT,      // 임시저장

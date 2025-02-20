@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.swyp.point.enums.PointType;
+import com.swyp.point.service.GoalPointHandler;
 import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
@@ -29,8 +30,7 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
-    private final PointService pointService;
-    private final UserRepository userRepository;
+    private final GoalPointHandler goalPointHandler;
 
     //전체 목표 조회
     public List<Goal> getGoalList(Long uesrId){
@@ -100,13 +100,9 @@ public class GoalService {
         int targetCount = calculateTargetCount(startDate, endDate, selectedDays);
         goal.setTargetCount(targetCount); // 목표 수행 횟수 설정
 
-        // (포인트) 차감
-        AuthUser authUser = userRepository.findBySocialId(String.valueOf(goal.getId())).orElseThrow(()-> new RuntimeException("사용자를 찾을 수 없음"));
-        boolean success = pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
-        if(!success) throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
-
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
+        goalPointHandler.handleGoalCreation(savedGoal);
 
         // 선택된 요일 저장
         for (DayOfWeek day : selectedDays) {

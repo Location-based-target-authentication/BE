@@ -36,6 +36,11 @@ public class GoalService {
     
     private final LocationService  locationService;
 
+
+
+
+
+
     //전체 목표 조회
     public List<Goal> getGoalList(Long uesrId){
         return goalRepository.findByUserId(uesrId);
@@ -214,6 +219,7 @@ public class GoalService {
             // 목표 달성 횟수 증가 
             goal.setAchievedCount(goal.getAchievedCount()+1);
             goalRepository.save(goal);
+            //TODO 포인트 적립 추가해야됨 
 
             
             return true;

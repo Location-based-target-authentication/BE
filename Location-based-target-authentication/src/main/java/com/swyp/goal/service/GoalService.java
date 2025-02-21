@@ -21,7 +21,6 @@ import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.location.service.LocationService;
-
 import lombok.RequiredArgsConstructor;
 
 @Service

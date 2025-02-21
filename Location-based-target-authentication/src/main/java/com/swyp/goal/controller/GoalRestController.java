@@ -62,6 +62,7 @@ public class GoalRestController {
         }
     }
 
+    
     //전체 목표 조회
     @GetMapping("/v1/goals/check")
     public ResponseEntity<?> getGoalList(@RequestParam("userId") Long userId) {

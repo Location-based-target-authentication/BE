@@ -21,7 +21,7 @@ public class PointController {
 
     //포인트 조회
     @Operation(summary = "포인트 메인 페이지")
-    @GetMapping("/{user_id}")
+    @GetMapping("/{social_id}")
     public ResponseEntity<PointBalanceResponse> getPoints( @PathVariable("social_id") String socialId){
         AuthUser authUser = findAuthUser(socialId);
         int points = pointService.getUserPoints(authUser);
@@ -51,5 +51,6 @@ public class PointController {
     private AuthUser findAuthUser(String socialId){
         return userRepository.findBySocialId(socialId).orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
+
 
 }

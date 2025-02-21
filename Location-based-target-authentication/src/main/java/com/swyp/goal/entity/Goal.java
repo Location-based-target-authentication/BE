@@ -1,6 +1,7 @@
 package com.swyp.goal.entity;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 

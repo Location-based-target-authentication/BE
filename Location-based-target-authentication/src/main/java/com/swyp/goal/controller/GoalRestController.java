@@ -2,6 +2,10 @@ package com.swyp.goal.controller;
 
 import java.util.List;
 
+import com.swyp.goal.repository.GoalRepository;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,6 +33,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class GoalRestController {
 
     private final GoalService goalService;
+    private final UserRepository userRepository;
+    private final GoalRepository goalRepository;
+    private final GoalPointHandler goalPointHandler;
 
     //목표 생성, 프론트에서 StatusCheck는 임시저장(DRAFT) 또는 활성화(ACTIVE)를 선택해서 넘겨야 함, selectedDays는 요일 선택 체크박스에서 넘어오는 값
     //Mon, Tue, Wed, Thu, Fri, Sat, Sun 이렇게 넘어옴
@@ -85,7 +92,22 @@ public class GoalRestController {
         goalService.deleteGoal(goalID);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-
-    
+    //(포인트) 목표 달성
+    @PostMapping("/v1/goals/{goalId}/complete")
+    public ResponseEntity<String> completeGoal(
+            @PathVariable("goalId") Long goalId,
+            @RequestParam("userId") Long userId,
+            @RequestParam("isSelectedDay") boolean isSelectedDay) {
+        // 사용자 정보 조회
+        AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        // 목표 정보 조회
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+        // 선택된 요일 정보 조회
+        List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
+        // 목표 완료 핸들러 호출
+        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays, isSelectedDay);
+        return new ResponseEntity<>("목표 달성 및 포인트 적립 완료", HttpStatus.OK);
+    }
 
 } 

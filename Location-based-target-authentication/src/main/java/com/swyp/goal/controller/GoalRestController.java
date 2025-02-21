@@ -2,6 +2,10 @@ package com.swyp.goal.controller;
 
 import java.util.List;
 
+import com.swyp.goal.repository.GoalRepository;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +29,9 @@ import lombok.RequiredArgsConstructor;
 public class GoalRestController {
 
     private final GoalService goalService;
+    private final UserRepository userRepository;
+    private final GoalRepository goalRepository;
+    private final GoalPointHandler goalPointHandler;
 
     
 
@@ -97,6 +104,7 @@ public class GoalRestController {
     }
 
 
+
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
@@ -123,5 +131,23 @@ public class GoalRestController {
     }
 
     
+
+    //(포인트) 목표 달성
+    @PostMapping("/v1/goals/{goalId}/complete")
+    public ResponseEntity<String> completeGoal(
+            @PathVariable("goalId") Long goalId,
+            @RequestParam("userId") Long userId,
+            @RequestParam("isSelectedDay") boolean isSelectedDay) {
+        // 사용자 정보 조회
+        AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        // 목표 정보 조회
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+        // 선택된 요일 정보 조회
+        List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
+        // 목표 완료 핸들러 호출
+        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays, isSelectedDay);
+        return new ResponseEntity<>("목표 달성 및 포인트 적립 완료", HttpStatus.OK);
+    }
 
 } 

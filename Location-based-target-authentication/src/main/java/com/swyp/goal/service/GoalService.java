@@ -42,6 +42,11 @@ public class GoalService {
     private final GoalPointHandler goalPointHandler;
     private final UserRepository userRepository;
 
+
+
+
+
+
     //전체 목표 조회
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);

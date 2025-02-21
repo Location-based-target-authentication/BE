@@ -17,6 +17,7 @@ public class PointService {
 
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final MailService mailService;
     //포인트 조회
     public int getUserPoints(AuthUser authUser) {
         return pointRepository.findByAuthUser(authUser)
@@ -30,6 +31,17 @@ public class PointService {
         point.addPoints(points);
         pointRepository.save(point);
         pointHistoryRepository.save(new PointHistory(authUser, points, pointType, description, goalId));
+        // 메일 발송 조건
+        if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
+            String giftType = pointType == PointType.GIFT_STARBUCKS ? "스타벅스" : "일반 쿠폰";
+            // 메일 발송
+            mailService.sendGiftNotification(
+                    "jangmj80@naver.com", // 수신자 이메일
+                    authUser.getUsername(), // 사용자 이름
+                    authUser.getPhoneNumber(),
+                    giftType                 // 쿠폰 종류
+            );
+        }
     }
     //포인트 차감
     @Transactional

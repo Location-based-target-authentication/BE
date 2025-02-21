@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -269,4 +270,13 @@ public class GoalService {
      }
 
     
+
+    //생성한 목표 요일
+    public List<DayOfWeek> getSelectedDays(Long goalId) {
+        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+        return goalDays.stream()
+                .map(GoalDay::getDayOfWeek)
+                .collect(Collectors.toList());
+    }
+
 }

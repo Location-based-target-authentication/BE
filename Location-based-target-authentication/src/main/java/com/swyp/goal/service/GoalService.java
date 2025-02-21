@@ -5,6 +5,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.swyp.point.enums.PointType;
 import com.swyp.point.service.GoalPointHandler;
@@ -180,4 +181,13 @@ public class GoalService {
     }
         goalRepository.deleteById(goalId);
     }
+
+    //생성한 목표 요일
+    public List<DayOfWeek> getSelectedDays(Long goalId) {
+        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+        return goalDays.stream()
+                .map(GoalDay::getDayOfWeek)
+                .collect(Collectors.toList());
+    }
+
 }

@@ -79,8 +79,8 @@ public class LocationService {
 
     public Boolean verifyLocation(Long goalId, Double currentLatitude, Double currentLongitude) {
         // TODO: 실제로는 goalId로 DB에서 목표 위치를 조회해야 함
-        double goalLatitude = 37.623367069197776;  // 테스트용 목표 위치
-        double goalLongitude = 127.08487221991373;
+        double goalLatitude = 9.1;  // 테스트용 목표 위치
+        double goalLongitude = 9.1;
         int radiusMeters = 100;  // 100m 반경
 
         log.info("현재 위치: ({}, {})", currentLatitude, currentLongitude);

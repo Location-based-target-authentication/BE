@@ -7,21 +7,21 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.swyp.point.enums.PointType;
-import com.swyp.point.service.GoalPointHandler;
-import com.swyp.point.service.PointService;
-import com.swyp.social_login.entity.AuthUser;
-import com.swyp.social_login.repository.UserRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
+import com.swyp.goal.entity.GoalAchievements;
+import com.swyp.goal.entity.GoalAchievementsLog;
 import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.entity.GoalStatus;
+import com.swyp.goal.repository.GoalAchievementsLogRepository;
+import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
-
+import com.swyp.location.service.LocationService;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -31,7 +31,10 @@ public class GoalService {
 
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
-    private final GoalPointHandler goalPointHandler;
+    private final GoalAchievementsRepository goalAchievementsRepository;
+    private final GoalAchievementsLogRepository goalAchievementsLogRepository;
+    
+    private final LocationService  locationService;
 
     //전체 목표 조회
     public List<Goal> getGoalList(Long uesrId){
@@ -103,7 +106,6 @@ public class GoalService {
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
-        goalPointHandler.handleGoalCreation(savedGoal);
 
         // 선택된 요일 저장
         for (DayOfWeek day : selectedDays) {
@@ -179,8 +181,95 @@ public class GoalService {
     if (!goal.getStatus().equals(GoalStatus.DRAFT) && !goal.getStatus().equals(GoalStatus.ACTIVE)) {
         throw new IllegalArgumentException("임시저장 또는 활성화 목표만 삭제할 수 있습니다.");
     }
+        
         goalRepository.deleteById(goalId);
     }
+
+
+
+    //목표 달성 1차 인증 (goal의 위도 경도 확인 이후 100m이내에 있을시 achieved_count 를 +1함 )
+    @Transactional
+    public boolean validateGoalAchievement(Long userId, Long goalId, double latitude, double longitude){
+        Goal goal = goalRepository.findById(goalId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+        //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
+        boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess(userId, goalId, LocalDate.now(), true);
+        //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리  
+        boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess(userId, goalId, LocalDate.now(), false);
+
+        if(alreadyAchievedTrue){
+            throw new IllegalStateException("오늘 이미 목표를 인증했습니다.");
+        }
+
+        // 위치 검증 
+        Boolean validate =  locationService.verifyLocation(goalId, latitude, longitude);
+        System.out.println(validate);
+        if(validate == true){
+            // 인증 기록 저장
+            GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
+            achievementsLog.setUserId(userId);
+            achievementsLog.setGoalId(goalId);
+            achievementsLog.setAchievedSuccess(true);
+            goalAchievementsLogRepository.save(achievementsLog);
+            // 목표 달성 횟수 증가 
+            goal.setAchievedCount(goal.getAchievedCount()+1);
+            goalRepository.save(goal);
+
+            
+            return true;
+        }
+        else{
+        	if(alreadyAchievedFalse) {
+            	throw new IllegalStateException("DB상의 인설트 막힘 - 오늘 실패한 기록이 이미 존재합니다.(DB 중복 방지)");
+            }
+        	// 위치 검증 실패시 achieved_success = false와 함꼐 기록에 저장 ( 스케쥴러로 하루마다 achieved_success = false인것 삭제 해야됨 ) 
+        	GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
+            achievementsLog.setUserId(userId);
+            achievementsLog.setGoalId(goalId);
+            achievementsLog.setAchievedSuccess(false);
+            goalAchievementsLogRepository.save(achievementsLog);
+
+            return false;
+        }
+        
+    }
+
+     //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
+     @Transactional
+     public Goal updateGoalStatusToComplete(Long goalId){
+         Goal goal = goalRepository.findById(goalId)
+         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+ 
+         // Status가 ACTIVE인 애들만 완료 처리가능
+         if (!goal.getStatus().equals(GoalStatus.ACTIVE)) {
+             throw new IllegalArgumentException("활성화된 목표만 완료 처리할 수 있습니다.");
+         }
+ 
+         // 목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete가능 
+         if (goal.getAchievedCount()<goal.getTargetCount()){
+             throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
+         }
+ 
+         goal.setStatus(GoalStatus.COMPLETE);
+         goalRepository.save(goal);
+ 
+         GoalAchievements goalAchievements = new GoalAchievements();
+         goalAchievements.setUserId(goal.getUserId());
+         goalAchievements.setGoalId(goalId);
+         goalAchievements.setName(goal.getName());
+         goalAchievements.setTargetCount(goal.getTargetCount());
+         goalAchievements.setAchievedCount(goal.getAchievedCount());
+         goalAchievements.setStartDate(goal.getStartDate());
+         goalAchievements.setEndDate(goal.getEndDate());
+         goalAchievements.setPointsEarned(100); // 목표 달성시 100포인트 부여 (임의로 한거라 나중에 포인터 관련 완성되면 수정)
+         // TODO : 포인터 관련 완성되면 수정
+         
+         goalAchievementsRepository.save(goalAchievements);
+ 
+         return goal;
+     }
+
+    
 
     //생성한 목표 요일
     public List<DayOfWeek> getSelectedDays(Long goalId) {

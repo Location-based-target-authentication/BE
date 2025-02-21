@@ -1,10 +1,9 @@
 package com.swyp.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swyp.goal.entity.Goal;
 import com.swyp.goal.controller.GoalRestController;
+import com.swyp.goal.entity.Goal;
 import com.swyp.goal.service.GoalService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;

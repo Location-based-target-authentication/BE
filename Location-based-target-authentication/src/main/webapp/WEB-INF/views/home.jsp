@@ -78,9 +78,29 @@
     </form>
 
     <h3>목표 삭제</h3>
-    <form id="goalDeleteForm" action="/api/v1/goals/8/delete" method="post">
+    <form id="goalDeleteForm" action="/api/v1/goals/13/delete" method="post">
         <input type="submit" value="목표 삭제">
     </form>
+
+
+    <h3> 목표 1차 인증 </h3>
+    <form id = "goalAc" action="/api/v1/goals/20/achieve" method="post">
+        <label for="qwe1">userId:</label>
+        <input type="text" id="userId" name="userId" required><br><br>
+
+        <label for="QWE2">latitude:</label>
+        <input type="text" id="latitude" name="latitude" required><br><br>
+
+        <label for="QWE3">longitude:</label>
+        <input type="text" id="longitude" name="longitude" required><br><br>
+        <input type="submit" value="목표 1차 인증">
+    </form>
+
+    <h3>목표 완료</h3>
+    <form id="goalComplete" action="/api/v1/goals/15/complete" method="post">
+        <input type="submit" value="목표 완료">
+    </form>
+    
 
     <script>
         document.getElementById("goalCheckForm").onsubmit = function(event) {

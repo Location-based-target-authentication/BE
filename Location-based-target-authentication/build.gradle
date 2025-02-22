@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.4.2'
+	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -66,4 +66,8 @@ tasks.named('test') {
 // Compiler 옵션 설정
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << "-parameters"
+}
+
+tasks.withType(Jar) {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

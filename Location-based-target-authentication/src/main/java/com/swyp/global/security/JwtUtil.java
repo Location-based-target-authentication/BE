@@ -15,21 +15,24 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final Key secretKey;
-    @Value("${jwt.access-token-expiration}")
-    private long ACCESS_TOKEN_EXPIRATION;
-    @Value("${jwt.refresh-token-expiration}")
-    private long REFRESH_TOKEN_EXPIRATION;
+    private final Key key;
+    private final long accessTokenExpiration;
+    private final long refreshTokenExpiration;
 
-    public JwtUtil(@Value("${jwt.secret-key}") String secret) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    public JwtUtil(@Value("${jwt.secret-key}") String secretKey,
+                   @Value("${jwt.access-token-expiration}") long accessTokenExpiration,
+                   @Value("${jwt.refresh-token-expiration}") long refreshTokenExpiration) {
+        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.accessTokenExpiration = accessTokenExpiration;
+        this.refreshTokenExpiration = refreshTokenExpiration;
     }
     // Access Token 생성
     public String generateAccessToken(String userId) {
         String token = Jwts.builder()
                 .setSubject(userId)
-                .setExpiration(new Date(System.currentTimeMillis() + ACCESS_TOKEN_EXPIRATION))
-                .signWith(secretKey, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
+                .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                .signWith(key, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
                 .compact();
         return token;
     }
@@ -37,8 +40,8 @@ public class JwtUtil {
     public String generateRefreshToken(String socialId) {
         return Jwts.builder()
                 .setSubject(socialId)
-                .setExpiration(new Date(System.currentTimeMillis() + REFRESH_TOKEN_EXPIRATION))
-                .signWith(secretKey, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
+                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                .signWith(key, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
                 .compact();
     }
 // JWT 토큰 검증
@@ -47,7 +50,7 @@ public boolean validateToken(String token, boolean isRefreshToken) {
         return false;
     }
     try {
-        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token);
+        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
         return true;
     } catch (ExpiredJwtException e) {
         if (isRefreshToken) {
@@ -62,7 +65,7 @@ public boolean validateToken(String token, boolean isRefreshToken) {
     // JWT 토큰에서 사용자 ID 추출
     public String extractUserId(String token) {
         String userId= Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+                .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody()

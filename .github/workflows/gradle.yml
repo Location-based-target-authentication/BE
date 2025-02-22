@@ -77,9 +77,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/${{ secrets.SERVER_USER }}
-          ls -l *.jar  # JAR 파일 존재 확인
-          pkill -f app.jar || true
-          nohup java -jar app.jar \
+          ls -l *.jar
+          pkill -f Location-based-target-authentication || true
+          nohup java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
             --spring.profiles.active=prod \
             --kakao.api.key=${{ secrets.KAKAO_API_KEY }} \
             --kakao.client.id=${{ secrets.KAKAO_CLIENT_ID }} \
@@ -90,5 +90,5 @@ jobs:
             --spring.mail.username=${{ secrets.MAIL_USERNAME }} \
             --spring.mail.password=${{ secrets.MAIL_PASSWORD }} \
             > app.log 2>&1 &
-          sleep 5  # 로그가 생성될 때까지 대기
-          cat app.log  # 로그 확인
+          sleep 10  # 로그가 생성될 때까지 좀 더 기다림
+          cat app.log

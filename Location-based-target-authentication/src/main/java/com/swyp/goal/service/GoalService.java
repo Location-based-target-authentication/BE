@@ -206,7 +206,6 @@ public class GoalService {
         return selectedDays.contains(today);
     }
 
-    //1. 당일 목표 달성 시
     //목표 달성 1차 인증 (goal의 위도 경도 확인 이후 100m이내에 있을시 achieved_count 를 +1함 )
     @Transactional
     public boolean validateGoalAchievement(Long userId, Long goalId, double latitude, double longitude){
@@ -255,7 +254,6 @@ public class GoalService {
         }
         
     }
-    //2. 설정 기간 내 목표 달성 시
      //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
      @Transactional
      public Goal updateGoalStatusToComplete(Long goalId, String socialId, boolean isSelectedDay){
@@ -287,4 +285,5 @@ public class GoalService {
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }
+
 }

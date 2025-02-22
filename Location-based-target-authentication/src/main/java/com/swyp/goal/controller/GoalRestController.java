@@ -136,3 +136,4 @@ public class GoalRestController {
         return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
     }
 }
+

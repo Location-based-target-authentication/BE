@@ -24,6 +24,9 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     long countByUserIdAndStatusIn(Long userId, List<GoalStatus> statuses);
 
+    // 목표에서 Status 상태에 따른 삭제 (현재 Complete인 애들 삭제를 위해 만듬 스케쥴링 제작)
+    int deleteByStatus(GoalStatus Status);
+
 }
    
 

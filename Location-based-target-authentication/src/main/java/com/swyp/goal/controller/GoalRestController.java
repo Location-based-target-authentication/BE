@@ -56,7 +56,9 @@ public class GoalRestController {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
-    	            content = @Content(mediaType = "application/json", schema = @Schema(implementation = GoalHomeResponseDto.class))
+    	            content = @Content(mediaType = "application/json", schema = @Schema(
+    	                    implementation = GoalHomeResponseDto.class
+    	                ))
     	        ),
     	        @ApiResponse(
     	            responseCode = "500",
@@ -331,7 +333,36 @@ public class GoalRestController {
     }
 
 
-    
+    @Operation(
+    	    summary = "목표 1차인증",
+    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
+    	    responses = {
+    	        @ApiResponse(
+    	            responseCode = "200",
+    	            description = "성공",
+    	            content = @Content(
+    	            	 mediaType = "application/json",
+        	             schema = @Schema(implementation = Boolean.class, example = "true")
+    	            )
+    	        ),
+    	        @ApiResponse(
+        	            responseCode = "400",
+        	            description = "오늘 이미 목표를 인증했습니다., 존재하지 않는 목표입니다.",
+        	            content = @Content(
+        	                mediaType = "application/json",
+        	                schema = @Schema(example = "{\"String\": \"오늘 이미 목표를 인증했습니다.\"}")
+        	            )
+        	        ),
+        	    @ApiResponse(
+            	        responseCode = "500",
+            	        description = "서버 내부 오류",
+            	        content = @Content(
+            	            mediaType = "application/json",
+            	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
+            	        )
+            	    )
+    	    }
+    	)
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
@@ -350,6 +381,38 @@ public class GoalRestController {
     }
 
 
+    
+    
+    @Operation(
+    	    summary = "목표 완료 (Status:Complete)",
+    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",
+    	    responses = {
+    	        @ApiResponse(
+    	            responseCode = "200",
+    	            description = "성공",
+    	            content = @Content(
+    	            	 mediaType = "application/json",
+    	            	 schema = @Schema(example = "{\"String\": \"목표 달성 완료 (목표Status:COMPLETE로변경)\"}")
+    	            )
+    	        ),
+    	        @ApiResponse(
+        	            responseCode = "400",
+        	            description = "Status가 ACTIVE인 애들만 완료 처리가능,   목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete가능 ",
+        	            content = @Content(
+        	                mediaType = "application/json",
+        	                schema = @Schema(example = "{\"String\": \"활성화된 목표만 완료 처리할 수 있습니다.,    지정된 목표 달성 횟수를 채우지 못하셨습니다.,  존재하지 않는 목표입니다.\"}")
+        	            )
+        	        ),
+        	    @ApiResponse(
+            	        responseCode = "500",
+            	        description = "서버 내부 오류",
+            	        content = @Content(
+            	            mediaType = "application/json",
+            	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
+            	        )
+            	    )
+    	    }
+    	)
     //목표 complete 후 목표 달성 기록 테이블에 저장
     @PostMapping("/v1/goals/{goalId}/complete")
     public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId){

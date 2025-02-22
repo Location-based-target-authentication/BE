@@ -14,4 +14,5 @@ public interface GoalAchievementsLogRepository extends JpaRepository<GoalAchieve
      // 오늘 날짜 + 성공 기록(true)가 있는지 확인 있으면 true 없으면 false
      boolean existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess(Long userId, Long goalId, LocalDate achievedAt, boolean achievedSuccess);
      
+     
 }

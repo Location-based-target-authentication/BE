@@ -55,15 +55,23 @@ jobs:
       with:
         name: app
 
-    # SSH 키 설정 및 배포
-    - name: Deploy to Server
+    # JAR 파일 전송
+    - name: Copy JAR via SCP
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "*.jar"
+        target: "/home/${{ secrets.SERVER_USER }}"
+
+    # 서버에서 JAR 실행
+    - name: Execute JAR
       uses: appleboy/ssh-action@v1.0.0
       with:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "*.jar"  # 현재 디렉토리의 JAR 파일
-        target: "/home/${{ secrets.SERVER_USER }}"  # 서버의 목적지 경로
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           pkill -f app.jar || true

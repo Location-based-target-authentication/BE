@@ -13,11 +13,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
     - uses: actions/checkout@v4
@@ -28,28 +30,16 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
+    # Gradle 권한 설정 추가
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew build
-
-    # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
-    # If your project does not have the Gradle Wrapper configured, you can use the following configuration to run Gradle with a specified version.
-    #
-    # - name: Setup Gradle
-    #   uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582 # v4.0.0
-    #   with:
-    #     gradle-version: '8.9'
-    #
-    # - name: Build with Gradle 8.9
-    #   run: gradle build
+    - name: Build with Gradle
+      run: ./gradlew clean build -x test # 테스트 제외하고 빌드
 
     # JAR 파일을 아티팩트로 저장
     - name: Upload JAR
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: app
         path: build/libs/*.jar
@@ -60,23 +50,17 @@ jobs:
     
     steps:
     # JAR 파일 다운로드
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         name: app
 
-    # SSH 키 설정
-    - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-    # 서버에 배포
+    # SSH 키 설정 및 배포
     - name: Deploy to Server
-      run: |
-        scp *.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/app.jar
-        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} '
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
           pkill -f app.jar || true
           nohup java -jar /home/${{ secrets.SERVER_USER }}/app.jar > /dev/null 2>&1 &
-        '

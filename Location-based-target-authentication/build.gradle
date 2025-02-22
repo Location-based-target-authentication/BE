@@ -67,3 +67,7 @@ tasks.named('test') {
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << "-parameters"
 }
+
+tasks.withType(Jar) {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}

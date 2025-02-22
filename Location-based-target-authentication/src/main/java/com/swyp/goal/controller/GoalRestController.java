@@ -341,11 +341,7 @@ public class GoalRestController {
         }
     }
 
-
-<<<<<<< HEAD
-
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1
-=======
     @Operation(
     	    summary = "목표 1차인증",
     	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
@@ -376,8 +372,7 @@ public class GoalRestController {
             	    )
     	    }
     	)
-    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
->>>>>>> 354eafa (스웨그 작업 완료 커밋)
+    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,
@@ -400,12 +395,7 @@ public class GoalRestController {
             return new ResponseEntity<>("예상치 못한 에러", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-<<<<<<< HEAD
-=======
 
-
-    
-    
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
     	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",
@@ -436,8 +426,8 @@ public class GoalRestController {
             	    )
     	    }
     	)
+
     //목표 complete 후 목표 달성 기록 테이블에 저장
->>>>>>> 354eafa (스웨그 작업 완료 커밋)
     @PostMapping("/v1/goals/{goalId}/complete")
     public ResponseEntity<?> updateGoalStatusToComplete(
             @PathVariable("goalId") Long goalId,

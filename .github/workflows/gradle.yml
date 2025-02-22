@@ -35,7 +35,9 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew clean build -x test # 테스트 제외하고 빌드
+      run: |
+        chmod +x ./gradlew
+        ./gradlew build --no-daemon --stacktrace
 
     # JAR 파일을 아티팩트로 저장
     - name: Upload JAR

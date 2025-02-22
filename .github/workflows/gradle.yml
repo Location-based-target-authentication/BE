@@ -87,7 +87,7 @@ jobs:
           User=root
           WorkingDirectory=/home/${{ secrets.SERVER_USER }}
           # JWT 설정
-          Environment="JWT_SECRET_KEY=thesecretkeythatiusedtoencryptthesweeptoken"
+          Environment="JWT_SECRET_KEY=thisisasecretkeyforhmacshawithlengthofatleast256bits12345"
           Environment="JWT_ACCESS_TOKEN_EXPIRATION=600000"
           Environment="JWT_REFRESH_TOKEN_EXPIRATION=604800000"
           

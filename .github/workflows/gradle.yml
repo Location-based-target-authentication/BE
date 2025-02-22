@@ -35,9 +35,10 @@ jobs:
       run: chmod +x gradlew
 
     - name: Build with Gradle
+      working-directory: ./Location-based-target-authentication
       run: |
         chmod +x ./gradlew
-        ./gradlew bootJar --info --stacktrace --debug
+        ./gradlew bootJar --info --stacktrace
 
     - name: Upload JAR
       uses: actions/upload-artifact@v4
@@ -76,5 +77,15 @@ jobs:
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           pkill -f app.jar || true
-          nohup java -jar app.jar > app.log 2>&1 &
+          nohup java -jar app.jar \
+            --spring.profiles.active=prod \
+            --kakao.api.key=${{ secrets.KAKAO_API_KEY }} \
+            --kakao.client.id=${{ secrets.KAKAO_CLIENT_ID }} \
+            --kakao.client.secret=${{ secrets.KAKAO_CLIENT_SECRET }} \
+            --spring.security.oauth2.client.registration.google.client-id=${{ secrets.GOOGLE_CLIENT_ID }} \
+            --spring.security.oauth2.client.registration.google.client-secret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+            --jwt.secret-key=${{ secrets.JWT_SECRET_KEY }} \
+            --spring.mail.username=${{ secrets.MAIL_USERNAME }} \
+            --spring.mail.password=${{ secrets.MAIL_PASSWORD }} \
+            > app.log 2>&1 &
           tail -f app.log

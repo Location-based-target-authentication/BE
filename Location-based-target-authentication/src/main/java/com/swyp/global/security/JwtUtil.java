@@ -19,13 +19,14 @@ public class JwtUtil {
     private final long accessTokenExpiration;
     private final long refreshTokenExpiration;
 
-    public JwtUtil(@Value("${jwt.secret-key}") String secretKey,
-                   @Value("${jwt.access-token-expiration}") long accessTokenExpiration,
-                   @Value("${jwt.refresh-token-expiration}") long refreshTokenExpiration) {
+    public JwtUtil(
+            @Value("${jwt.secret-key}") String secretKey,
+            @Value("${jwt.access-token-expiration}") String accessTokenExpiration,
+            @Value("${jwt.refresh-token-expiration}") String refreshTokenExpiration) {
         byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
         this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.accessTokenExpiration = accessTokenExpiration;
-        this.refreshTokenExpiration = refreshTokenExpiration;
+        this.accessTokenExpiration = Long.parseLong(accessTokenExpiration);
+        this.refreshTokenExpiration = Long.parseLong(refreshTokenExpiration);
     }
     // Access Token 생성
     public String generateAccessToken(String userId) {

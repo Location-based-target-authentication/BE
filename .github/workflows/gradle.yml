@@ -44,8 +44,8 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: build/libs/*.jar
-        if-no-files-found: error  # JAR 파일이 없으면 에러 표시
+        path: ./Location-based-target-authentication/build/libs/*.jar
+        if-no-files-found: error
 
   deploy:
     needs: build

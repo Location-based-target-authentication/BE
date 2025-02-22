@@ -37,14 +37,13 @@ jobs:
     - name: Build with Gradle
       run: |
         chmod +x ./gradlew
-        ./gradlew build --no-daemon --stacktrace
+        ./gradlew bootJar --info    # Spring Boot JAR 파일 생성
 
-    # JAR 파일을 아티팩트로 저장
     - name: Upload JAR
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: build/libs/*.jar
+        path: build/libs/*SNAPSHOT.jar    # 구체적인 JAR 파일 패턴 지정
 
   deploy:
     needs: build
@@ -63,6 +62,9 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "*.jar"  # 현재 디렉토리의 JAR 파일
+        target: "/home/${{ secrets.SERVER_USER }}"  # 서버의 목적지 경로
         script: |
+          cd /home/${{ secrets.SERVER_USER }}
           pkill -f app.jar || true
-          nohup java -jar /home/${{ secrets.SERVER_USER }}/app.jar > /dev/null 2>&1 &
+          nohup java -jar app.jar > /dev/null 2>&1 &

@@ -37,13 +37,13 @@ jobs:
     - name: Build with Gradle
       run: |
         chmod +x ./gradlew
-        ./gradlew bootJar --info    # Spring Boot JAR 파일 생성
+        ./gradlew bootJar    # Spring Boot JAR 파일 생성
 
     - name: Upload JAR
       uses: actions/upload-artifact@v4
       with:
         name: app
-        path: build/libs/*SNAPSHOT.jar    # 구체적인 JAR 파일 패턴 지정
+        path: build/libs/*.jar    # 모든 JAR 파일 포함
 
   deploy:
     needs: build

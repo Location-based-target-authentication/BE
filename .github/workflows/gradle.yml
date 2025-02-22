@@ -87,6 +87,7 @@ jobs:
           Type=simple
           User=root
           WorkingDirectory=/home/${{ secrets.SERVER_USER }}
+          Environment="JWT_SECRET_KEY=thesecretkeythatiusedtoencryptthesweeptoken"
           ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
             --spring.profiles.active=secret \
             --kakao.api.key=${{ secrets.KAKAO_API_KEY }} \
@@ -94,7 +95,7 @@ jobs:
             --kakao.client.secret=${{ secrets.KAKAO_CLIENT_SECRET }} \
             --spring.security.oauth2.client.registration.google.client-id=${{ secrets.GOOGLE_CLIENT_ID }} \
             --spring.security.oauth2.client.registration.google.client-secret=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-            --jwt.secret-key=${{ secrets.JWT_SECRET_KEY }} \
+            --jwt.secret-key=${JWT_SECRET_KEY} \
             --spring.mail.username=${{ secrets.MAIL_USERNAME }} \
             --spring.mail.password=${{ secrets.MAIL_PASSWORD }}
           Restart=always

@@ -63,8 +63,7 @@
     </form>
 
     <h3>목표 상세 조회</h3>
-
-    <form id="goalCheckForm" method="post">
+    <form id="goalCheckForm" action="/api/v1/goals/check/{goalId}" method="get">
         <label for="goalId">목표 ID:</label>
         <input type="number" id="goalId" name="goalId" required><br><br>
         <input type="submit" value="목표 상세 조회">
@@ -100,6 +99,14 @@
     <form id="goalComplete" action="/api/v1/goals/15/complete" method="post">
         <input type="submit" value="목표 완료">
     </form>
+    
+    
+    <h3>목표 HOME</h3>
+    <form id="goalHOME" action="/api/v1/goals/1" method="get">
+        <input type="submit" value="목표 home">
+    </form>
+    
+    
     
 
     <script>

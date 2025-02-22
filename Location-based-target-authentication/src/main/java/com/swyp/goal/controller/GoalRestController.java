@@ -413,7 +413,7 @@ public class GoalRestController {
             	    )
     	    }
     	)
-    //목표 complete 후 목표 달성 기록 테이블에 저장
+    //목표 complete 후 목표 달성 기록 테이블에 저장.
     @PostMapping("/v1/goals/{goalId}/complete")
     public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId){
         try {

@@ -1,6 +1,6 @@
 package com.swyp.point.service;
-
 import com.swyp.goal.entity.Goal;
+import java.time.DayOfWeek;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
@@ -11,11 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -59,7 +56,7 @@ public class GoalPointHandler {
     public void handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
         // 현재 주의 시작일과 종료일 계산 (일요일~토요일 기준)
         LocalDate today = LocalDate.now();
-        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.SUNDAY));
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
 
         // 현재 주의 목표 달성 횟수 가져오기

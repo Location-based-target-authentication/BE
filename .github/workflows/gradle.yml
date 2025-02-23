@@ -57,6 +57,7 @@ jobs:
         name: app
 
     # SSH 키 설정 
+<<<<<<< HEAD
     - name: Setup SSH
       run: |
         mkdir -p ~/.ssh
@@ -76,23 +77,27 @@ jobs:
         if_key_exists: replace
 
     # SSH 키 설정 개선
+=======
+>>>>>>> 5e5f906 (refactor: GitHub Actions SSH 설정 단순화)
     - name: Setup SSH
       run: |
-        mkdir -p ~/.ssh/
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" | base64 -d > ~/.ssh/deploy_key
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
         chmod 600 ~/.ssh/deploy_key
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-    # SSH 연결 테스트 추가
+    # SSH 연결 테스트
     - name: Test SSH connection
-      run: ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "SSH connection successful"'
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
 
     # JAR 파일 전송
     - name: Copy JAR to Server
       run: |
-        scp -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no *.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/
+        ls -la
+        scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no *.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/
 
     # JAR 파일 전송 설정 수정
     - name: Copy JAR via SCP

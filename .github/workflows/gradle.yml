@@ -52,12 +52,23 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    # JAR 파일 다운로드
     - uses: actions/download-artifact@v4
       with:
         name: app
 
-    # JAR 파일 전송
+    # SSH 키 설정 추가
+    - name: Install SSH Key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        known_hosts: unnecessary
+        if_key_exists: replace
+
+    # known_hosts 파일 설정
+    - name: Adding Known Hosts
+      run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+    # JAR 파일 전송 설정 수정
     - name: Copy JAR via SCP
       uses: appleboy/scp-action@v0.1.7
       with:
@@ -66,7 +77,8 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         source: "*.jar"
         target: "/home/${{ secrets.SERVER_USER }}"
-        debug: true  # 디버그 로그 활성화
+        strip_components: 1
+        debug: true
 
     # 서버에서 JAR 실행할 때 로그 확인
     - name: Execute JAR

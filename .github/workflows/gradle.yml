@@ -75,9 +75,17 @@ jobs:
         known_hosts: unnecessary
         if_key_exists: replace
 
-    # known_hosts 파일 설정
-    - name: Adding Known Hosts
-      run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+    # SSH 키 설정
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+    # JAR 파일 전송
+    - name: Copy JAR to Server
+      run: |
+        scp -i ~/.ssh/deploy_key *.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/
 
     # JAR 파일 전송 설정 수정
     - name: Copy JAR via SCP

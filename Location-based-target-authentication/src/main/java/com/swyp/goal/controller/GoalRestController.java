@@ -128,8 +128,7 @@ public class GoalRestController {
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-        List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
-        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays);
+        goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
         goalRepository.save(updatedGoal);

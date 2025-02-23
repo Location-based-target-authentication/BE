@@ -269,7 +269,9 @@ public class GoalService {
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
- 
+         AuthUser authUser = userRepository.findBySocialId(socialId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+         goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+
          goal.setStatus(GoalStatus.COMPLETE);
          goalRepository.save(goal);
  
@@ -282,6 +284,7 @@ public class GoalService {
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
          // (포인트) 관련
+
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

@@ -60,7 +60,7 @@ public class GoalPointHandler {
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
 
         // 현재 주의 목표 달성 횟수 가져오기
-        int weeklyAchievedCount = goalAchievementsLogRepository.weeklyAcheiveCount(
+        int weeklyAchievedCount = goalAchievementsLogRepository.weeklyAchieveCount(
                 goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
         // 6일 이하 달성
         if (weeklyAchievedCount<=6 && weeklyAchievedCount >= goal.getTargetCount()) {

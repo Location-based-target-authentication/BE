@@ -1,0 +1,153 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: Java CI/CD with Gradle
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # Gradle 권한 설정 추가
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Build with Gradle
+      working-directory: ./Location-based-target-authentication
+      run: |
+        chmod +x ./gradlew
+        ./gradlew bootJar --info --stacktrace
+
+    - name: Upload JAR
+      uses: actions/upload-artifact@v4
+      with:
+        name: app
+        path: ./Location-based-target-authentication/build/libs/*.jar
+        if-no-files-found: error
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    # JAR 파일 다운로드
+    - uses: actions/download-artifact@v4
+      with:
+        name: app
+
+    # JAR 파일 전송
+    - name: Copy JAR via SCP
+      uses: appleboy/scp-action@v0.1.7
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        source: "*.jar"
+        target: "/home/${{ secrets.SERVER_USER }}"
+        debug: true  # 디버그 로그 활성화
+
+    # 서버에서 JAR 실행할 때 로그 확인
+    - name: Execute JAR
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.SERVER_IP }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/${{ secrets.SERVER_USER }}
+          sudo tee /etc/systemd/system/willgo.service << EOF
+          [Unit]
+          Description=Willgo Backend Application
+          After=network.target
+
+          [Service]
+          Type=simple
+          User=root
+          WorkingDirectory=/home/${{ secrets.SERVER_USER }}
+          # JWT 설정
+          Environment="JWT_SECRET_KEY=TnFsNVJEbEtyTzU4bzNtVkYzcm0wM1VBeldWencwTjR3RFZRZmk3SlFJQXJ1MzZQaDdHNjBQWTdMWkJ1ZUxsWmxBZHZyVzFKeVBpZE1tampTTEd2TlE9PQ=="
+          Environment="JWT_ACCESS_TOKEN_EXPIRATION=600000"
+          Environment="JWT_REFRESH_TOKEN_EXPIRATION=604800000"
+          
+          # 카카오 설정
+          Environment="KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}"
+          Environment="KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
+          Environment="KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
+          Environment="KAKAO_REDIRECT_URI=http://175.45.203.57:8080/api/v1/auth/kakao/callback"
+          
+          # 구글 설정
+          Environment="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
+          Environment="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          Environment="GOOGLE_REDIRECT_URI=http://175.45.203.57:8080/api/v1/auth/google/callback"
+          
+          # 메일 설정
+          Environment="MAIL_HOST=smtp.gmail.com"
+          Environment="MAIL_PORT=587"
+          Environment="MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}"
+          Environment="MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}"
+          
+          # OAuth2 설정
+          Environment="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
+          Environment="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
+          Environment="GOOGLE_REDIRECT_URI=http://175.45.203.57:8080/api/v1/auth/google/callback"
+          Environment="KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
+          Environment="KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
+          Environment="KAKAO_REDIRECT_URI=http://175.45.203.57:8080/api/v1/auth/kakao/callback"
+          
+          ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
+            --spring.profiles.active=secret \
+            --spring.mail.host=${MAIL_HOST} \
+            --spring.mail.port=${MAIL_PORT} \
+            --spring.mail.username=${MAIL_USERNAME} \
+            --spring.mail.password=${MAIL_PASSWORD} \
+            --spring.mail.properties.mail.smtp.auth=true \
+            --spring.mail.properties.mail.smtp.starttls.enable=true \
+            --spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \
+            --spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \
+            --spring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \
+            --spring.security.oauth2.client.registration.google.scope=profile,email \
+            --spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID} \
+            --spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET} \
+            --spring.security.oauth2.client.registration.kakao.redirect-uri=${KAKAO_REDIRECT_URI} \
+            --spring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code \
+            --spring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post \
+            --spring.security.oauth2.client.registration.kakao.scope=profile_nickname,profile_image,account_email \
+            --spring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize \
+            --spring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token \
+            --spring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me \
+            --spring.security.oauth2.client.provider.kakao.user-name-attribute=id \
+            --jwt.secret-key=${JWT_SECRET_KEY} \
+            --jwt.access-token-expiration=${JWT_ACCESS_TOKEN_EXPIRATION} \
+            --jwt.refresh-token-expiration=${JWT_REFRESH_TOKEN_EXPIRATION}
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+          EOF
+
+          # 서비스 시작
+          sudo systemctl daemon-reload
+          sudo systemctl restart willgo
+          sudo systemctl status willgo

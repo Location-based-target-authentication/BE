@@ -97,3 +97,5 @@ fi
 #if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 #    . /etc/bash_completion
 #fi
+export JWT_SECRET_KEY=TnFsNVJEbEtyTzU4bzNtVkYzcm0wM1VBeldWencwTjR3RFZRZmk3SlFJQXJ1MzZQaDdHNjBQWTdMWkJ1ZUxsWmxBZHZyVzFKeVBpZE1tampTTEd2TlE9PQ==
+export KAKAO_API_KEY=3020cd4964c588f6a5f487accd66c00a

@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.swyp.point.enums.PointType;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.point.service.PointService;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +38,9 @@ public class GoalService {
     private final GoalDayRepository goalDayRepository;
     private final GoalAchievementsRepository goalAchievementsRepository;
     private final GoalAchievementsLogRepository goalAchievementsLogRepository;
-    
     private final LocationService  locationService;
+    private final GoalPointHandler goalPointHandler;
+    private final UserRepository userRepository;
 
 
 
@@ -44,8 +50,8 @@ public class GoalService {
 
 
     //전체 목표 조회
-    public List<Goal> getGoalList(Long uesrId){
-        return goalRepository.findByUserId(uesrId);
+    public List<Goal> getGoalList(Long userId){
+        return goalRepository.findByUserId(userId);
     }
 
     //목표 상세 조회
@@ -91,7 +97,7 @@ public class GoalService {
             throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
         }
 
-        if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
+        if (ChronoUnit.DAYS.between(startDate, endDate) < 5) {
             throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
         }
 
@@ -113,6 +119,8 @@ public class GoalService {
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
+        //(포인트) 차감
+        goalPointHandler.handleGoalCreation(savedGoal);
 
         // 선택된 요일 저장
         for (DayOfWeek day : selectedDays) {
@@ -129,7 +137,6 @@ public class GoalService {
     private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
         Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
         int count = 0;
-
         // 시작일부터 종료일까지 반복
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
             // java.time.DayOfWeek를 사용자 정의 DayOfWeek로 변환
@@ -192,7 +199,19 @@ public class GoalService {
         goalRepository.deleteById(goalId);
     }
 
-
+    //(포인트) 생성한 목표 요일 조회
+    public List<DayOfWeek> getSelectedDays(Long goalId) {
+        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+        return goalDays.stream()
+                .map(GoalDay::getDayOfWeek)
+                .collect(Collectors.toList());
+    }
+    // (포인트) 특정 날짜가 목표에 설정된 요일인지 확인
+    public boolean checkIfSelectedDay(Goal goal, LocalDate date) {
+        List<DayOfWeek> selectedDays = getSelectedDays(goal.getId());
+        DayOfWeek today = DayOfWeek.fromJavaTime(date.getDayOfWeek());
+        return selectedDays.contains(today);
+    }
 
     //목표 달성 1차 인증 (goal의 위도 경도 확인 이후 100m이내에 있을시 achieved_count 를 +1함 )
     @Transactional
@@ -207,11 +226,10 @@ public class GoalService {
         if(alreadyAchievedTrue){
             throw new IllegalStateException("오늘 이미 목표를 인증했습니다.");
         }
-
         // 위치 검증 
         Boolean validate =  locationService.verifyLocation(goalId, latitude, longitude);
         System.out.println(validate);
-        if(validate == true){
+        if(validate){
             // 인증 기록 저장
             GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
             achievementsLog.setUserId(userId);
@@ -221,9 +239,11 @@ public class GoalService {
             // 목표 달성 횟수 증가 
             goal.setAchievedCount(goal.getAchievedCount()+1);
             goalRepository.save(goal);
-            //TODO 포인트 적립 추가해야됨 
-
-            
+            // (포인트) 지급
+            boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
+            AuthUser authUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
             return true;
         }
         else{
@@ -241,10 +261,9 @@ public class GoalService {
         }
         
     }
-
      //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
      @Transactional
-     public Goal updateGoalStatusToComplete(Long goalId){
+     public Goal updateGoalStatusToComplete(Long goalId, String socialId, boolean isSelectedDay){
          Goal goal = goalRepository.findById(goalId)
          .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
  
@@ -253,7 +272,7 @@ public class GoalService {
              throw new IllegalArgumentException("활성화된 목표만 완료 처리할 수 있습니다.");
          }
  
-         // 목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete가능 
+         // 목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete 가능
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
@@ -269,22 +288,9 @@ public class GoalService {
          goalAchievements.setAchievedCount(goal.getAchievedCount());
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
-         goalAchievements.setPointsEarned(100); // 목표 달성시 100포인트 부여 (임의로 한거라 나중에 포인터 관련 완성되면 수정)
-         // TODO : 포인터 관련 완성되면 수정
-         
+         // (포인트) 관련
          goalAchievementsRepository.save(goalAchievements);
- 
          return goal;
      }
-
-    
-
-    //생성한 목표 요일
-    public List<DayOfWeek> getSelectedDays(Long goalId) {
-        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
-        return goalDays.stream()
-                .map(GoalDay::getDayOfWeek)
-                .collect(Collectors.toList());
-    }
 
 }

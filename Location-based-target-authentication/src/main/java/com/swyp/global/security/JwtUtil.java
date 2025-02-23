@@ -2,6 +2,7 @@ package com.swyp.global.security;
 import com.swyp.exception.RefreshTokenExpiredException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.WeakKeyException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -10,6 +11,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 
@@ -23,7 +25,13 @@ public class JwtUtil {
             @Value("${jwt.secret-key}") String secretKey,
             @Value("${jwt.access-token-expiration}") String accessTokenExpiration,
             @Value("${jwt.refresh-token-expiration}") String refreshTokenExpiration) {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        System.out.println("Secret Key (Encoded): " + secretKey);
+        //(test log)
+        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
+        System.out.println("Secret Key Length (bits): " + keyBytes.length * 8);
+        if (keyBytes.length * 8 < 256) {
+            throw new WeakKeyException("The JWT secret key minimum 256 bits required.");
+        }
         this.key = Keys.hmacShaKeyFor(keyBytes);
         this.accessTokenExpiration = Long.parseLong(accessTokenExpiration);
         this.refreshTokenExpiration = Long.parseLong(refreshTokenExpiration);

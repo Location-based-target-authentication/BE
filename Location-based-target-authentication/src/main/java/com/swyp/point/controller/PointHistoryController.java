@@ -26,7 +26,6 @@ public class PointHistoryController {
     public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("user_id") String socialId) {
         AuthUser authUser = findAuthUser(socialId);
         List<PointHistory> historyList = pointService.getPointHistory(authUser.getId());
-
         PointHistoryResponse response = new PointHistoryResponse(
                 authUser.getId(),
                 authUser.getSocialId(),

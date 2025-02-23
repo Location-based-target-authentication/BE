@@ -25,6 +25,7 @@ import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
+import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -164,7 +165,6 @@ public class GoalRestController {
     	)
     @GetMapping("/v1/goals/check")
     public ResponseEntity<?> getGoalList(@RequestParam("userId") Long userId) {
-        
     	try {
     	List<Goal> goalList = goalService.getGoalList(userId);
         return new ResponseEntity<>(goalList, HttpStatus.OK);
@@ -382,9 +382,8 @@ public class GoalRestController {
         }
     }
 
-
     
-    
+    //목표 complete 후 목표 달성 기록 테이블에 저장..
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
     	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",
@@ -415,37 +414,19 @@ public class GoalRestController {
             	    )
     	    }
     	)
-    //목표 complete 후 목표 달성 기록 테이블에 저장..
     @PostMapping("/v1/goals/{goalId}/complete")
-    public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId){
-        try {
-    	Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId);
-        return new ResponseEntity<>("목표 달성 완료 (목표Status:COMPLETE로변경)", HttpStatus.OK);
-        }catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<String> updateGoalStatusToComplete(
+            @PathVariable("goalId") Long goalId,
+            @RequestParam("userId") Long userId,
+            @RequestParam("isSelectedDay") boolean isSelectedDay) {
+        AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+        List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
+        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays);
+        // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
+        goalRepository.save(updatedGoal);
+        return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
     }
+}
 
-    
-
-//    //(포인트) 목표 달성
-//    @PostMapping("/v1/goals/{goalId}/complete")
-//    public ResponseEntity<String> completeGoal(
-//            @PathVariable("goalId") Long goalId,
-//            @RequestParam("userId") Long userId,
-//            @RequestParam("isSelectedDay") boolean isSelectedDay) {
-//        // 사용자 정보 조회
-//        AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-//        // 목표 정보 조회
-//        Goal goal = goalRepository.findById(goalId)
-//                .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-//        // 선택된 요일 정보 조회
-//        List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
-//        // 목표 완료 핸들러 호출
-//        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays, isSelectedDay);
-//        return new ResponseEntity<>("목표 달성 및 포인트 적립 완료", HttpStatus.OK);
-//    }
-
-} 

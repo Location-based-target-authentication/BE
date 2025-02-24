@@ -65,20 +65,19 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/deploy_key
-        echo "${{ secrets.SSH_PUBLIC_KEY }}" > ~/.ssh/id_rsa.pub
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
     # SSH 연결 테스트
     - name: Test SSH connection
       run: |
         echo "Testing SSH connection..."
-        ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no root@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
+        ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa root@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
 
     # JAR 파일 전송
     - name: Copy JAR to Server
       run: |
         ls -la
-        scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no *.jar root@${{ secrets.SERVER_IP }}:/home/root/
+        scp -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa *.jar root@${{ secrets.SERVER_IP }}:/home/root/
 
     # 서버에서 JAR 실행
     - name: Execute JAR

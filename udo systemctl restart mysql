@@ -1,0 +1,17 @@
+[0;1;32m●[0m mysql.service - MySQL Community Server
+     Loaded: loaded (/lib/systemd/system/mysql.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Sun 2025-02-23 18:05:30 KST; 10min ago
+    Process: 2243 ExecStartPre=/usr/share/mysql/mysql-systemd-start pre (code=exited, status=0/SUCCESS)
+   Main PID: 2251 (mysqld)
+     Status: "Server is operational"
+      Tasks: 38 (limit: 9389)
+     Memory: 370.6M
+        CPU: 2.929s
+     CGroup: /system.slice/mysql.service
+             └─2251 /usr/sbin/mysqld
+
+Feb 23 18:05:29 willgo-backend systemd[1]: mysql.service: Deactivated successfully.
+Feb 23 18:05:29 willgo-backend systemd[1]: Stopped MySQL Community Server.
+Feb 23 18:05:29 willgo-backend systemd[1]: mysql.service: Consumed 1.070s CPU time.
+Feb 23 18:05:29 willgo-backend systemd[1]: Starting MySQL Community Server...
+Feb 23 18:05:30 willgo-backend systemd[1]: Started MySQL Community Server.

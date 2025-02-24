@@ -291,7 +291,7 @@ public class GoalService {
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
          // (포인트) 관련
-
+         goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

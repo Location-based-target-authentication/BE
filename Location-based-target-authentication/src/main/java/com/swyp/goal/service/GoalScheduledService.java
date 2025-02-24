@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GoalScheduledService {
     private final GoalRepository goalRepository;
-
     // 매주 일요일 (01:00:00)에 실행 , Goal테이블의 Status가 COMPLETE인것 삭제 ( DB 저장공간 관리 )
     @Scheduled(cron = "0 0 1 * * SUN") 
     @Transactional

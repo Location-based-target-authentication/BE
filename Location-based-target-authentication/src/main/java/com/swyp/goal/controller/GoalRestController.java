@@ -433,6 +433,7 @@ public class GoalRestController {
             @PathVariable("goalId") Long goalId,
             @RequestParam("userId") Long userId,
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
+    	try {
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
@@ -442,7 +443,12 @@ public class GoalRestController {
         Map<String, Object> response = new HashMap<>();
         int updatedPoints = pointService.getUserPoints(authUser);
         response.put("totalPoints", updatedPoints);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
+    	}catch (IllegalStateException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }catch (Exception e) {
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
 

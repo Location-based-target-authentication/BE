@@ -1,18 +1,13 @@
 package com.swyp.goal.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.swyp.point.enums.PointType;
-import com.swyp.point.service.GoalPointHandler;
-import com.swyp.point.service.PointService;
-import com.swyp.social_login.entity.AuthUser;
-import com.swyp.social_login.repository.UserRepository;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +22,10 @@ import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.location.service.LocationService;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -59,7 +58,7 @@ public class GoalService {
           return goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
     }
 
-    // 임시저장된 목표만 조회
+    // 임시저장된 목표만 조회 ( 사용 x ) 
     public List<Goal> getDraftGoalList(Long userId){
         return goalRepository.findByUserIdAndStatus(userId, GoalStatus.DRAFT);
     }
@@ -156,12 +155,15 @@ public class GoalService {
         Goal goal = goalRepository.findById(goalId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
         
-        // 문자열을 GoalStatus로 변환
-        GoalStatus goalStatus = GoalStatus.valueOf(status.toUpperCase());
-        goal.setStatus(goalStatus);
-        goalRepository.save(goal);
-        return goal;
-        
+        try {
+            GoalStatus goalStatus = GoalStatus.valueOf(status.toUpperCase()); // 🔥 예외 발생 가능
+            goal.setStatus(goalStatus);
+            goal.setUpdatedAt(LocalDateTime.now());
+            goalRepository.save(goal);
+            return goal;
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("잘못된 상태 값입니다: " + status);
+        }
     }
 
     //목표 수정
@@ -181,6 +183,7 @@ public class GoalService {
         goal.setLatitude(newgoal.getLatitude());
         goal.setLongitude(newgoal.getLongitude());
         goal.setRadius(newgoal.getRadius());
+        goal.setUpdatedAt(LocalDateTime.now());
 
         return goalRepository.save(goal);
     }
@@ -238,6 +241,7 @@ public class GoalService {
             goalAchievementsLogRepository.save(achievementsLog);
             // 목표 달성 횟수 증가 
             goal.setAchievedCount(goal.getAchievedCount()+1);
+            goal.setUpdatedAt(LocalDateTime.now());
             goalRepository.save(goal);
             // (포인트) 지급
             boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
@@ -250,7 +254,7 @@ public class GoalService {
         	if(alreadyAchievedFalse) {
             	throw new IllegalStateException("DB상의 인설트 막힘 - 오늘 실패한 기록이 이미 존재합니다.(DB 중복 방지)");
             }
-        	// 위치 검증 실패시 achieved_success = false와 함꼐 기록에 저장 ( 스케쥴러로 하루마다 achieved_success = false인것 삭제 해야됨 ) 
+        	// 위치 검증 실패시 achieved_success = false와 함꼐 기록에 저장, db에서 같은 날짜에 같은 목표에 대해 동일 achieved_success값 1개 이상의 기록 X 
         	GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
             achievementsLog.setUserId(userId);
             achievementsLog.setGoalId(goalId);
@@ -276,12 +280,28 @@ public class GoalService {
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
+<<<<<<< HEAD
          AuthUser authUser = userRepository.findBySocialId(socialId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
          goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
 
-         goal.setStatus(GoalStatus.COMPLETE);
-         goalRepository.save(goal);
+=======
+         
+       //GoalAchievements 테이블로 day를 넘기기 위한 로직
+         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+         StringBuilder days = new StringBuilder();
+         for (GoalDay goalDay : goalDays) {
+             days.append(goalDay.getDayOfWeek().toString()).append(",");
+         }
+         // 마지막 콤마 제거
+         if (days.length() > 0) {
+             days.setLength(days.length() - 1);
+         }
  
+>>>>>>> b4bd102 (pull전 커밋)
+         goal.setStatus(GoalStatus.COMPLETE);
+         goal.setUpdatedAt(LocalDateTime.now());
+         goalRepository.save(goal);
+         
          GoalAchievements goalAchievements = new GoalAchievements();
          goalAchievements.setUserId(goal.getUserId());
          goalAchievements.setGoalId(goalId);
@@ -290,8 +310,19 @@ public class GoalService {
          goalAchievements.setAchievedCount(goal.getAchievedCount());
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
+<<<<<<< HEAD
          // (포인트) 관련
          goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기
+=======
+         goalAchievements.setDays(days.toString()); // day 
+         goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기 
+         
+        
+
+         
+         
+         // (포인트) 관련ㅏ
+>>>>>>> b4bd102 (pull전 커밋)
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

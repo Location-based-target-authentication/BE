@@ -62,7 +62,7 @@ public class GoalRestController {
     	        ),
     	        @ApiResponse(
     	            responseCode = "500",
-    	            description = "서버 내부 오류",
+    	            description = "서버 내부 오류",	
     	            content = @Content(
     	                mediaType = "application/json",
     	                schema = @Schema(example = "{\"String\": \"예상치 못한 오류\"}")
@@ -79,7 +79,18 @@ public class GoalRestController {
     	for (Goal goal : goals) {
     		boolean isAchievedToday = goalAchievementLogRepository.existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess( // 오늘 목표 인증을했는지 했으면 true, 안했으면 false
                     userId, goal.getId(), LocalDate.now(),true);
-    		GoalHomeResponseDto dto = new GoalHomeResponseDto(goal.getName(), goal.getStartDate(), goal.getEndDate(),goal.getStatus().name(), isAchievedToday);
+    		// goalDays : 요일 String값으로 가공
+    		List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
+            StringBuilder days = new StringBuilder();
+            for (GoalDay goalDay : goalDays) {
+                days.append(goalDay.getDayOfWeek().toString()).append(",");
+            }
+            // 마지막 콤마 제거
+            if (days.length() > 0) {
+                days.setLength(days.length() - 1);
+            }
+            
+    		GoalHomeResponseDto dto = new GoalHomeResponseDto(goal.getName(), goal.getStartDate(), goal.getEndDate(),goal.getStatus().name(), isAchievedToday, days.toString());
     		goalHomeDtoList.add(dto);
     	}
     	return new ResponseEntity<>(goalHomeDtoList,HttpStatus.OK);
@@ -220,6 +231,19 @@ public class GoalRestController {
 
         return new ResponseEntity<>(dto,HttpStatus.OK); //JSON형식으로 데이터 보냄
     }
+    
+    
+    // 완료 목표 조회
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
          //임시저장된 목표조회 ( 사용 x )
     @GetMapping("/v1/goals/{userId}/check/draft")
@@ -397,6 +421,11 @@ public class GoalRestController {
         }
     }
 
+<<<<<<< HEAD
+=======
+    
+    //목표 complete 후 목표 달성 기록 테이블에 저장.
+>>>>>>> b4bd102 (pull전 커밋)
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
     	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",

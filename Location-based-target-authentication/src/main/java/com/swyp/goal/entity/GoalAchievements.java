@@ -47,5 +47,6 @@ public class GoalAchievements {
     @Column(name = "points_earned", nullable = false)
     private int pointsEarned; // 획득 포인트
 
-
+    @Column(name = "days", nullable = false)
+    private String days; // MON,TUE,THU
 }

@@ -25,4 +25,7 @@ public class GoalHomeResponseDto {
 
     @Schema(description = "오늘 목표 인증 여부 (true: 인증 완료, false: 인증 미완료)", example = "true")
     private boolean isAchievedToday;
+    
+    @Schema(description = "목표 설정 요일", example = "MON,TUE,THU")
+	private String dayOfWeek;//설정 요일
 }

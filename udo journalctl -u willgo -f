@@ -1,0 +1,13 @@
+[0;1;31m×[0m willgo.service - Willgo Backend Application
+     Loaded: loaded (/etc/systemd/system/willgo.service; enabled; vendor preset: enabled)
+     Active: [0;1;31mfailed[0m (Result: exit-code) since Sat 2025-02-22 19:25:26 KST; 1min 39s ago
+    Process: 35777 ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod --kakao.api.key=3020cd4964c588f6a5f487accd66c00a [0;1;31m(code=exited, status=1/FAILURE)[0m
+   Main PID: 35777 (code=exited, status=1/FAILURE)
+        CPU: 2.429s
+
+Feb 22 19:25:26 willgo-backend systemd[1]: willgo.service: Scheduled restart job, restart counter is at 5.
+Feb 22 19:25:26 willgo-backend systemd[1]: Stopped Willgo Backend Application.
+Feb 22 19:25:26 willgo-backend systemd[1]: willgo.service: Consumed 2.429s CPU time.
+Feb 22 19:25:26 willgo-backend systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mwillgo.service: Start request repeated too quickly.[0m
+Feb 22 19:25:26 willgo-backend systemd[1]: [0;1;38;5;185m[0;1;39m[0;1;38;5;185mwillgo.service: Failed with result 'exit-code'.[0m
+Feb 22 19:25:26 willgo-backend systemd[1]: [0;1;31m[0;1;39m[0;1;31mFailed to start Willgo Backend Application.[0m

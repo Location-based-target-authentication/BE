@@ -90,7 +90,7 @@ public class GoalService {
             throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
         }
 
-        if (ChronoUnit.DAYS.between(startDate, endDate) < 5) {
+        if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
             throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
         }
 

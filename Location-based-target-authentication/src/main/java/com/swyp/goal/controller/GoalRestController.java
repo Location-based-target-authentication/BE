@@ -1,9 +1,12 @@
 package com.swyp.goal.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.point.service.GoalPointHandler;
+import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -32,6 +35,7 @@ public class GoalRestController {
     private final UserRepository userRepository;
     private final GoalRepository goalRepository;
     private final GoalPointHandler goalPointHandler;
+    private final PointService pointService;
 
     
 
@@ -111,8 +115,14 @@ public class GoalRestController {
             @RequestParam("latitude") Double latitude,
             @RequestParam("longitude") Double longitude) {
         try {
-        	boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);//TRUE:성공,FALSE:실패
-            return new ResponseEntity<>(verify, HttpStatus.OK); 
+            boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
+            AuthUser authUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            int updatedPoints = pointService.getUserPoints(authUser);
+            Map<String, Object> response = new HashMap<>();
+            response.put("achievementStatus", verify ? "성공" : "실패");
+            response.put("totalPoints", updatedPoints);
+            return new ResponseEntity<>(response, HttpStatus.OK);
         }catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -129,7 +139,7 @@ public class GoalRestController {
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         List<DayOfWeek> selectedDays = goalService.getSelectedDays(goalId);
-        goalPointHandler.handleGoalCompletion(authUser, goal, selectedDays);
+        goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
         goalRepository.save(updatedGoal);

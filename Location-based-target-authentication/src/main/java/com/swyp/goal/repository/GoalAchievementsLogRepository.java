@@ -1,6 +1,7 @@
 package com.swyp.goal.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,5 +18,8 @@ public interface GoalAchievementsLogRepository extends JpaRepository<GoalAchieve
      int weeklyAcheiveCount(
              Long goalId, Long userId, boolean achievedSuccess, LocalDate startDate, LocalDate endDate
      );
-
+     // goalId와 achievedSuccess가 true인 기록 조회
+     List<GoalAchievementsLog> findByGoalIdAndAchievedSuccessIsTrue(Long goalId);
+     
+     
 }

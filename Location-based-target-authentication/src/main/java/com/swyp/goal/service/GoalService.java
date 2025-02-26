@@ -3,6 +3,7 @@ package com.swyp.goal.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swyp.goal.dto.GoalUpdateDto;
 import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
 import com.swyp.goal.entity.GoalAchievements;
@@ -48,14 +50,19 @@ public class GoalService {
     
 
 
-    //전체 목표 조회
+    //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);
     }
 
-    //목표 상세 조회
+    //목표 상세 조회 (GoalId로 조회 )
     public Goal getGoalDetail(Long goalId) {
           return goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+    }
+    
+    //완료 목표 전체 조회(UserId로 조회) 
+    public List<GoalAchievements> getGoalAchievementsList(Long userId){
+    	return goalAchievementsRepository.findByUserId(userId);
     }
 
     // 임시저장된 목표만 조회 ( 사용 x ) 
@@ -113,7 +120,7 @@ public class GoalService {
         }
 
         // 목표 수행 횟수 계산
-        int targetCount = calculateTargetCount(startDate, endDate, selectedDays);
+        int targetCount = calculateTargetCount(startDate, endDate, selectedDays); // 목표 총 수행 횟수 계산 메서드
         goal.setTargetCount(targetCount); // 목표 수행 횟수 설정
 
         // 목표 저장
@@ -132,22 +139,6 @@ public class GoalService {
         return savedGoal;
     }
 
-    // 목표 수행 횟수 계산 메서드
-    private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
-        Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
-        int count = 0;
-        // 시작일부터 종료일까지 반복
-        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            // java.time.DayOfWeek를 사용자 정의 DayOfWeek로 변환
-            DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name().substring(0, 3).toUpperCase());
-            
-            if (daysSet.contains(dayOfWeek)) {
-                count++; // 선택된 요일이면 카운트 증가
-            }
-        }
-
-        return count; // 총 수행 횟수 반환
-    }
 
     //목표 상태 업데이트 ,프론트에서 status를 받아서 업데이트
     @Transactional
@@ -168,21 +159,22 @@ public class GoalService {
 
     //목표 수정
     @Transactional
-    public Goal updateGoal(Long goalId, Goal newgoal){
+    public Goal updateGoal(Long goalId, GoalUpdateDto dto) {
         Goal goal = goalRepository.findById(goalId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-        
-        if(!goal.getStatus().equals(GoalStatus.DRAFT)){
-            throw new IllegalArgumentException("임시저장 목표만 수정할 수 있습니다.");
+
+        if (!goal.getStatus().equals(GoalStatus.DRAFT)) {
+            throw new IllegalArgumentException("임시 저장된 목표만 수정할 수 있습니다.");
         }
-        
-        goal.setName(newgoal.getName());
-        goal.setStartDate(newgoal.getStartDate());
-        goal.setEndDate(newgoal.getEndDate());
-        goal.setLocationName(newgoal.getLocationName());
-        goal.setLatitude(newgoal.getLatitude());
-        goal.setLongitude(newgoal.getLongitude());
-        goal.setRadius(newgoal.getRadius());
+
+        if (dto.getName() != null) goal.setName(dto.getName());
+        if (dto.getStartDate() != null) goal.setStartDate(dto.getStartDate());
+        if (dto.getEndDate() != null) goal.setEndDate(dto.getEndDate());
+        if (dto.getLocationName() != null) goal.setLocationName(dto.getLocationName());
+        if (dto.getLatitude() != null) goal.setLatitude(dto.getLatitude());
+        if (dto.getLongitude() != null) goal.setLongitude(dto.getLongitude());
+        if (dto.getRadius() != null) goal.setRadius(dto.getRadius());
+
         goal.setUpdatedAt(LocalDateTime.now());
 
         return goalRepository.save(goal);
@@ -194,7 +186,7 @@ public class GoalService {
         Goal goal = goalRepository.findById(goalId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
         
-         // 상태가 DRAFT 또는 ACTIVE인지 확인
+         // 상태가 DRAFT 또는 ACTIVE인지 확인 , DRAFT 또는 ACTIVE가 아니면 예외 발생 
     if (!goal.getStatus().equals(GoalStatus.DRAFT) && !goal.getStatus().equals(GoalStatus.ACTIVE)) {
         throw new IllegalArgumentException("임시저장 또는 활성화 목표만 삭제할 수 있습니다.");
     }
@@ -315,5 +307,102 @@ public class GoalService {
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }
+     
+     
+     
+     // 목표 총 수행 횟수 계산 메서드
+     private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
+         Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
+         int count = 0;
+         // 시작일부터 종료일까지 반복
+         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+             // java.time.DayOfWeek를 사용자 정의 DayOfWeek로 변환
+             DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name().substring(0, 3).toUpperCase());
+             
+             if (daysSet.contains(dayOfWeek)) {
+                 count++; // 선택된 요일이면 카운트 증가
+             }
+         }
+
+         return count; // 총 수행 횟수 반환
+     }
+     
+     
+     // 전체목표에서 달력에 사용하는 날짜값 계산기
+     @Transactional
+     public List<LocalDate> DateRangeCalculator(Long goalId) {
+         Goal goal = goalRepository.findById(goalId)
+                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+         
+         LocalDate today = LocalDate.now(); // 오늘 날짜
+         
+         // today가 속한 주 (일~토)의 시작일과 종료일 계산
+         LocalDate thisWeekStart;
+         if (today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+             thisWeekStart = today;
+         } else {
+             thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
+         }
+         LocalDate thisWeekEnd = thisWeekStart.plusDays(6);
+         
+         List<LocalDate> dateList = new ArrayList<>();
+         
+         // 목표의 시작일
+         LocalDate startDate = goal.getStartDate();
+         // 목표의 종료일
+         LocalDate endDate = goal.getEndDate();
+         
+         // startDate가 속한 주 (일~토)의 시작일 계산
+         LocalDate startWeekStart;
+         if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+             startWeekStart = startDate;
+         } else {
+             startWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
+         }
+         LocalDate startWeekEnd = startWeekStart.plusDays(6);
+         
+         
+         
+         // today가 startDate의 주에 속하면 이번 주 + 다음 주
+         if (!today.isBefore(startWeekStart) && !today.isAfter(startWeekEnd)) {
+             System.out.println("조건1: 오늘이 시작일의 주에 속함 - 이번 주 + 다음 주");
+             
+             // 이번 주 날짜 7일 모두 추가 (일~토)
+             for (int i = 0; i < 7; i++) {
+                 LocalDate date = thisWeekStart.plusDays(i);
+                 dateList.add(date);
+                 System.out.println("이번 주 추가된 날짜: " + date);
+             }
+             
+             // 다음 주 날짜 7일 모두 추가 (일~토)
+             LocalDate nextWeekStart = thisWeekStart.plusWeeks(1);
+             for (int i = 0; i < 7; i++) {
+                 LocalDate date = nextWeekStart.plusDays(i);
+                 dateList.add(date);
+                 System.out.println("다음 주 추가된 날짜: " + date);
+             }
+         } else {
+             System.out.println("조건2: 오늘이 시작일의 주에 속하지 않음 - 지난 주 + 이번 주");
+             
+             // 지난 주 날짜 7일 모두 추가 (일~토)
+             LocalDate lastWeekStart = thisWeekStart.minusWeeks(1);
+             for (int i = 0; i < 7; i++) {
+                 LocalDate date = lastWeekStart.plusDays(i);
+                 dateList.add(date);
+                 System.out.println("지난 주 추가된 날짜: " + date);
+             }
+             
+             // 이번 주 날짜 7일 모두 추가 (일~토)
+             for (int i = 0; i < 7; i++) {
+                 LocalDate date = thisWeekStart.plusDays(i);
+                 dateList.add(date);
+                 System.out.println("이번 주 추가된 날짜: " + date);
+             }
+         }
+         
+         System.out.println("최종 날짜 리스트 크기: " + dateList.size());
+         return dateList;
+     }
+     
 
 }

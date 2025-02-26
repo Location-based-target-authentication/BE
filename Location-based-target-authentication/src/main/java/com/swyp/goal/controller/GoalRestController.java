@@ -11,14 +11,21 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.swyp.goal.dto.GoalAllSearchDto;
+import com.swyp.goal.dto.GoalCompleteDto;
+import com.swyp.goal.dto.GoalDateDto;
 import com.swyp.goal.dto.GoalDetailDto;
 import com.swyp.goal.dto.GoalHomeResponseDto;
+import com.swyp.goal.dto.GoalUpdateDto;
 import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
+import com.swyp.goal.entity.GoalAchievements;
+import com.swyp.goal.entity.GoalAchievementsLog;
 import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
@@ -48,7 +55,7 @@ public class GoalRestController {
     private final GoalPointHandler goalPointHandler;
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
-
+    
     // 목표 home
     @Operation(
     	    summary = "목표 home",
@@ -80,6 +87,7 @@ public class GoalRestController {
     	for (Goal goal : goals) {
     		boolean isAchievedToday = goalAchievementLogRepository.existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess( // 오늘 목표 인증을했는지 했으면 true, 안했으면 false
                     userId, goal.getId(), LocalDate.now(),true);
+    		
     		// goalDays : 요일 String값으로 가공
     		List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
             StringBuilder days = new StringBuilder();
@@ -93,7 +101,7 @@ public class GoalRestController {
             
     		GoalHomeResponseDto dto = new GoalHomeResponseDto(goal.getName(), goal.getStartDate(), goal.getEndDate(),goal.getStatus().name(), isAchievedToday, days.toString());
     		goalHomeDtoList.add(dto);
-    	}
+    	}	
     	return new ResponseEntity<>(goalHomeDtoList,HttpStatus.OK);
     	}catch (Exception e) {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR); // 적절한 HTTP 상태 코드로 변경
@@ -158,10 +166,10 @@ public class GoalRestController {
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
-    	            description = "성공, (List로 전달)",
+    	            description = "성공,",
     	            content = @Content(
     	                mediaType = "application/json",
-    	                array = @ArraySchema(schema = @Schema(implementation = Goal.class))
+    	                array = @ArraySchema(schema = @Schema(implementation = GoalAllSearchDto.class))
     	            )
     	        ),
     	        @ApiResponse(
@@ -169,7 +177,7 @@ public class GoalRestController {
     	            description = "서버 내부 오류",
     	            content = @Content(
     	                mediaType = "application/json",
-    	                schema = @Schema(example = "{\"String\": \"Internal server error\"}")
+    	                schema = @Schema(example = "{\"String\": \"e.getMessage()\"}")
     	            )
     	        )
     	    }
@@ -178,9 +186,45 @@ public class GoalRestController {
     public ResponseEntity<?> getGoalList(@RequestParam("userId") Long userId) {
     	try {
     	List<Goal> goalList = goalService.getGoalList(userId);
-        return new ResponseEntity<>(goalList, HttpStatus.OK);
+    	List<GoalAllSearchDto> goalAllDto = new ArrayList<>();
+    	
+    	
+    	for(Goal goal : goalList) {
+    		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
+    		System.out.println("ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    		System.out.println(calender);
+    		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+    		List<GoalDateDto> goalDateDto = new ArrayList<>();
+    		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
+    		
+    		 for (GoalAchievementsLog log : logs) {
+    	            GoalDateDto dto = new GoalDateDto(log.getAchievedAt(), log.isAchievedSuccess());
+    	            goalDateDto.add(dto);
+    	        }
+    		 
+    		// goalDays : 요일 String값으로 가공
+     		List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
+             StringBuilder days = new StringBuilder();
+             for (GoalDay goalDay : goalDays) {
+                 days.append(goalDay.getDayOfWeek().toString()).append(",");
+             }
+             // 마지막 콤마 제거
+             if (days.length() > 0) {
+                 days.setLength(days.length() - 1);
+             }
+    		 
+    		 GoalAllSearchDto dto = new GoalAllSearchDto(goal.getId(),goal.getUserId(),goal.getName(),goal.getStatus(),goal.getStartDate(),goal.getEndDate(),goal.getLocationName(),goal.getLatitude(),goal.getLongitude(),goal.getRadius(),goal.getTargetCount(),goal.getAchievedCount(),
+                     goalDateDto,  // 인증된 날짜들
+                     calender
+                     ,days.toString());   // 날짜 값들
+             
+    		 goalAllDto.add(dto);
+    		 
+    	}
+
+        return new ResponseEntity<>(goalAllDto, HttpStatus.OK);
     	} catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -224,8 +268,33 @@ public class GoalRestController {
     }
     
     
-    // 완료 목표 조회
-    
+    // 완료 목표 전체 조회
+    @Operation(
+    	    summary = "완료 목표 전체 조회",
+    	    description = "userId를 이용해 완료 목표 전체조회를 합니다.",
+    	    responses = {
+    	        @ApiResponse(
+    	            responseCode = "200",
+    	            description = "성공",
+    	            content = @Content(mediaType = "application/json",schema = @Schema(implementation = GoalCompleteDto.class))
+    	        )
+    	    }
+    	)
+    @GetMapping("/v1/goals/check/complete/{userId}")
+    public ResponseEntity<?> getGoalCompleteList(@PathVariable("userId") Long userId){
+    	List<GoalAchievements> goalAchievements = goalService.getGoalAchievementsList(userId);
+    	List<GoalCompleteDto> goalCompleteDtoList = new ArrayList<>();
+    	for(GoalAchievements goalAchievement : goalAchievements) {
+    		
+    		GoalCompleteDto goalCompleteDto = new GoalCompleteDto(goalAchievement.getName(),goalAchievement.getTargetCount(),goalAchievement.getAchievedCount(),goalAchievement.getPointsEarned()
+    				,goalAchievement.getStartDate(),goalAchievement.getEndDate(),goalAchievement.getDays());
+    		
+    		goalCompleteDtoList.add(goalCompleteDto);
+    	}
+    	
+    	return new ResponseEntity<>(goalCompleteDtoList,HttpStatus.OK);
+    	
+    }
     
     
     
@@ -263,12 +332,13 @@ public class GoalRestController {
     @PostMapping("/v1/goals/{goalId}/activate")
     public ResponseEntity<?> updateGoalStatus(@PathVariable("goalId") Long goalId, @RequestParam("status") String status) {
         Goal updatedGoal = goalService.updateGoalStatus(goalId, status);
+        System.out.println("도달");
         
         return new ResponseEntity<>("목표 상태 변경 성공", HttpStatus.OK);
     }
 
 
-     //임시저장된 목표 수정 (목표조회후 목표선택하여 goal에 보내줘야한다).
+     //임시저장된 목표 수정 (목표조회후 목표선택하여 goalid와 GoalUpdateDto을 보내줘야한다).
     @Operation(
     	    summary = "임시저장된 목표 수정 ",
     	    description = "임시저장된 목표를 목표상세에서 goalId를 통해 불러온후 수정한 데이터 전부를 Goal 형식에 맞춰 보내야한다. 넘기는값은 goalId + goal",
@@ -300,14 +370,14 @@ public class GoalRestController {
     	    }
     	)
     @PatchMapping("/v1/goals/{goalId}/draft")
-    public ResponseEntity<?> updateGoalDraft(@PathVariable("goalId") Long goalId, @ModelAttribute Goal goal){
+    public ResponseEntity<?> updateGoalDraft(@PathVariable("goalId") Long goalId, @RequestBody GoalUpdateDto goal){
         try {
     	Goal updatedGoal = goalService.updateGoal(goalId,goal);
         return new ResponseEntity<>("임시 저장된 목표 수정 완료",HttpStatus.OK);
         }catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); 	
         }catch (Exception e) {
-        	return new ResponseEntity<>("Internal server error", HttpStatus.BAD_REQUEST);
+        	return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
     
@@ -344,12 +414,12 @@ public class GoalRestController {
             	    )
     	    }
     	)
-    //목표 삭제 ( 임시저장 또는 활성화 목표만 삭제 가능) , GoalDay삭제는 DB에 ON DELETE CASCADE로 인해 연관된 goal 삭제시 자동삭제
+    //목표 삭제  , GoalDay삭제는 DB에 ON DELETE CASCADE로 인해 연관된 goal 삭제시 자동삭제
     @PostMapping("/v1/goals/{goalId}/delete")
     public ResponseEntity<?> deleteGoal(@PathVariable("goalId") Long goalId){
         try {
     	goalService.deleteGoal(goalId);
-        return new ResponseEntity<>("목표 삭제 성공",HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>("목표 삭제 성공",HttpStatus.OK);
         }catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); 	
         }catch (Exception e) {
@@ -455,7 +525,7 @@ public class GoalRestController {
     	}catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

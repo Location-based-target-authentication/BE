@@ -191,9 +191,7 @@ public class GoalRestController {
     	
     	for(Goal goal : goalList) {
     		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
-    		System.out.println("ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     		System.out.println(calender);
-    		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     		List<GoalDateDto> goalDateDto = new ArrayList<>();
     		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
     		

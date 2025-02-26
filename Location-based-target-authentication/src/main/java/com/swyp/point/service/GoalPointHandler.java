@@ -1,7 +1,7 @@
 package com.swyp.point.service;
-
-import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
+import java.time.DayOfWeek;
+import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.point.enums.PointType;
@@ -11,8 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +22,7 @@ public class GoalPointHandler {
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
     private final UserRepository userRepository;
+    private final GoalAchievementsLogRepository goalAchievementsLogRepository;
 
     // 1. 목표 생성 시 포인트 차감
     @Transactional
@@ -52,13 +53,21 @@ public class GoalPointHandler {
 
     // 3. 목표 완료 시 보너스 지급
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleGoalCompletion(AuthUser authUser, Goal goal, List<DayOfWeek> selectedDays) {
-        // 주간 목표 초과 달성 보너스
-        if (selectedDays.size() <= 6 && goal.getAchievedCount() >= goal.getTargetCount()) {
+    public void handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
+        // 현재 주의 시작일과 종료일 계산 (일요일~토요일 기준)
+        LocalDate today = LocalDate.now();
+        LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
+        LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
+
+        // 현재 주의 목표 달성 횟수 가져오기
+        int weeklyAchievedCount = goalAchievementsLogRepository.weeklyAcheiveCount(
+                goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
+        // 6일 이하 달성
+        if (weeklyAchievedCount<=6 && weeklyAchievedCount >= goal.getTargetCount()) {
             pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
         }
-        // 7일 목표 전부 달성 보너스
-        if (selectedDays.size() == 7 && goal.getAchievedCount() == goal.getTargetCount()) {
+        // 7일 달성
+        if (weeklyAchievedCount == 7) {
             pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
         }
     }

@@ -9,7 +9,7 @@ name: Java CI/CD with Gradle
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "mj" ]
   pull_request:
     branches: [ "main" ]
 
@@ -67,11 +67,16 @@ jobs:
         ssh-add ~/.ssh/deploy_key
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
+    # SSH 연결 테스트
+    - name: Test SSH connection
+      run: |
+        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
+
     # JAR 파일 전송
     - name: Copy JAR to Server
       run: |
         ls -la
-        scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o PubkeyAcceptedKeyTypes=+ssh-rsa *.jar root@${{ secrets.SERVER_IP }}:/home/root/
+        scp -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no *.jar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }}:/home/${{ secrets.SERVER_USER }}/
 
     # 서버에서 JAR 실행
     - name: Execute JAR

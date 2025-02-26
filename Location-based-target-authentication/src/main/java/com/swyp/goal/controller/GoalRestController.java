@@ -20,13 +20,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-<<<<<<< HEAD
-=======
-
 import com.swyp.goal.dto.GoalAllSearchDto;
 import com.swyp.goal.dto.GoalCompleteDto;
 import com.swyp.goal.dto.GoalDateDto;
->>>>>>> 345e225 (DTO 대량수정 및 추가, 전체목표조회 로직추가, 목표HOME기능추가)
 import com.swyp.goal.dto.GoalDetailDto;
 import com.swyp.goal.dto.GoalHomeResponseDto;
 import com.swyp.goal.dto.GoalUpdateDto;
@@ -59,10 +55,6 @@ public class GoalRestController {
     private final PointService pointService;
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
-<<<<<<< HEAD
-=======
-    
->>>>>>> 345e225 (DTO 대량수정 및 추가, 전체목표조회 로직추가, 목표HOME기능추가)
     // 목표 home
     @Operation(
     	    summary = "목표 home",
@@ -201,14 +193,10 @@ public class GoalRestController {
     public ResponseEntity<?> getGoalList(@RequestParam("userId") Long userId) {
     	try {
     	List<Goal> goalList = goalService.getGoalList(userId);
-<<<<<<< HEAD
             return new ResponseEntity<>(goalList, HttpStatus.OK);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-=======
     	List<GoalAllSearchDto> goalAllDto = new ArrayList<>();
-    	
-    	
     	for(Goal goal : goalList) {
     		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
     		System.out.println("ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
@@ -241,9 +229,7 @@ public class GoalRestController {
     		 goalAllDto.add(dto);
     		 
     	}
-
         return new ResponseEntity<>(goalAllDto, HttpStatus.OK);
->>>>>>> 345e225 (DTO 대량수정 및 추가, 전체목표조회 로직추가, 목표HOME기능추가)
     	} catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -493,12 +479,7 @@ public class GoalRestController {
             return new ResponseEntity<>("예상치 못한 에러", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
-<<<<<<< HEAD
-=======
-    
     //목표 complete 후 목표 달성 기록 테이블에 저장.
->>>>>>> b4bd102 (pull전 커밋)
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
     	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",

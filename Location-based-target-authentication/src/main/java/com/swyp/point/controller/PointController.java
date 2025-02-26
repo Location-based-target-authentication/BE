@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/points")
 @RequiredArgsConstructor
@@ -42,11 +45,21 @@ public class PointController {
     }
     //포인트 차감
     @PostMapping("/{social_id}/deduct")
-    public ResponseEntity<String> deductPoints(@PathVariable("social_id") String socialId, @RequestBody PointDedeductRequest request){
+    public ResponseEntity<Map<String, Object>> deductPoints(@PathVariable("social_id") String socialId, @RequestBody PointDedeductRequest request) {
         AuthUser authUser = findAuthUser(socialId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
-        if(!success){return ResponseEntity.badRequest().body("포인트가 부족함");}
-        return ResponseEntity.ok("포인트가 차감됨");
+        Map<String, Object> response = new HashMap<>();
+
+        if (!success) {
+            response.put("status", "fail");
+            response.put("message", "포인트가 부족함");
+            return ResponseEntity.badRequest().body(response);
+        }
+        int updatedPoints = pointService.getUserPoints(authUser);
+        response.put("status", "success");
+        response.put("message", "포인트가 차감됨");
+        response.put("totalPoints", updatedPoints);
+        return ResponseEntity.ok(response);
     }
     private AuthUser findAuthUser(String socialId){
         return userRepository.findBySocialId(socialId).orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));

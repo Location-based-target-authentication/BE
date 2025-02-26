@@ -103,7 +103,7 @@ public class GoalService {
             throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
         }
 
-        if (ChronoUnit.DAYS.between(startDate, endDate) < 5) {
+        if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
             throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
         }
 
@@ -272,6 +272,9 @@ public class GoalService {
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
+         AuthUser authUser = userRepository.findBySocialId(socialId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+         goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+
          
        //GoalAchievements 테이블로 day를 넘기기 위한 로직
          List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
@@ -299,11 +302,6 @@ public class GoalService {
          goalAchievements.setDays(days.toString()); // day 
          goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기 
          
-        
-
-         
-         
-         // (포인트) 관련ㅏ
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

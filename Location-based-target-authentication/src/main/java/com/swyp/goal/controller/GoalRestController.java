@@ -458,12 +458,22 @@ public class GoalRestController {
         try {
             boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
             AuthUser authUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            int updatedPoints = pointService.getUserPoints(authUser);
-            Map<String, Object> response = new HashMap<>();
-            response.put("achievementStatus", verify ? "성공" : "실패");
-            response.put("totalPoints", updatedPoints);
-            return new ResponseEntity<>(response, HttpStatus.OK);
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
+			int previousPoints = pointService.getUserPoints(authUser);
+			if (verify) {
+				Goal goal = goalRepository.findById(goalId)
+						.orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없음"));
+				boolean isSelectedDay = true;
+				goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+				goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+			}
+			int updatedPoints = pointService.getUserPoints(authUser);
+			int bonusPoints = updatedPoints - previousPoints; // 추가된 보너스 포인트 계산
+			Map<String, Object> response = new HashMap<>();
+			response.put("achievementStatus", verify ? "성공" : "실패");
+			response.put("totalPoints", updatedPoints);
+			response.put("bonusPoints", bonusPoints);
+			return new ResponseEntity<>(response, HttpStatus.OK);
         }catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -511,13 +521,9 @@ public class GoalRestController {
     	try {
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-        goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
         goalRepository.save(updatedGoal);
-        Map<String, Object> response = new HashMap<>();
-        int updatedPoints = pointService.getUserPoints(authUser);
-        response.put("totalPoints", updatedPoints);
         return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
     	}catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);

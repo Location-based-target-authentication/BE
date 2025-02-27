@@ -13,4 +13,5 @@ import java.util.List;
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
     List<PointHistory> findByAuthUser(AuthUser authUser);
     List<PointHistory> findByAuthUserId(Long userId);
+    List<PointHistory> findByAuthUserAndGoalId(AuthUser authUser, Long GoalId);
 }

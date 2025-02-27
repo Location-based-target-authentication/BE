@@ -154,7 +154,7 @@ jobs:
             -Dspring.mail.properties.mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory \
             -Dspring.mail.properties.mail.smtp.socketFactory.fallback=false \
             -Dspring.mail.properties.mail.smtp.socketFactory.port=587 \
-            -Dspring.mail.test-connection=true
+            -Dspring.mail.test-connection=false
           
           Restart=always
 

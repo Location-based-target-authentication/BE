@@ -109,10 +109,10 @@ jobs:
           Environment=GOOGLE_REDIRECT_URI=http://175.45.203.57:8080/api/v1/auth/google/callback
           
           # 메일 설정
-          Environment=MAIL_HOST=smtp.gmail.com
-          Environment=MAIL_PORT=587
-          Environment=MAIL_USERNAME=minjiggy88@gmail.com
-          Environment=MAIL_PASSWORD=zicm cqjd laqq somq
+          Environment=MAIL_HOST=${{ secrets.MAIL_HOST }}
+          Environment=MAIL_PORT=${{ secrets.MAIL_PORT }}
+          Environment=MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          Environment=MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
 
           ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
             --spring.profiles.active=secret \
@@ -153,7 +153,8 @@ jobs:
             -Dspring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \
             -Dspring.mail.properties.mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory \
             -Dspring.mail.properties.mail.smtp.socketFactory.fallback=false \
-            -Dspring.mail.properties.mail.smtp.socketFactory.port=587
+            -Dspring.mail.properties.mail.smtp.socketFactory.port=587 \
+            -Dspring.mail.test-connection=true
           
           Restart=always
 

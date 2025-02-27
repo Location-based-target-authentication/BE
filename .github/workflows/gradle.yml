@@ -124,6 +124,9 @@ jobs:
             -Dgoogle.redirect.url=${GOOGLE_REDIRECT_URI} \
             -Dgoogle.client.id=${GOOGLE_CLIENT_ID} \
             -Dgoogle.client.secret=${GOOGLE_CLIENT_SECRET} \
+            -Dkakao.client.id=${KAKAO_CLIENT_ID} \
+            -Dkakao.client.secret=${KAKAO_CLIENT_SECRET} \
+            -Dkakao.redirect.url=${KAKAO_REDIRECT_URI} \
             -Dspring.security.oauth2.client.registration.google.scope=profile,email \
             -Dspring.security.oauth2.client.registration.google.client-name=Google \
             -Dspring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code \

@@ -108,9 +108,6 @@ public class GoalRestController {
     	
     }
     
-    
-    
-    
     //목표 생성, 프론트에서 StatusCheck는 임시저장(DRAFT) 또는 활성화(ACTIVE)를 선택해서 넘겨야 함, selectedDays는 요일 선택 체크박스에서 넘어오는 값
     //Mon, Tue, Wed, Thu, Fri, Sat, Sun 이렇게 넘어옴
     @Operation(
@@ -193,18 +190,13 @@ public class GoalRestController {
     public ResponseEntity<?> getGoalList(@RequestParam("userId") Long userId) {
     	try {
     	List<Goal> goalList = goalService.getGoalList(userId);
-            return new ResponseEntity<>(goalList, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     	List<GoalAllSearchDto> goalAllDto = new ArrayList<>();
     	for(Goal goal : goalList) {
     		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
-    		System.out.println("ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     		System.out.println(calender);
-    		System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
     		List<GoalDateDto> goalDateDto = new ArrayList<>();
     		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
-    		
+
     		 for (GoalAchievementsLog log : logs) {
     	            GoalDateDto dto = new GoalDateDto(log.getAchievedAt(), log.isAchievedSuccess());
     	            goalDateDto.add(dto);

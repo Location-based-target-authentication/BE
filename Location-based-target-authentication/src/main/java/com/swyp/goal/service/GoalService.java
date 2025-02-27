@@ -43,13 +43,6 @@ public class GoalService {
     private final GoalPointHandler goalPointHandler;
     private final UserRepository userRepository;
 
-
-
-
-    
-    
-
-
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);
@@ -272,11 +265,8 @@ public class GoalService {
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
-<<<<<<< HEAD
          AuthUser authUser = userRepository.findBySocialId(socialId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
          goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
-
-=======
          
        //GoalAchievements 테이블로 day를 넘기기 위한 로직
          List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
@@ -288,8 +278,6 @@ public class GoalService {
          if (days.length() > 0) {
              days.setLength(days.length() - 1);
          }
- 
->>>>>>> b4bd102 (pull전 커밋)
          goal.setStatus(GoalStatus.COMPLETE);
          goal.setUpdatedAt(LocalDateTime.now());
          goalRepository.save(goal);
@@ -302,19 +290,8 @@ public class GoalService {
          goalAchievements.setAchievedCount(goal.getAchievedCount());
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
-<<<<<<< HEAD
-         // (포인트) 관련
-         goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기
-=======
          goalAchievements.setDays(days.toString()); // day 
-         goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기 
-         
-        
-
-         
-         
-         // (포인트) 관련ㅏ
->>>>>>> b4bd102 (pull전 커밋)
+         goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

@@ -11,9 +11,9 @@ import java.util.Map;
 
 @Service
 public class GoogleAuthImpl implements GoogleAuthService {
-    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    @Value("${google.client.id}")
     private String GOOGLE_CLIENT_ID;
-    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    @Value("${google.client.secret}")
     private String GOOGLE_CLIENT_SECRET;
     @Value("${google.redirect.url}")
     private String GOOGLE_REDIRECT_URL;

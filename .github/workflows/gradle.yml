@@ -148,7 +148,12 @@ jobs:
             -Dspring.mail.properties.mail.smtp.timeout=5000 \
             -Dspring.mail.properties.mail.smtp.connectiontimeout=5000 \
             -Dspring.mail.properties.mail.smtp.writetimeout=5000 \
-            -Dspring.mail.properties.mail.transport.protocol=smtp
+            -Dspring.mail.properties.mail.transport.protocol=smtp \
+            -Dspring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \
+            -Dspring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \
+            -Dspring.mail.properties.mail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory \
+            -Dspring.mail.properties.mail.smtp.socketFactory.fallback=false \
+            -Dspring.mail.properties.mail.smtp.socketFactory.port=587
           
           Restart=always
 

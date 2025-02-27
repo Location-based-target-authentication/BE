@@ -459,21 +459,32 @@ public class GoalRestController {
             boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
             AuthUser authUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
-			int previousPoints = pointService.getUserPoints(authUser);
+			int previousPoints = pointService.getUserPoints(authUser); // 기존 포인트
 			if (verify) {
 				Goal goal = goalRepository.findById(goalId)
 						.orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없음"));
 				boolean isSelectedDay = true;
+				//당일 인증
 				goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+				int afterDailyPoints = pointService.getUserPoints(authUser);
+				//보너스 지급
 				goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+				int afterBonusPoints = pointService.getUserPoints(authUser);
+
+				int bonusPoints = afterBonusPoints - afterDailyPoints;
+
+				Map<String, Object> response = new HashMap<>();
+				response.put("achievementStatus", verify ? "성공" : "실패");
+				response.put("totalPoints", afterBonusPoints);
+				response.put("bonusPoints", bonusPoints);
 			}
-			int updatedPoints = pointService.getUserPoints(authUser);
-			int bonusPoints = updatedPoints - previousPoints; // 추가된 보너스 포인트 계산
+			// 목표 검증 실패
 			Map<String, Object> response = new HashMap<>();
-			response.put("achievementStatus", verify ? "성공" : "실패");
-			response.put("totalPoints", updatedPoints);
-			response.put("bonusPoints", bonusPoints);
+			response.put("achievementStatus", "실패");
+			response.put("totalPoints", previousPoints);
+			response.put("bonusPoints", 0);
 			return new ResponseEntity<>(response, HttpStatus.OK);
+
         }catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

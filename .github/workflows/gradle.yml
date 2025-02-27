@@ -113,6 +113,14 @@ jobs:
           Environment=MAIL_PORT=${{ secrets.MAIL_PORT }}
           Environment=MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           Environment=MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          
+          # Tomcat 설정
+          Environment=TOMCAT_CONNECTOR_PROTOCOL=org.apache.coyote.http11.Http11NioProtocol
+          Environment=TOMCAT_CONNECTOR_MAX_CONNECTIONS=10000
+          Environment=TOMCAT_CONNECTOR_ACCEPT_COUNT=100
+          Environment=TOMCAT_CONNECTOR_CONNECTION_TIMEOUT=20000
+          Environment=TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS=1
+          Environment=TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT=1
 
           ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
             --spring.profiles.active=secret \
@@ -120,6 +128,13 @@ jobs:
             --logging.level.org.springframework.web=DEBUG \
             --logging.level.org.springframework.web.cors=TRACE \
             --spring.config.location=classpath:/application.properties \
+            --server.tomcat.remoteip.remote-ip-header=x-forwarded-for \
+            --server.tomcat.remoteip.protocol-header=x-forwarded-proto \
+            --server.tomcat.redirect-context-root=false \
+            --server.tomcat.use-relative-redirects=true \
+            --server.forward-headers-strategy=native \
+            --server.tomcat.max-http-form-post-size=10MB \
+            --server.tomcat.max-swallow-size=20MB \
             -Dspring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \
             -Dspring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \
             -Dspring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \
@@ -163,7 +178,18 @@ jobs:
             -Dmail.smtp.socketFactory.fallback=false \
             -Dmail.smtp.socketFactory.port=587 \
             -Dmail.debug=true \
-            -Dcors.allowed-origins=https://locationcheckgo.netlify.app,http://localhost:8080,http://175.45.203.57:8080
+            -Dcors.allowed-origins=https://locationcheckgo.netlify.app,http://localhost:8080,http://175.45.203.57:8080 \
+            -Dserver.tomcat.additional-tld-skip-patterns=*.jar \
+            -Dserver.tomcat.relaxed-query-chars=|,{,},[,],^,`,<,> \
+            -Dserver.tomcat.relaxed-path-chars=|,{,},[,],^,`,<,> \
+            -Dserver.tomcat.connector.protocol=${TOMCAT_CONNECTOR_PROTOCOL} \
+            -Dserver.tomcat.max-connections=${TOMCAT_CONNECTOR_MAX_CONNECTIONS} \
+            -Dserver.tomcat.accept-count=${TOMCAT_CONNECTOR_ACCEPT_COUNT} \
+            -Dserver.tomcat.connection-timeout=${TOMCAT_CONNECTOR_CONNECTION_TIMEOUT} \
+            -Dserver.tomcat.max-keep-alive-requests=${TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS} \
+            -Dserver.tomcat.keep-alive-timeout=${TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT} \
+            -Dserver.tomcat.reject-illegal-header-values=false \
+            -Dserver.tomcat.uri-encoding=UTF-8
           
           Restart=always
 

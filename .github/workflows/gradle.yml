@@ -144,7 +144,11 @@ jobs:
             -Dspring.mail.username=${MAIL_USERNAME} \
             -Dspring.mail.password=${MAIL_PASSWORD} \
             -Dspring.mail.properties.mail.smtp.auth=true \
-            -Dspring.mail.properties.mail.smtp.starttls.enable=true
+            -Dspring.mail.properties.mail.smtp.starttls.enable=true \
+            -Dspring.mail.properties.mail.smtp.timeout=5000 \
+            -Dspring.mail.properties.mail.smtp.connectiontimeout=5000 \
+            -Dspring.mail.properties.mail.smtp.writetimeout=5000 \
+            -Dspring.mail.properties.mail.transport.protocol=smtp
           
           Restart=always
 

@@ -1,6 +1,13 @@
 package com.swyp.controller;
+<<<<<<< HEAD
 
 
+=======
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swyp.goal.controller.GoalRestController;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.service.GoalService;
+>>>>>>> 4c72f1d2ae3defb33ce2ff19255d84c2244b8f83
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -8,10 +15,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+<<<<<<< HEAD
 
 import java.util.Collections;
 import java.util.List;
 
+=======
+import java.util.Collections;
+import java.util.List;
+>>>>>>> 4c72f1d2ae3defb33ce2ff19255d84c2244b8f83
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -24,11 +36,14 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+<<<<<<< HEAD
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swyp.goal.controller.GoalRestController;
 import com.swyp.goal.entity.Goal;
 import com.swyp.goal.service.GoalService;
 
+=======
+>>>>>>> 4c72f1d2ae3defb33ce2ff19255d84c2244b8f83
 @WebMvcTest(GoalRestController.class)  // 컨트롤러 테스트용 설정
 class GoalRestControllerTest {
 

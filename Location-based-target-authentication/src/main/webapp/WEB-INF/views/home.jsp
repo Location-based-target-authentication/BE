@@ -68,9 +68,12 @@
         <input type="text" id="userId" name="userId" required ><br><br>
         <input type="submit" value="목표 목록 조회">
     </form>
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 4c72f1d2ae3defb33ce2ff19255d84c2244b8f83
     <h3>목표 상세 조회</h3>
     <form id="goalCheckForm" action="/api/v1/goals/check/{goalId}" method="get">
         <label for="goalId">목표 ID:</label>

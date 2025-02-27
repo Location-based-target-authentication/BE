@@ -44,12 +44,6 @@ public class GoalService {
     private final UserRepository userRepository;
 
 
-
-
-    
-    
-
-
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);
@@ -286,7 +280,7 @@ public class GoalService {
          if (days.length() > 0) {
              days.setLength(days.length() - 1);
          }
- 
+
          goal.setStatus(GoalStatus.COMPLETE);
          goal.setUpdatedAt(LocalDateTime.now());
          goalRepository.save(goal);
@@ -300,8 +294,10 @@ public class GoalService {
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
          goalAchievements.setDays(days.toString()); // day 
+
          goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기 
          
+
          goalAchievementsRepository.save(goalAchievements);
          return goal;
      }

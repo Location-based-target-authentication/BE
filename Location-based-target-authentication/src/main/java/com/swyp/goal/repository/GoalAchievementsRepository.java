@@ -10,8 +10,6 @@ import com.swyp.goal.entity.GoalAchievements;
 @Repository
 public interface GoalAchievementsRepository extends JpaRepository<GoalAchievements, Long> {
 
-   
-
 	List<GoalAchievements> findByUserId(Long userId);
 
 }

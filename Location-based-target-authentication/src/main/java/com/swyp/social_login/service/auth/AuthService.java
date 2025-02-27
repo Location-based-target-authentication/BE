@@ -19,20 +19,20 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PointRepository pointRepository;
-    private final KakaoAuthImpl kakaoAuthImpl;
-    private final GoogleAuthImpl googleAuthImpl;
+    private final KakaoAuthService kakaoAuthService;
+    private final GoogleAuthService googleAuthService;
     public SocialUserResponseDto loginWithKakao(String code) {
         // 1. 카카오에서 OAuth2 Access Token 발급
-        String kakaoAccessToken = kakaoAuthImpl.getAccessToken(code);
+        String kakaoAccessToken = kakaoAuthService.getAccessToken(code);
         // 2. 카카오에서 사용자 정보 가져오기
-        Map<String, Object> userInfo = kakaoAuthImpl.getUserInfo(kakaoAccessToken);
+        Map<String, Object> userInfo = kakaoAuthService.getUserInfo(kakaoAccessToken);
         return saveOrUpdateUser(userInfo, kakaoAccessToken, SocialType.KAKAO);
     }
 
     //2. 구글 로그인 처리
     public SocialUserResponseDto loginWithGoogle(String code) {
-        String googleAccessToken = googleAuthImpl.getAccessToken(code);
-        Map<String, Object> userInfo = googleAuthImpl.getUserInfo(googleAccessToken);
+        String googleAccessToken = googleAuthService.getAccessToken(code);
+        Map<String, Object> userInfo = googleAuthService.getUserInfo(googleAccessToken);
         return saveOrUpdateUser(userInfo, googleAccessToken, SocialType.GOOGLE);
     }
     // 사용자 정보 저장 또는 업데이트 (카카오 & 구글)

@@ -1,16 +1,11 @@
 package com.swyp.goal.controller;
 
-import java.util.HashMap;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.swyp.goal.repository.GoalRepository;
-import com.swyp.point.service.GoalPointHandler;
-import com.swyp.point.service.PointService;
-import com.swyp.social_login.entity.AuthUser;
-import com.swyp.social_login.repository.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,6 +34,7 @@ import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
+import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
 
@@ -61,10 +57,9 @@ public class GoalRestController {
     private final GoalRepository goalRepository;
     private final GoalPointHandler goalPointHandler;
     private final PointService pointService;
-
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
-    
+
     // 목표 home
     @Operation(
     	    summary = "목표 home",
@@ -117,9 +112,7 @@ public class GoalRestController {
         }
     	
     }
-    
-    
-    
+
     
     //목표 생성, 프론트에서 StatusCheck는 임시저장(DRAFT) 또는 활성화(ACTIVE)를 선택해서 넘겨야 함, selectedDays는 요일 선택 체크박스에서 넘어오는 값
     //Mon, Tue, Wed, Thu, Fri, Sat, Sun 이렇게 넘어옴
@@ -128,9 +121,9 @@ public class GoalRestController {
     	    description = "목표 생성을 위해 여러 값을 넘겨야 됩니다.",
     	    responses = {
     	    	@ApiResponse(
-    	     	         responseCode = "200",
+    	     	         responseCode = "201",
     	     	         description = "성공",
-    	     	         content = @Content(mediaType = "application/json",schema = @Schema(implementation = Goal.class))
+    	     	         content = @Content(mediaType = "application/json",schema = @Schema(example = "{\"String\": \"목표 생성 성공\"}"))
     	     	     ),
     	        @ApiResponse(
     	            responseCode = "400",
@@ -159,6 +152,7 @@ public class GoalRestController {
                                         @RequestParam("days") List<DayOfWeek> selectedDays) {
         try {
             Goal createGoal = goalService.createGoal(goal, statusCheck, selectedDays);
+
             //(포인트) 생성된 목표의 userId를 이용해 사용자를 조회
             AuthUser authUser = userRepository.findById(createGoal.getUserId()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             int updatedPoints = pointService.getUserPoints(authUser);
@@ -166,7 +160,7 @@ public class GoalRestController {
             Map<String, Object> response = new HashMap<>();
             response.put("goal", createGoal);
             response.put("totalPoints", updatedPoints);
-            return new ResponseEntity<>(createGoal, HttpStatus.CREATED);
+            return new ResponseEntity<>("목표 생성 성공", HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
@@ -203,14 +197,13 @@ public class GoalRestController {
     	try {
     	List<Goal> goalList = goalService.getGoalList(userId);
     	List<GoalAllSearchDto> goalAllDto = new ArrayList<>();
-    	
-    	
     	for(Goal goal : goalList) {
     		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
     		System.out.println(calender);
     		List<GoalDateDto> goalDateDto = new ArrayList<>();
     		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
-    		
+
+
     		 for (GoalAchievementsLog log : logs) {
     	            GoalDateDto dto = new GoalDateDto(log.getAchievedAt(), log.isAchievedSuccess());
     	            goalDateDto.add(dto);
@@ -235,16 +228,12 @@ public class GoalRestController {
     		 goalAllDto.add(dto);
     		 
     	}
-
         return new ResponseEntity<>(goalAllDto, HttpStatus.OK);
     	} catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-    
-    
-    
+
      //목표 1개 상세 목표 조회 (목표 상세조회)
     @Operation(
     	    summary = "목표 상세 조회",
@@ -309,16 +298,7 @@ public class GoalRestController {
     	return new ResponseEntity<>(goalCompleteDtoList,HttpStatus.OK);
     	
     }
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+
          //임시저장된 목표조회 ( 사용 x )
     @GetMapping("/v1/goals/{userId}/check/draft")
     public ResponseEntity<List<Goal>> getGoalDraft(@PathVariable("userId") Long userId) {
@@ -393,6 +373,7 @@ public class GoalRestController {
         }catch (Exception e) {
         	return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+
     }
     
     
@@ -442,7 +423,6 @@ public class GoalRestController {
     }
 
 
-    
     @Operation(
     	    summary = "목표 1차인증",
     	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
@@ -473,6 +453,7 @@ public class GoalRestController {
             	    )
     	    }
     	)
+
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
@@ -496,7 +477,6 @@ public class GoalRestController {
         }
     }
 
-    
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
@@ -543,12 +523,13 @@ public class GoalRestController {
         Map<String, Object> response = new HashMap<>();
         int updatedPoints = pointService.getUserPoints(authUser);
         response.put("totalPoints", updatedPoints);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
     	}catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 	}
+
 }
 

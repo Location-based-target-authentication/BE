@@ -121,6 +121,7 @@ jobs:
             -Dspring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \
             -Dspring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \
             -Dspring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \
+            -Dgoogle.redirect.url=${GOOGLE_REDIRECT_URI} \
             -Dspring.security.oauth2.client.registration.google.scope=profile,email \
             -Dspring.security.oauth2.client.registration.google.client-name=Google \
             -Dspring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code \

@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+
+@CrossOrigin(origins = {"http://localhost:8080", "https://locationcheckgo.netlify.app", "http://175.45.203.57:8080"}, allowedHeaders = "*")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth/kakao")

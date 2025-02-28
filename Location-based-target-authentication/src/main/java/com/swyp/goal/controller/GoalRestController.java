@@ -470,7 +470,6 @@ public class GoalRestController {
 				//보너스 지급
 				goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
 				int afterBonusPoints = pointService.getUserPoints(authUser);
-
 				int bonusPoints = afterBonusPoints - afterDailyPoints;
 
 				Map<String, Object> response = new HashMap<>();

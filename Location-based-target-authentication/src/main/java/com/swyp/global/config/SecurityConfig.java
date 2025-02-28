@@ -38,11 +38,6 @@ public class SecurityConfig {
                             "/swagger-resources/configuration/security"
                         ).permitAll()
                         .requestMatchers("/", "/WEB-INF/view/**").permitAll()
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
-                        .requestMatchers("/api/v1/auth/kakao/login", "/api/v1/auth/kakao/callback").permitAll()
-                        .requestMatchers("/api/v1/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/", "/WEB-INF/view/**").permitAll() // JSP 파일 경로 허용
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll() // 포워드/인클루드 요청 허용
                         .anyRequest().authenticated()
                 )

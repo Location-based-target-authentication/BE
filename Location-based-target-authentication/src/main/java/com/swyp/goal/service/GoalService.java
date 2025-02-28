@@ -270,12 +270,9 @@ public class GoalService {
          // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
          AuthUser authUser = userRepository.findBySocialId(socialId)
                  .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-         int totalEarnedPoints = pointHistoryRepository
-                 .findByAuthUserAndGoalId(authUser, goalId)
-                 .stream()
-                 .filter(point -> point.getPointType() == PointType.ACHIEVEMENT || point.getPointType() == PointType.BONUS)
-                 .mapToInt(PointHistory::getPoints)
-                 .sum();
+         Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
+         totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
+
 
        //GoalAchievements 테이블로 day를 넘기기 위한 로직
          List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);

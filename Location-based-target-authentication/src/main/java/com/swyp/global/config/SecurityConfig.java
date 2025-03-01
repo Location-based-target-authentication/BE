@@ -13,7 +13,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.Arrays;
 @Configuration
@@ -54,6 +53,7 @@ public class SecurityConfig {
             "http://175.45.203.57:8443",
             "https://localhost:8443",
             "http://localhost:8443",
+            "http://localhost:8080",
             "https://locationcheckgo.netlify.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));

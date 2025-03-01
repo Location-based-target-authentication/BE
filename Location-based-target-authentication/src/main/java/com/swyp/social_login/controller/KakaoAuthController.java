@@ -46,9 +46,6 @@ public class KakaoAuthController {
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
         return ResponseEntity.ok(userResponse);
     }
-
-
-
     @Operation(summary = "카카오 로그인 후 callback", description = "카카오 로그인 후 callback")
     @GetMapping("/callback")
     public ResponseEntity<String> kakaoCallback(@RequestParam(name="code") String code) {

@@ -22,8 +22,8 @@ public class PointHistoryController {
     private final PointService pointService;
     private final UserRepository userRepository;
     @Operation(summary = "포인트 이력 조회")
-    @GetMapping("/{user_id}")
-    public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("user_id") String socialId) {
+    @GetMapping("/{social_id}")
+    public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("social_id") String socialId) {
         AuthUser authUser = findAuthUser(socialId);
         List<PointHistory> historyList = pointService.getPointHistory(authUser.getId());
         PointHistoryResponse response = new PointHistoryResponse(

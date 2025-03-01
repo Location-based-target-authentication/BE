@@ -22,7 +22,6 @@ import java.util.Map;
 public class PointController {
     private final PointService pointService;
     private final UserRepository userRepository;
-
     //포인트 조회
     @Operation(
             summary = "포인트 메인 페이지",
@@ -46,7 +45,7 @@ public class PointController {
                     )
             }
     )
-    @GetMapping("/{social_id}")
+    @GetMapping("/{user_id}")
     public ResponseEntity<PointBalanceResponse> getPoints( @PathVariable("social_id") String socialId){
         AuthUser authUser = findAuthUser(socialId);
         int points = pointService.getUserPoints(authUser);

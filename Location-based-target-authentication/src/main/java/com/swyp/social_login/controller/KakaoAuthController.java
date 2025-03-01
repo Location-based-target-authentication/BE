@@ -18,7 +18,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth/kakao")
 @Tag(name = "Kakao Auth", description = "카카오 소셜 로그인 API")
-@CrossOrigin(origins = {"https://locationcheckgo.netlify.app"}, allowCredentials = "true")
 public class KakaoAuthController {
     private final AuthService authService;
     private final UserService userService;
@@ -47,15 +46,9 @@ public class KakaoAuthController {
             
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
             userResponse = authService.generateJwtTokens(userResponse);
-            return ResponseEntity.ok()
-                .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
-                .header("Access-Control-Allow-Credentials", "true")
-                .body(userResponse);
+            return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
-                .header("Access-Control-Allow-Credentials", "true")
-                .body(null);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
     //access token을 직접 넘겨서 테스트함

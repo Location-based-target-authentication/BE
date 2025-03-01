@@ -24,21 +24,29 @@ public class KakaoAuthImpl implements KakaoAuthService {
     private String KAKAO_CLIENT_SECRET;
     @Value("${kakao.redirect.url}")
     private String KAKAO_REDIRECT_URL;
+    @Value("${kakao.redirect.url.local}")
+    private String KAKAO_REDIRECT_URL_LOCAL;
 
     // 1. OAuth2 Access Token 발급
     @Override
-    public String getAccessToken(String code) {
+    public String getAccessToken(String code, String referer) {
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
+        // Referer를 기반으로 적절한 리다이렉트 URL 선택
+        String redirectUrl = KAKAO_REDIRECT_URL;
+        if (referer != null && referer.contains("localhost")) {
+            redirectUrl = KAKAO_REDIRECT_URL_LOCAL;
+        }
+
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", KAKAO_CLIENT_ID);
         params.add("client_secret", KAKAO_CLIENT_SECRET);
-        params.add("redirect_uri", KAKAO_REDIRECT_URL);
+        params.add("redirect_uri", redirectUrl);
         params.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);

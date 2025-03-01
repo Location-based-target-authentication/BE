@@ -256,7 +256,7 @@ public class GoalService {
     }
      //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
      @Transactional
-     public Goal updateGoalStatusToComplete(Long goalId, String socialId, boolean isSelectedDay){
+     public Goal updateGoalStatusToComplete(Long goalId, String userId, boolean isSelectedDay){
          Goal goal = goalRepository.findById(goalId)
          .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
          // Status가 ACTIVE인 애들만 완료 처리가능
@@ -268,7 +268,7 @@ public class GoalService {
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
          // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
-         AuthUser authUser = userRepository.findBySocialId(socialId)
+         AuthUser authUser = userRepository.findByUserId(userId)
                  .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
          Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
          totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;

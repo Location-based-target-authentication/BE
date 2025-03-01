@@ -60,7 +60,7 @@ public class AuthController {
         }
         AuthUser user = optionalUser.get();
         // 5. 새로운 Access Token 생성 및 반환
-        String newAccessToken = jwtUtil.generateAccessToken(user.getSocialId());
+        String newAccessToken = jwtUtil.generateAccessToken(user.getUserId());
         return ResponseEntity.ok(Map.of(
                 "accessToken", newAccessToken,
                 "tokenType", "Bearer"

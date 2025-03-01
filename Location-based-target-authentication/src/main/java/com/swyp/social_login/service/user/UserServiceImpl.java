@@ -22,7 +22,7 @@ public class UserServiceImpl implements UserDetailsService {
         AuthUser user = userRepository.findBySocialId(socialId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with socialId: " + socialId));
         return new org.springframework.security.core.userdetails.User(
-                user.getSocialId(), "",
+                user.getUserId(), "",
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
         );
     }

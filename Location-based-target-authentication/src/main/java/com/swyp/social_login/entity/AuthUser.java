@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder = true)
 @Table(name = "users")
 public class AuthUser {
 
@@ -29,6 +29,9 @@ public class AuthUser {
 
     @Column(nullable = false)
     private String username;
+
+    @Column(nullable = false)
+    private String name;
 
     @Column(nullable = false, length=512)
     private String accessToken;
@@ -46,22 +49,25 @@ public class AuthUser {
     @Column(nullable = false)
     private SocialType socialType;
 
-    @OneToOne(mappedBy = "authUser", cascade = CascadeType.ALL)
-    private Point point;
+    @OneToOne(mappedBy = "authUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private Point point = null;
 
-    @OneToMany(mappedBy = "authUser", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "authUser", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<PointHistory> pointHistories = new ArrayList<>();
 
     public AuthUser(String socialId, String username, String email, String accessToken, SocialType socialType) {
         this.socialId = socialId;
-        this.userId = socialId; // socialId를 userId로 사용
+        this.userId = socialId;
         this.username = username;
+        this.name = username;
         this.email = email;
         this.accessToken = accessToken;
         this.socialType = socialType;
     }
-    public void updatePhoneNumber(String phone){
+
+    public void updatePhoneNumber(String phone) {
         this.phoneNumber = phone;
     }
 }

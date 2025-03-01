@@ -172,6 +172,7 @@ public class GoalService {
         if (dto.getLatitude() != null) goal.setLatitude(dto.getLatitude());
         if (dto.getLongitude() != null) goal.setLongitude(dto.getLongitude());
         if (dto.getRadius() != null) goal.setRadius(dto.getRadius());
+        
 
         goal.setUpdatedAt(LocalDateTime.now());
 

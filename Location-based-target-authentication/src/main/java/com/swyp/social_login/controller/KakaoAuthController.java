@@ -28,8 +28,7 @@ public class KakaoAuthController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, SocialUserResponseDto>> kakaoLogin(
             @RequestParam(name = "code", required = false) String codeParam,
-            @RequestBody(required = false) Map<String, String> body,
-            @RequestHeader(value = "Referer", required = false) String referer) {
+            @RequestBody(required = false) Map<String, String> body) {
         
         String code = codeParam;
         if (code == null && body != null) {
@@ -41,7 +40,7 @@ public class KakaoAuthController {
         }
 
         try {
-            String accessToken = kakaoAuthService.getAccessToken(code, referer);
+            String accessToken = kakaoAuthService.getAccessToken(code);
             Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
             
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);

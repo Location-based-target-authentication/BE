@@ -26,7 +26,7 @@ public class KakaoAuthController {
 
     @Operation(summary = "카카오 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
-    public ResponseEntity<SocialUserResponseDto> kakaoLogin(
+    public ResponseEntity<Map<String, SocialUserResponseDto>> kakaoLogin(
             @RequestParam(name = "code", required = false) String codeParam,
             @RequestBody(required = false) Map<String, String> body) {
         
@@ -45,7 +45,7 @@ public class KakaoAuthController {
             
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
             userResponse = authService.generateJwtTokens(userResponse);
-            return ResponseEntity.ok(userResponse);
+            return ResponseEntity.ok(Map.of("data", userResponse));
         } catch (Exception e) {
             e.printStackTrace(); // 로깅 추가
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
@@ -53,13 +53,13 @@ public class KakaoAuthController {
     }
     //access token을 직접 넘겨서 테스트함
     @PostMapping("/userinfo")
-    public ResponseEntity<SocialUserResponseDto> getKakaoUserInfo(@RequestParam(name = "accessToken") String accessToken) {
+    public ResponseEntity<Map<String, SocialUserResponseDto>> getKakaoUserInfo(@RequestParam(name = "accessToken") String accessToken) {
         if (accessToken == null || accessToken.isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
         Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
-        return ResponseEntity.ok(userResponse);
+        return ResponseEntity.ok(Map.of("data", userResponse));
     }
     @Operation(summary = "카카오 로그인 후 callback", description = "카카오 로그인 후 callback")
     @GetMapping("/callback")

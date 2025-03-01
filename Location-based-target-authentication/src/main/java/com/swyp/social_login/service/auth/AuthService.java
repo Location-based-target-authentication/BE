@@ -38,24 +38,27 @@ public class AuthService {
     // 사용자 정보 저장 또는 업데이트 (카카오 & 구글)
     public SocialUserResponseDto saveOrUpdateUser(Map<String, Object> userInfo, String accessToken, SocialType socialType) {
         // 필수 사용자 정보
-        String socialId = userInfo.getOrDefault("socialId", "").toString();
+        String userId = userInfo.getOrDefault("userId", "").toString();
         String username = userInfo.getOrDefault("username", "Unknown").toString();
         String email = userInfo.getOrDefault("email", "").toString();
+        
         // DB에서 기존 사용자 확인
-        Optional<AuthUser> optionalUser = userRepository.findBySocialId(socialId);
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         AuthUser user;
         if (optionalUser.isPresent()) {// 3-1. 기존 사용자 → Access Token 업데이트
             user = optionalUser.get();
             user.setAccessToken(accessToken);
         } else {// 3-2. 신규 사용자 → DB에 저장
-            user = new AuthUser(socialId, username, email, accessToken, socialType);
+            user = new AuthUser(userId, username, email, accessToken, socialType);
             userRepository.save(user);
             Point point = new Point(user);
             point.setTotalPoints(2000);
             pointRepository.save(point);
         }
+        
         //기존 유저라도 포인트 없으면 생성
-        pointRepository.findByAuthUser(user).orElseGet(()->pointRepository.save(new Point(user)));
+        pointRepository.findByAuthUser(user).orElseGet(() -> pointRepository.save(new Point(user)));
+        
         // JWT Access Token & Refresh Token 생성
         SocialUserResponseDto userResponse = new SocialUserResponseDto(user);
         return generateJwtTokens(userResponse);
@@ -63,14 +66,16 @@ public class AuthService {
 
     //JWT AccessToken & RefreshToken 생성 및 저장
     public SocialUserResponseDto generateJwtTokens(SocialUserResponseDto userResponse) {
-        String accessToken = jwtUtil.generateAccessToken(userResponse.getSocialId());
-        String refreshToken = jwtUtil.generateRefreshToken(userResponse.getSocialId());
+        String accessToken = jwtUtil.generateAccessToken(userResponse.getUserId());
+        String refreshToken = jwtUtil.generateRefreshToken(userResponse.getUserId());
+        
         // Refresh Token을 DB에 저장
-        Optional<AuthUser> optionalUser = userRepository.findBySocialId(userResponse.getSocialId());
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userResponse.getUserId());
         optionalUser.ifPresent(user -> {
             user.setRefreshToken(refreshToken);
             userRepository.save(user);
         });
+        
         userResponse.setTokens(accessToken, refreshToken);
         return userResponse;
     }

@@ -35,8 +35,8 @@ public class PointHistoryController {
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(String userId) {
-        return userRepository.findByUserId(userId)
+    private AuthUser findAuthUser(String id) {
+        return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 }

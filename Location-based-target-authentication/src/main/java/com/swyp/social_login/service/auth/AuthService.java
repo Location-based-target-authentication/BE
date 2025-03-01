@@ -48,7 +48,7 @@ public class AuthService {
             user = optionalUser.get();
             user.setAccessToken(accessToken);
         } else {// 3-2. 신규 사용자 → DB에 저장
-            user = new AuthUser(socialId, username, email, accessToken, socialType);
+            user = new AuthUser(null, socialId, username, accessToken, email, socialType);
             userRepository.save(user);
             Point point = new Point(user);
             point.setTotalPoints(2000);

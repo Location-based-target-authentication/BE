@@ -51,14 +51,15 @@ public class AuthUser {
     @Builder.Default
     private List<PointHistory> pointHistories = new ArrayList<>();
 
-
-    public AuthUser(String socialId, String username, String email, String accessToken, SocialType socialType) {
+    public AuthUser(Long id, String socialId, String username, String accessToken, String email, SocialType socialType) {
+        this.id = id;
         this.socialId = socialId;
         this.username = username;
-        this.email = email;
         this.accessToken = accessToken;
+        this.email = email;
         this.socialType = socialType;
     }
+
     public void updatePhoneNumber(String phone){
         this.phoneNumber = phoneNumber;
     }

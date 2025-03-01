@@ -35,11 +35,11 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", "Invalid Access Token"));
         }
-        // 2. socialId 추출
-        String socialId = jwtUtil.extractUserId(accessToken);
+        // 2. userId 추출
+        String userId = jwtUtil.extractUserId(accessToken);
         // 3. 전화번호 저장
         try {
-            SocialUserResponseDto userResponse = userService.savePhoneNumber(socialId, phoneRequestDto.getPhoneNumber());
+            SocialUserResponseDto userResponse = userService.savePhoneNumber(userId, phoneRequestDto.getPhoneNumber());
             return ResponseEntity.ok(Map.of(
                     "message", "전화번호가 성공적으로 저장됨",
                     "user", userResponse

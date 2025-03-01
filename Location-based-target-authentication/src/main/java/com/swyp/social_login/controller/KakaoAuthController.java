@@ -42,12 +42,12 @@ public class KakaoAuthController {
         try {
             String accessToken = kakaoAuthService.getAccessToken(code);
             Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
-            String kakaoId = kakaoUserInfo.get("socialId").toString();
             
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
             userResponse = authService.generateJwtTokens(userResponse);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
+            e.printStackTrace(); // 로깅 추가
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }

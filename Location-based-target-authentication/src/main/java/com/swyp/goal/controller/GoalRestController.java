@@ -242,7 +242,7 @@ public class GoalRestController {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
-    	            content = @Content(mediaType = "application/json",schema = @Schema(implementation = GoalHomeResponseDto.class))
+    	            content = @Content(mediaType = "application/json",schema = @Schema(implementation = GoalDetailDto.class))
     	        )
     	    }
     	)
@@ -425,14 +425,15 @@ public class GoalRestController {
 
     @Operation(
     	    summary = "목표 1차인증",
-    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
+    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 보너스포인트가 0이 아닐때만 추가보너스 들어온것, 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
     	            content = @Content(
     	            	 mediaType = "application/json",
-        	             schema = @Schema(implementation = Boolean.class, example = "true")
+        	             schema = @Schema(example = "{\"achievementStatus\": \"성공 OR 실패\", \"totalPoints\": 100, \"bonusPoints\": 30 OR 0}")
+    	            	 
     	            )
     	        ),
     	        @ApiResponse(
@@ -451,6 +452,7 @@ public class GoalRestController {
             	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
             	        )
             	    )
+    	        
     	    }
     	)
 
@@ -498,14 +500,14 @@ public class GoalRestController {
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
-    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",
+    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장  ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
     	            content = @Content(
     	            	 mediaType = "application/json",
-    	            	 schema = @Schema(example = "{\"String\": \"목표 달성 완료 (목표Status:COMPLETE로변경)\"}")
+    	            	 schema = @Schema(example = "{\"String\": \"목표 달성 완료\"}")
     	            )
     	        ),
     	        @ApiResponse(

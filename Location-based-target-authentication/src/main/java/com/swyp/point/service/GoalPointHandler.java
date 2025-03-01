@@ -83,6 +83,9 @@ public class GoalPointHandler {
                 pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
             }
         }
+
+         // 6일이하, 7일 달성 보너시 지급 달성 여부 
     }
+
 }
 

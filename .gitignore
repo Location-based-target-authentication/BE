@@ -1,3 +1,7 @@
 .ssh/
+<<<<<<< HEAD
+.ssh/
+=======
 .gradle/8.8/fileHashes/fileHashes.bin
 .gradle/8.8/fileHashes/fileHashes.lock
+>>>>>>> 4c72f1d2ae3defb33ce2ff19255d84c2244b8f83

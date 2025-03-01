@@ -47,6 +47,7 @@ public class GoalService {
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
 
+
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);
@@ -266,7 +267,6 @@ public class GoalService {
          if (goal.getAchievedCount()<goal.getTargetCount()){
              throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
          }
-
          // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
          AuthUser authUser = userRepository.findBySocialId(socialId)
                  .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -284,6 +284,7 @@ public class GoalService {
          if (days.length() > 0) {
              days.setLength(days.length() - 1);
          }
+
          goal.setStatus(GoalStatus.COMPLETE);
          goal.setUpdatedAt(LocalDateTime.now());
          goalRepository.save(goal);

@@ -8,6 +8,7 @@ import com.swyp.social_login.service.auth.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth/kakao")
 @Tag(name = "Kakao Auth", description = "카카오 소셜 로그인 API")
+@CrossOrigin(origins = {"https://locationcheckgo.netlify.app"}, allowCredentials = "true")
 public class KakaoAuthController {
     private final AuthService authService;
     private final UserService userService;
@@ -38,13 +40,23 @@ public class KakaoAuthController {
             throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");
         }
 
-        String accessToken = kakaoAuthService.getAccessToken(code);
-        Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
-        String kakaoId = kakaoUserInfo.get("socialId").toString();
-        
-        SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
-        userResponse = authService.generateJwtTokens(userResponse);
-        return ResponseEntity.ok(userResponse);
+        try {
+            String accessToken = kakaoAuthService.getAccessToken(code);
+            Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
+            String kakaoId = kakaoUserInfo.get("socialId").toString();
+            
+            SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
+            userResponse = authService.generateJwtTokens(userResponse);
+            return ResponseEntity.ok()
+                .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
+                .header("Access-Control-Allow-Credentials", "true")
+                .body(userResponse);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
+                .header("Access-Control-Allow-Credentials", "true")
+                .body(null);
+        }
     }
     //access token을 직접 넘겨서 테스트함
     @PostMapping("/userinfo")

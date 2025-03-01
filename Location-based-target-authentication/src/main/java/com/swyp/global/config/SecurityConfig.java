@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
 import java.util.Arrays;
 @Configuration
@@ -21,28 +22,15 @@ import java.util.Arrays;
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/oauth2/**").permitAll()
-                        .requestMatchers(
-                            "/swagger-ui/**",
-                            "/swagger-ui.html",
-                            "/swagger-resources/**",
-                            "/v3/api-docs/**",
-                            "/webjars/**",
-                            "/swagger-resources",
-                            "/swagger-resources/configuration/ui",
-                            "/swagger-resources/configuration/security"
-                        ).permitAll()
-                        .requestMatchers("/", "/WEB-INF/view/**").permitAll()
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll() // 포워드/인클루드 요청 허용
-                        .anyRequest().authenticated()
-                )
-                .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .csrf(AbstractHttpConfigurer::disable)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/v1/auth/**", "/oauth2/**", "/swagger-ui/**", "/v3/api-docs/**", "/static/**").permitAll()
+                .anyRequest().authenticated()
+            );
         return http.build();
     }
     @Bean
@@ -50,18 +38,12 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
             "https://locationcheckgo.netlify.app",
-            "https://localhost:8443",
-            "http://localhost:8443",
+            "http://localhost:3000",
             "http://localhost:8080",
-            "https://175.45.203.57:8443",
-            "http://175.45.203.57:8443"
+            "https://175.45.203.57:8443"
         ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setExposedHeaders(Arrays.asList(
-            "Access-Control-Allow-Origin",
-            "Access-Control-Allow-Credentials"
-        ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         

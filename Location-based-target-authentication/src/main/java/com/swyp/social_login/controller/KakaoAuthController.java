@@ -44,7 +44,7 @@ public class KakaoAuthController {
             String accessToken = kakaoAuthService.getAccessToken(code, referer);
             Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
             
-            SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
+            SocialUserResponseDto userResponse = authService.loginWithKakao(code, referer);
             userResponse = authService.generateJwtTokens(userResponse);
             return ResponseEntity.ok(Map.of("data", userResponse));
         } catch (Exception e) {

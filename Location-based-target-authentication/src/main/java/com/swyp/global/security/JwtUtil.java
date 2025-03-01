@@ -54,9 +54,9 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String generateRefreshToken(String socialId) {
+    public String generateRefreshToken(String userId) {
         return Jwts.builder()
-                .setSubject(socialId)
+                .setSubject(userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)

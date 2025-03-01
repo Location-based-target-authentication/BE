@@ -22,10 +22,7 @@ public class AuthUser {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userId;
-
-    @Column(nullable = false, unique = true)
-    private String socialId; // 카카오 또는 구글에서 받은 고유 ID
+    private String userId; // 카카오 또는 구글에서 받은 고유 ID
 
     @Column(nullable = false)
     private String username;
@@ -57,9 +54,8 @@ public class AuthUser {
     @Builder.Default
     private List<PointHistory> pointHistories = new ArrayList<>();
 
-    public AuthUser(String socialId, String username, String email, String accessToken, SocialType socialType) {
-        this.socialId = socialId;
-        this.userId = socialId;
+    public AuthUser(String userId, String username, String email, String accessToken, SocialType socialType) {
+        this.userId = userId;
         this.username = username;
         this.name = username;
         this.email = email;

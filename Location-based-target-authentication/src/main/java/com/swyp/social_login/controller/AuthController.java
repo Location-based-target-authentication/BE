@@ -48,13 +48,13 @@ public class AuthController {
             ));
         }
 
-        String socialId = jwtUtil.extractUserId(refreshToken);
-        if (socialId == null || socialId.isEmpty()) {
+        String userId = jwtUtil.extractUserId(refreshToken);
+        if (userId == null || userId.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Refresh Token"));
         }
 
         // 4. DB에서 해당 사용자 조회
-        Optional<AuthUser> optionalUser = userRepository.findBySocialId(socialId);
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "사용자를 찾을 수 없습니다."));
         }
@@ -95,12 +95,12 @@ public class AuthController {
         }
 
         // JWT에서 socialId 추출
-        String socialId = jwtUtil.extractUserId(accessToken);
-        if (socialId == null || socialId.isEmpty()) {
+        String userId = jwtUtil.extractUserId(accessToken);
+        if (userId == null || userId.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Access Token"));
         }
         // DB에서 사용자 정보 조회
-        SocialUserResponseDto userResponse = userService.getUserInfoFromDb(socialId);
+        SocialUserResponseDto userResponse = userService.getUserInfoFromDb(userId);
         if (userResponse == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
         }

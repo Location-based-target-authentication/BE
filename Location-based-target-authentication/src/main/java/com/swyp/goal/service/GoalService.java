@@ -294,7 +294,6 @@ public class GoalService {
          goalAchievements.setStartDate(goal.getStartDate());
          goalAchievements.setEndDate(goal.getEndDate());
          goalAchievements.setDays(days.toString()); // day 
-
          goalAchievements.setPointsEarned(0); //TODO : 포인트 로직 완료시 로직 넣기 
          
 

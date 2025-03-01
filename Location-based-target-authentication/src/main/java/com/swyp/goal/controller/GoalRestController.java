@@ -456,11 +456,8 @@ public class GoalRestController {
 
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
-    public ResponseEntity<?> GoalAchievementResponse(
-            @PathVariable("goalId") Long goalId,
-            @RequestParam("userId") Long userId,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude) {
+    public ResponseEntity<?> GoalAchievementResponse(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
+    		@RequestParam("latitude") Double latitude,@RequestParam("longitude") Double longitude) {
         try {
             boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
             AuthUser authUser = userRepository.findById(userId)
@@ -476,6 +473,7 @@ public class GoalRestController {
             return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
 
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
@@ -509,27 +507,34 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/{goalId}/complete")
-    public ResponseEntity<?> updateGoalStatusToComplete(
-            @PathVariable("goalId") Long goalId,
-            @RequestParam("userId") Long userId,
+    public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
-    	try {
-        AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-        goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
-        // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
-        goalRepository.save(updatedGoal);
-        Map<String, Object> response = new HashMap<>();
-        int updatedPoints = pointService.getUserPoints(authUser);
-        response.put("totalPoints", updatedPoints);
-        return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
-    	}catch (IllegalStateException e) {
+        try {
+            AuthUser authUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            Goal goal = goalRepository.findById(goalId)
+                    .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+            // 7일 목표 달성 여부 확인
+            goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+
+            // 목표 상태 COMPLETE로 변경 (목표 횟수 달성시 )
+            Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
+            goalRepository.save(updatedGoal);
+
+            // 응답 데이터 구성
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "목표 달성 완료");
+            response.put("totalPoints", pointService.getUserPoints(authUser));
+            
+
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-	}
+    }
+
 
 }
 

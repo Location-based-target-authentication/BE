@@ -54,23 +54,28 @@ public class GoalPointHandler {
     // 3. 목표 완료 시 보너스 지급
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
-        // 현재 주의 시작일과 종료일 계산 (일요일~토요일 기준)
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
 
         // 현재 주의 목표 달성 횟수 가져오기
-
         int weeklyAchievedCount = goalAchievementsLogRepository.countByGoalIdAndUserIdAndAchievedSuccessAndAchievedAtBetween(
                 goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
-        // 6일 이하 달성
-        if (weeklyAchievedCount<=6 && weeklyAchievedCount >= goal.getTargetCount()) {
+
+        // 6일 이하 달성 시 보너스 지급
+        if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {
             pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
+            
         }
-        // 7일 달성
+
+        // 7일 달성 시 보너스 지급 및 달성 여부 설정
         if (weeklyAchievedCount == 7) {
             pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
+            
         }
+
+         // 6일이하, 7일 달성 보너시 지급 달성 여부 
     }
+
 }
 

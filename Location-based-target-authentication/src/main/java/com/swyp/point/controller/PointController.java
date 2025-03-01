@@ -46,7 +46,7 @@ public class PointController {
             }
     )
     @GetMapping("/{user_id}")
-    public ResponseEntity<PointBalanceResponse> getPoints( @PathVariable("user_id") String userId){
+    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("user_id") String userId) {
         AuthUser authUser = findAuthUser(userId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -74,10 +74,17 @@ public class PointController {
             }
     )
     @PostMapping("/{user_id}/add")
-    public ResponseEntity<String> addPoints(@PathVariable("user_id") String userId, @RequestBody PointAddRequest request){
+    public ResponseEntity<Map<String, Object>> addPoints(
+            @PathVariable("user_id") String userId,
+            @RequestBody PointAddRequest request) {
         AuthUser authUser = findAuthUser(userId);
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
-        return ResponseEntity.ok("포인트가 적립됨");
+        int updatedPoints = pointService.getUserPoints(authUser);
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "포인트가 적립됨");
+        response.put("totalPoints", updatedPoints);
+        return ResponseEntity.ok(response);
     }
     //포인트 차감
     @Operation(
@@ -103,7 +110,9 @@ public class PointController {
             }
     )
     @PostMapping("/{user_id}/deduct")
-    public ResponseEntity<Map<String, Object>> deductPoints(@PathVariable("user_id") String userId, @RequestBody PointDedeductRequest request) {
+    public ResponseEntity<Map<String, Object>> deductPoints(
+            @PathVariable("user_id") String userId,
+            @RequestBody PointDedeductRequest request) {
         AuthUser authUser = findAuthUser(userId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
         Map<String, Object> response = new HashMap<>();
@@ -118,8 +127,9 @@ public class PointController {
         response.put("totalPoints", updatedPoints);
         return ResponseEntity.ok(response);
     }
-    private AuthUser findAuthUser(String userId){
-        return userRepository.findByUserId(userId).orElseThrow(()-> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    private AuthUser findAuthUser(String userId) {
+        return userRepository.findByUserId(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
 

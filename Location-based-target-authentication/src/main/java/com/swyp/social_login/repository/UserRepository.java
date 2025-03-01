@@ -1,6 +1,5 @@
 package com.swyp.social_login.repository;
 
-
 import com.swyp.social_login.entity.AuthUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 

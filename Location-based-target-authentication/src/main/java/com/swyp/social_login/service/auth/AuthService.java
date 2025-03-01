@@ -21,9 +21,9 @@ public class AuthService {
     private final PointRepository pointRepository;
     private final KakaoAuthService kakaoAuthService;
     private final GoogleAuthService googleAuthService;
-    public SocialUserResponseDto loginWithKakao(String code, String referer) {
+    public SocialUserResponseDto loginWithKakao(String code) {
         // 1. 카카오에서 OAuth2 Access Token 발급
-        String kakaoAccessToken = kakaoAuthService.getAccessToken(code, referer);
+        String kakaoAccessToken = kakaoAuthService.getAccessToken(code);
         // 2. 카카오에서 사용자 정보 가져오기
         Map<String, Object> userInfo = kakaoAuthService.getUserInfo(kakaoAccessToken);
         return saveOrUpdateUser(userInfo, kakaoAccessToken, SocialType.KAKAO);

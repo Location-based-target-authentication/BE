@@ -23,20 +23,20 @@ public class PointHistoryController {
     private final UserRepository userRepository;
     @Operation(summary = "포인트 이력 조회")
     @GetMapping("/{user_id}")
-    public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("user_id") String socialId) {
-        AuthUser authUser = findAuthUser(socialId);
+    public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("user_id") String userId) {
+        AuthUser authUser = findAuthUser(userId);
         List<PointHistory> historyList = pointService.getPointHistory(authUser.getId());
         PointHistoryResponse response = new PointHistoryResponse(
                 authUser.getId(),
-                authUser.getSocialId(),
+                authUser.getUsername(),
                 historyList
         );
 
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(String socialId) {
-        return userRepository.findBySocialId(socialId)
+    private AuthUser findAuthUser(String userId) {
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 }

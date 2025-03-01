@@ -1,5 +1,4 @@
 package com.swyp.global.config;
-
 import com.swyp.global.security.JwtAuthenticationFilter;
 import com.swyp.global.security.JwtUtil;
 import jakarta.servlet.DispatcherType;
@@ -16,13 +15,11 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -42,13 +39,12 @@ public class SecurityConfig {
                             "/swagger-resources/configuration/security"
                         ).permitAll()
                         .requestMatchers("/", "/WEB-INF/view/**").permitAll()
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll()
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD, DispatcherType.INCLUDE).permitAll() // 포워드/인클루드 요청 허용
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
@@ -57,6 +53,7 @@ public class SecurityConfig {
             "http://175.45.203.57:8443",
             "https://localhost:8443",
             "http://localhost:8443",
+            "http://localhost:8080",
             "https://locationcheckgo.netlify.app"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
@@ -73,6 +70,8 @@ public class SecurityConfig {
             "Access-Control-Allow-Origin",
             "Access-Control-Allow-Credentials"
         ));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST","PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(3600L);
         

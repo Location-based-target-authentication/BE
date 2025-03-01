@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+
+@CrossOrigin(origins = {"http://localhost:8080", "https://locationcheckgo.netlify.app", "http://175.45.203.57:8080"}, allowedHeaders = "*")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/auth/kakao")
@@ -44,9 +46,6 @@ public class KakaoAuthController {
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
         return ResponseEntity.ok(userResponse);
     }
-
-
-
     @Operation(summary = "카카오 로그인 후 callback", description = "카카오 로그인 후 callback")
     @GetMapping("/callback")
     public ResponseEntity<String> kakaoCallback(@RequestParam(name="code") String code) {

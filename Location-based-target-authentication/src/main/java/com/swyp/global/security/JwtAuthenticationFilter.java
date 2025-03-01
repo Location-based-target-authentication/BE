@@ -34,7 +34,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // Google / Kakao Callback 요청은 JWT 인증을 건너뜀
-        if (requestUri.contains("/api/v1/auth/google/callback") || requestUri.contains("/api/v1/auth/kakao/callback")) {
+        if (requestUri.contains("/api/v1/auth/google/callback") ||
+                requestUri.contains("/api/v1/auth/kakao/callback") ||
+                requestUri.contains("/api/v1/auth/kakao/login")||
+                requestUri.contains("/api/v1/auth/google/login")) {
             chain.doFilter(request, response);
             return;
         }

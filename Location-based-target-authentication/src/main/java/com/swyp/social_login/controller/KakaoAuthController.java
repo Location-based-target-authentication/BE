@@ -25,11 +25,23 @@ public class KakaoAuthController {
 
     @Operation(summary = "카카오 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
-    public ResponseEntity<SocialUserResponseDto> kakaoLogin(@RequestParam(name="code") String code) {
+    public ResponseEntity<SocialUserResponseDto> kakaoLogin(
+            @RequestParam(name = "code", required = false) String codeParam,
+            @RequestBody(required = false) Map<String, String> body) {
+        
+        String code = codeParam;
+        if (code == null && body != null) {
+            code = body.get("code");
+        }
+        
+        if (code == null || code.isEmpty()) {
+            throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");
+        }
+
         String accessToken = kakaoAuthService.getAccessToken(code);
         Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
         String kakaoId = kakaoUserInfo.get("socialId").toString();
-        // 3. 사용자 정보 update / 저장
+        
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
         userResponse = authService.generateJwtTokens(userResponse);
         return ResponseEntity.ok(userResponse);
@@ -44,9 +56,6 @@ public class KakaoAuthController {
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
         return ResponseEntity.ok(userResponse);
     }
-
-
-
     @Operation(summary = "카카오 로그인 후 callback", description = "카카오 로그인 후 callback")
     @GetMapping("/callback")
     public ResponseEntity<String> kakaoCallback(@RequestParam(name="code") String code) {

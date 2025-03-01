@@ -1,4 +1,5 @@
 package com.swyp.global.security;
+
 import com.swyp.exception.RefreshTokenExpiredException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -25,72 +26,91 @@ public class JwtUtil {
             @Value("${jwt.secret-key}") String secretKey,
             @Value("${jwt.access-token-expiration}") String accessTokenExpiration,
             @Value("${jwt.refresh-token-expiration}") String refreshTokenExpiration) {
-        System.out.println("Secret Key (Encoded): " + secretKey);
-        //(test log)
-        byte[] keyBytes = Base64.getDecoder().decode(secretKey);
-        System.out.println("Secret Key Length (bits): " + keyBytes.length * 8);
-        if (keyBytes.length * 8 < 256) {
-            throw new WeakKeyException("The JWT secret key minimum 256 bits required.");
+
+        try {
+            System.out.println("Secret Key (Encoded): " + secretKey);
+            byte[] keyBytes = Base64.getDecoder().decode(secretKey);
+            System.out.println("Secret Key Length (bits): " + keyBytes.length * 8);
+
+            if (keyBytes.length * 8 < 256) {
+                throw new WeakKeyException("The JWT secret key minimum 256 bits required.");
+            }
+
+            this.key = Keys.hmacShaKeyFor(keyBytes);
+            this.accessTokenExpiration = Long.parseLong(accessTokenExpiration);
+            this.refreshTokenExpiration = Long.parseLong(refreshTokenExpiration);
+
+        } catch (IllegalArgumentException e) {
+            throw new WeakKeyException("Invalid JWT secret key format: " + e.getMessage());
         }
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-        this.accessTokenExpiration = Long.parseLong(accessTokenExpiration);
-        this.refreshTokenExpiration = Long.parseLong(refreshTokenExpiration);
     }
-    // Access Token 생성
+
     public String generateAccessToken(String userId) {
-        String token = Jwts.builder()
+        return Jwts.builder()
                 .setSubject(userId)
+                .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
-                .signWith(key, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-        return token;
     }
-    // Refresh Token 생성
+
     public String generateRefreshToken(String socialId) {
         return Jwts.builder()
                 .setSubject(socialId)
+                .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
-                .signWith(key, SignatureAlgorithm.HS256) // 환경 변수에서 가져온 키 사용
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
-// JWT 토큰 검증
-public boolean validateToken(String token, boolean isRefreshToken) {
-    if (token == null || token.isEmpty()) {
-        return false;
-    }
-    try {
-        Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-        return true;
-    } catch (ExpiredJwtException e) {
-        if (isRefreshToken) {
-            throw new RefreshTokenExpiredException("Refresh Token이 만료되었습니다.");
-        } else { // Access Token이 만료된 경우
-            throw new ExpiredJwtException(e.getHeader(), e.getClaims(), "TOKEN_EXPIRED");
+
+    public boolean validateToken(String token, boolean isRefreshToken) {
+        if (token == null || token.isEmpty()) {
+            return false;
         }
-    } catch (JwtException e) {
-        return false;
+        try {
+            Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token);
+            return true;
+        } catch (ExpiredJwtException e) {
+            if (isRefreshToken) {
+                throw new RefreshTokenExpiredException("Refresh Token이 만료되었습니다.");
+            } else {
+                throw new ExpiredJwtException(e.getHeader(), e.getClaims(), "TOKEN_EXPIRED");
+            }
+        } catch (JwtException e) {
+            return false;
+        }
     }
-}
-    // JWT 토큰에서 사용자 ID 추출
+
     public String extractUserId(String token) {
-        String userId= Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody()
-                .getSubject();
-        if(userId==null || userId.isEmpty()){
-            System.out.println("[JWTUtil] JWT에서 userId 추출 오류 ");
-        }else{
-            System.out.println("[JwtUtil] 추출된 userId: "+userId);
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            String userId = claims.getSubject();
+            if (userId == null || userId.isEmpty()) {
+                System.out.println("[JWTUtil] JWT에서 userId 추출 오류");
+            } else {
+                System.out.println("[JwtUtil] 추출된 userId: " + userId);
+            }
+            return userId;
+        } catch (JwtException e) {
+            System.out.println("[JWTUtil] JWT 파싱 오류: " + e.getMessage());
+            return null;
         }
-        return userId;
     }
-    // 토큰에서 사용자 정보 추출 후 spring security에서 사용할 Authentication 객체 생성
+
     public Authentication getAuthentication(String token) {
         String userId = extractUserId(token);
+        if (userId == null) {
+            throw new JwtException("Invalid JWT token");
+        }
         UserDetails userDetails = new User(userId, "", Collections.emptyList());
         return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 }
-

@@ -1,6 +1,8 @@
 package com.swyp.point.service;
 import com.swyp.goal.entity.Goal;
 import java.time.DayOfWeek;
+import java.util.Comparator;
+import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
@@ -13,6 +15,8 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +43,7 @@ public class GoalPointHandler {
     // 2. 목표 당일 달성 시 포인트 적립
     @Transactional
     public void handleDailyAchievement(AuthUser authUser, Goal goal, boolean isSelectedDay) {
-        int points = 0;
+        int points =0 ;
         int dayCount = goalDayRepository.findByGoalId(goal.getId()).size();
         if (dayCount == 7) {
             points = 60;  // 7일 목표: 매일 60P
@@ -54,6 +58,7 @@ public class GoalPointHandler {
     // 3. 목표 완료 시 보너스 지급
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
+        // 현재 주의 시작일과 종료일 계산 (일~토 기준)
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
@@ -61,17 +66,22 @@ public class GoalPointHandler {
         // 현재 주의 목표 달성 횟수 가져오기
         int weeklyAchievedCount = goalAchievementsLogRepository.countByGoalIdAndUserIdAndAchievedSuccessAndAchievedAtBetween(
                 goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
+        // 주간 목표의 마지막 요일인지 확인
+        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
+        List<DayOfWeek> goalDayOfWeeks = goalDays.stream()
+                .map(goalDay -> DayOfWeek.valueOf(goalDay.getDayOfWeek().name()))
+                .sorted(Comparator.reverseOrder()) // 최신 요일부터 정렬
+                .collect(Collectors.toList());
 
-        // 6일 이하 달성 시 보너스 지급
-        if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {
-            pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
-            
-        }
-
-        // 7일 달성 시 보너스 지급 및 달성 여부 설정
-        if (weeklyAchievedCount == 7) {
-            pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
-            
+        // 현재 요일이 목표 요일 중 마지막 요일인지 확인
+        if (!goalDayOfWeeks.isEmpty() && goalDayOfWeeks.get(0) == today.getDayOfWeek()) {
+            // 보너스 지급 조건 만족 시
+            if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {
+                pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
+            }
+            if (weeklyAchievedCount == 7) {
+                pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
+            }
         }
 
          // 6일이하, 7일 달성 보너시 지급 달성 여부 

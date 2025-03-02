@@ -22,8 +22,6 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .requiresChannel(channel -> channel
-                        .anyRequest().requiresSecure()) // HTTPS 요구
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/**").permitAll() // 모든 경로 허용
                 );

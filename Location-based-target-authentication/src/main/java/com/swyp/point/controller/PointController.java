@@ -55,7 +55,7 @@ public class PointController {
         // JWT에서 추출된 userId로 사용자 찾기
         String bearerToken = request.getHeader("Authorization");
         String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
-        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
+        Long tokenUserId = jwtUtil.extractUserId(token);
         AuthUser authUser = findAuthUser(tokenUserId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -89,7 +89,7 @@ public class PointController {
             HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
-        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
+        Long tokenUserId = jwtUtil.extractUserId(token);
         AuthUser authUser = findAuthUser(tokenUserId);
         pointService.addPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
         int updatedPoints = pointService.getUserPoints(authUser);
@@ -129,7 +129,7 @@ public class PointController {
             HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
-        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
+        Long tokenUserId = jwtUtil.extractUserId(token);
         AuthUser authUser = findAuthUser(tokenUserId);
         boolean success = pointService.deductPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
         Map<String, Object> response = new HashMap<>();

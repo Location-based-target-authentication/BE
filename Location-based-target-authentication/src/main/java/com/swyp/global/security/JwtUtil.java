@@ -45,18 +45,18 @@ public class JwtUtil {
         }
     }
 
-    public String generateAccessToken(String userId) {
+    public String generateAccessToken(Long userId) {
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateRefreshToken(String userId) {
+    public String generateRefreshToken(Long userId) {
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(String.valueOf(userId))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -84,7 +84,7 @@ public class JwtUtil {
         }
     }
 
-    public String extractUserId(String token) {
+    public Long extractUserId(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -92,13 +92,15 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
 
-            String userId = claims.getSubject();
-            if (userId == null || userId.isEmpty()) {
+            String userIdStr = claims.getSubject();
+            if (userIdStr == null || userIdStr.isEmpty()) {
                 System.out.println("[JWTUtil] JWT에서 userId 추출 오류");
+                return null;
             } else {
+                Long userId = Long.parseLong(userIdStr);
                 System.out.println("[JwtUtil] 추출된 userId: " + userId);
+                return userId;
             }
-            return userId;
         } catch (JwtException e) {
             System.out.println("[JWTUtil] JWT 파싱 오류: " + e.getMessage());
             return null;
@@ -106,11 +108,11 @@ public class JwtUtil {
     }
 
     public Authentication getAuthentication(String token) {
-        String userId = extractUserId(token);
+        Long userId = extractUserId(token);
         if (userId == null) {
             throw new JwtException("Invalid JWT token");
         }
-        UserDetails userDetails = new User(userId, "", Collections.emptyList());
+        UserDetails userDetails = new User(String.valueOf(userId), "", Collections.emptyList());
         return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 }

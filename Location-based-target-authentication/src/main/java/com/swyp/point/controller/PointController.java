@@ -22,6 +22,7 @@ import java.util.Map;
 public class PointController {
     private final PointService pointService;
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
     //포인트 조회
     @Operation(
             summary = "포인트 메인 페이지",
@@ -48,7 +49,9 @@ public class PointController {
     @GetMapping("/{userId}")
     public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("userId") Long pathUserId) {
         // JWT에서 추출된 userId로 사용자 찾기
-        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
+        String token = jwtUtil.getJwtFromRequest();
+        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+        AuthUser authUser = findAuthUser(tokenUserId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
                 authUser.getId(),
@@ -78,7 +81,9 @@ public class PointController {
     public ResponseEntity<Map<String, Object>> addPoints(
             @PathVariable("userId") Long pathUserId,
             @RequestBody PointAddRequest request) {
-        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
+        String token = jwtUtil.getJwtFromRequest();
+        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+        AuthUser authUser = findAuthUser(tokenUserId);
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
         int updatedPoints = pointService.getUserPoints(authUser);
         Map<String, Object> response = new HashMap<>();
@@ -114,7 +119,9 @@ public class PointController {
     public ResponseEntity<Map<String, Object>> deductPoints(
             @PathVariable("userId") Long pathUserId,
             @RequestBody PointDedeductRequest request) {
-        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
+        String token = jwtUtil.getJwtFromRequest();
+        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+        AuthUser authUser = findAuthUser(tokenUserId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
         Map<String, Object> response = new HashMap<>();
         if (!success) {

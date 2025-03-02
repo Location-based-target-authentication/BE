@@ -130,7 +130,7 @@ public class PointController {
 
     private AuthUser findAuthUser(Long userId) {
         // userId는 데이터베이스 ID (1,2,3,4...)
-        return userRepository.findById(userId)
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 

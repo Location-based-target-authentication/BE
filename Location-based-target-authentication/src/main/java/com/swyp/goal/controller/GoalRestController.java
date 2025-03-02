@@ -104,7 +104,7 @@ public class GoalRestController {
                 days.setLength(days.length() - 1);
             }
             
-    		GoalHomeResponseDto dto = new GoalHomeResponseDto(goal.getName(), goal.getStartDate(), goal.getEndDate(),goal.getStatus().name(), isAchievedToday, days.toString());
+    		GoalHomeResponseDto dto = new GoalHomeResponseDto(goal.getId(), userId, goal.getName(), goal.getStartDate(), goal.getEndDate(), goal.getStatus().name(), isAchievedToday, days.toString());
     		goalHomeDtoList.add(dto);
     	}	
     	return new ResponseEntity<>(goalHomeDtoList,HttpStatus.OK);

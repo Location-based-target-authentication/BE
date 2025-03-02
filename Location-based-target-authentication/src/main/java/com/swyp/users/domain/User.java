@@ -1,5 +1,6 @@
 package com.swyp.users.domain;
 
+import com.swyp.social_login.entity.AuthUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,4 +45,8 @@ public class User {
 
     @Column(name = "terms_agreement_at")
     private LocalDateTime termsAgreementAt;
+
+    @OneToOne
+    @JoinColumn(name = "auth_user_id")
+    private AuthUser authUser;
 } 

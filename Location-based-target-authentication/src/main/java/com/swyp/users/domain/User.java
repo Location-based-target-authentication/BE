@@ -20,6 +20,9 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
@@ -49,4 +52,14 @@ public class User {
     @OneToOne
     @JoinColumn(name = "auth_user_id")
     private AuthUser authUser;
+
+    public static User fromAuthUser(AuthUser authUser) {
+        User user = new User();
+        user.setUserId(authUser.getUserId());
+        user.setName(authUser.getName());
+        user.setEmail(authUser.getEmail());
+        user.setPhoneNumber(authUser.getPhoneNumber());
+        user.setAuthUser(authUser);
+        return user;
+    }
 } 

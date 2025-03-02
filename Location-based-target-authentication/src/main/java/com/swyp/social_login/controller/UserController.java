@@ -36,9 +36,10 @@ public class UserController {
                     .body(Map.of("error", "Invalid Access Token"));
         }
         // 2. userId 추출
-        String userId = jwtUtil.extractUserId(accessToken);
+        String userIdStr = jwtUtil.extractUserId(accessToken);
         // 3. 전화번호 저장
         try {
+            Long userId = Long.parseLong(userIdStr);
             SocialUserResponseDto userResponse = userService.savePhoneNumber(userId, phoneRequestDto.getPhoneNumber());
             return ResponseEntity.ok(Map.of(
                     "message", "전화번호가 성공적으로 저장됨",

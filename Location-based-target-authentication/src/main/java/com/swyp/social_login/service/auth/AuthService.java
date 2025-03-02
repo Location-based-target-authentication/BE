@@ -38,7 +38,8 @@ public class AuthService {
     // 사용자 정보 저장 또는 업데이트 (카카오 & 구글)
     public SocialUserResponseDto saveOrUpdateUser(Map<String, Object> userInfo, String accessToken, SocialType socialType) {
         // 필수 사용자 정보
-        String userId = userInfo.getOrDefault("userId", "").toString();
+        String userIdStr = userInfo.getOrDefault("userId", "").toString();
+        Long userId = Long.parseLong(userIdStr);
         String username = userInfo.getOrDefault("username", "Unknown").toString();
         String email = userInfo.getOrDefault("email", "").toString();
         
@@ -67,16 +68,16 @@ public class AuthService {
     //JWT AccessToken & RefreshToken 생성 및 저장
     public SocialUserResponseDto generateJwtTokens(SocialUserResponseDto userResponse) {
         // DB에서 사용자 조회 (데이터베이스 ID 사용)
-        Long dbId = Long.parseLong(userResponse.getUserId());
-        Optional<AuthUser> optionalUser = userRepository.findById(dbId);
+        Long userId = userResponse.getUserId();
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         if (optionalUser.isEmpty()) {
             throw new IllegalStateException("사용자를 찾을 수 없습니다.");
         }
         AuthUser user = optionalUser.get();
         
-        // 이미 변환된 dbId를 사용하여 토큰 생성
-        String accessToken = jwtUtil.generateAccessToken(String.valueOf(dbId));
-        String refreshToken = jwtUtil.generateRefreshToken(String.valueOf(dbId));
+        // userId를 문자열로 변환하여 토큰 생성
+        String accessToken = jwtUtil.generateAccessToken(userId.toString());
+        String refreshToken = jwtUtil.generateRefreshToken(userId.toString());
         
         // Refresh Token을 DB에 저장
         user.setRefreshToken(refreshToken);

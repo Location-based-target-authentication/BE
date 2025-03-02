@@ -46,7 +46,7 @@ public class PointController {
             }
     )
     @GetMapping("/{user_id}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("user_id") String userId) {
+    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("user_id") Long userId) {
         AuthUser authUser = findAuthUser(userId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -75,7 +75,7 @@ public class PointController {
     )
     @PostMapping("/{user_id}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("user_id") String userId,
+            @PathVariable("user_id") Long userId,
             @RequestBody PointAddRequest request) {
         AuthUser authUser = findAuthUser(userId);
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
@@ -111,7 +111,7 @@ public class PointController {
     )
     @PostMapping("/{user_id}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("user_id") String userId,
+            @PathVariable("user_id") Long userId,
             @RequestBody PointDedeductRequest request) {
         AuthUser authUser = findAuthUser(userId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
@@ -128,10 +128,9 @@ public class PointController {
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(String userId) {
+    private AuthUser findAuthUser(Long userId) {
         // userId는 이제 DB의 id 값임
-        Long id = Long.parseLong(userId);
-        return userRepository.findById(id)
+        return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 

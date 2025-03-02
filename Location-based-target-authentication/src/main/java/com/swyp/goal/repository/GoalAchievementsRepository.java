@@ -18,7 +18,7 @@ public interface GoalAchievementsRepository extends JpaRepository<GoalAchievemen
 	
 	// goal_id를 NULL로 설정
     @Modifying
-    @Query("UPDATE GoalAchievements g SET g.goalId = NULL WHERE g.goalId = :goalId")
+    @Query("UPDATE GoalAchievements g SET g.goal = NULL WHERE g.goal.id = :goalId")
     void updateGoalIdToNull(@Param("goalId") Long goalId);
 
 	void deleteAllByUserId(Long userId);

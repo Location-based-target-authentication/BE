@@ -26,11 +26,13 @@ public class GoalAchievements {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 달성 기록 고유 번호
     
-    @Column(name = "user_id", nullable = false)
-    private Long userId; // 유저 ID
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user; // 유저
     
-    @Column(name = "goal_id")
-    private Long goalId; // 목표 ID (NULL 허용)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_id")
+    private Goal goal; // 목표 (NULL 허용)
     
     @Column(name = "name", nullable = false)
     private String name; // 목표 이름
@@ -52,12 +54,4 @@ public class GoalAchievements {
     
     @Column(name = "days", nullable = false)
     private String days; // MON,TUE,THU
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "goal_id", insertable = false, updatable = false)
-    private Goal goal;
 }

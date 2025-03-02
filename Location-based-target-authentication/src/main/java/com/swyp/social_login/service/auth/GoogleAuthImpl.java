@@ -80,7 +80,9 @@ public class GoogleAuthImpl implements GoogleAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("userId", jsonNode.get("id").asText());
+            // userId를 String으로 저장
+            String userId = jsonNode.get("id").asText();
+            userInfo.put("userId", userId);
             userInfo.put("email", jsonNode.get("email").asText());
             userInfo.put("username", jsonNode.get("name").asText());
 

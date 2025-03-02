@@ -81,13 +81,13 @@ public class GoalRestController {
     	    }
     	)
     @GetMapping("/v1/goals/{userId}")
-    public ResponseEntity<?> goalHome(@PathVariable("userId")Long userId){
+    public ResponseEntity<?> goalHome(@PathVariable("userId") Long userId){
     	try {
     	List<Goal>goals = goalService.getGoalList(userId);
     	List<GoalHomeResponseDto> goalHomeDtoList  = new ArrayList<>();
     	
     	for (Goal goal : goals) {
-    		boolean isAchievedToday = goalAchievementLogRepository.existsByUserIdAndGoalIdAndAchievedAtAndAchievedSuccess( // 오늘 목표 인증을했는지 했으면 true, 안했으면 false
+    		boolean isAchievedToday = goalAchievementLogRepository.existsByUser_UserIdAndGoal_IdAndAchievedAtAndAchievedSuccess( // 오늘 목표 인증을했는지 했으면 true, 안했으면 false
                     userId, goal.getId(), LocalDate.now(),true);
     		
     		// goalDays : 요일 String값으로 가공
@@ -150,7 +150,7 @@ public class GoalRestController {
             Goal createdGoal = goalService.createGoal(request);
 
             // (포인트) 생성된 목표의 userId를 이용해 사용자를 조회
-            AuthUser authUser = userRepository.findById(createdGoal.getUserId())
+            AuthUser authUser = userRepository.findByUserIdEquals(createdGoal.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             int updatedPoints = pointService.getUserPoints(authUser);
 
@@ -200,7 +200,7 @@ public class GoalRestController {
     		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
     		System.out.println(calender);
     		List<GoalDateDto> goalDateDto = new ArrayList<>();
-    		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
+    		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoal_IdAndAchievedSuccessIsTrue(goal.getId());
 
 
     		 for (GoalAchievementsLog log : logs) {
@@ -479,10 +479,10 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 1. 사용자 확인 - String 타입의 userId로 DB에서 사용자 찾기
-            String userIdStr = String.valueOf(requestDto.getUserId());
-            AuthUser authUser = userRepository.findByUserIdEquals(userIdStr)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userIdStr));
+            // 1. 사용자 확인
+            Long userId = requestDto.getUserId();
+            AuthUser authUser = userRepository.findByUserIdEquals(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
             
             // 3. 목표 확인
             Goal goal = goalRepository.findById(goalId)
@@ -492,7 +492,7 @@ public class GoalRestController {
             int previousPoints = pointService.getUserPoints(authUser);
             
             // 4. 목표 위치 검증
-            boolean isVerified = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
+            boolean isVerified = goalService.validateGoalAchievement(userId, goalId, requestDto.getLatitude(), requestDto.getLongitude());
             
             // 5. 응답 데이터 준비
             Map<String, Object> response = new HashMap<>();
@@ -567,13 +567,12 @@ public class GoalRestController {
     public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
     	try {
-        // userId를 String으로 변환하여 사용
-        String userIdStr = String.valueOf(userId);
-        AuthUser authUser = userRepository.findByUserIdEquals(userIdStr).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userIdStr));
+        // Long 타입의 userId로 사용자 찾기
+        AuthUser authUser = userRepository.findByUserIdEquals(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         // userId를 authUser에서 가져와 전달
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getUserId(), isSelectedDay);
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, userId, isSelectedDay);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {

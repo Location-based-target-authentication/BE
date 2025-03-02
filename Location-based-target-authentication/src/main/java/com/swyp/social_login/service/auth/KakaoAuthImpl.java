@@ -82,7 +82,8 @@ public class KakaoAuthImpl implements KakaoAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("userId", jsonNode.get("id").asText());
+            // userId를 String으로 저장
+            userInfo.put("userId", String.valueOf(jsonNode.get("id").asLong()));
             userInfo.put("email", jsonNode.get("kakao_account").get("email").asText());
             userInfo.put("username", jsonNode.get("kakao_account").get("profile").get("nickname").asText());
 

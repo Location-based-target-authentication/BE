@@ -3,6 +3,7 @@ package com.swyp.users.controller;
 import com.swyp.users.domain.User;
 import com.swyp.users.service.UserManagementService;
 import com.swyp.users.dto.UserModifyRequest;
+import com.swyp.users.dto.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -45,11 +46,11 @@ public class UserManagementController {
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
     @GetMapping("/{userId}/check")
-    public ResponseEntity<User> getUserInfo(
+    public ResponseEntity<UserResponse> getUserInfo(
         @Parameter(description = "사용자 ID", required = true, example = "1")
         @PathVariable Long userId
     ) {
-        return ResponseEntity.ok(userService.getUserInfo(userId));
+        return ResponseEntity.ok(new UserResponse(userService.getUserInfo(userId)));
     }
 
     @Operation(summary = "사용자 정보 수정", description = "사용자의 정보를 수정합니다.")

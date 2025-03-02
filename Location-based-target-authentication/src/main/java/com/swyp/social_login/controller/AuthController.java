@@ -48,19 +48,20 @@ public class AuthController {
             ));
         }
 
-        String userId = jwtUtil.extractUserId(refreshToken);
-        if (userId == null || userId.isEmpty()) {
+        String userIdStr = jwtUtil.extractUserId(refreshToken);
+        if (userIdStr == null || userIdStr.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Refresh Token"));
         }
 
         // 4. DB에서 해당 사용자 조회
+        Long userId = Long.parseLong(userIdStr);
         Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         if (optionalUser.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "사용자를 찾을 수 없습니다."));
         }
         AuthUser user = optionalUser.get();
         // 5. 새로운 Access Token 생성 및 반환
-        String newAccessToken = jwtUtil.generateAccessToken(user.getUserId());
+        String newAccessToken = jwtUtil.generateAccessToken(String.valueOf(user.getUserId()));
         return ResponseEntity.ok(Map.of(
                 "accessToken", newAccessToken,
                 "tokenType", "Bearer"
@@ -95,11 +96,12 @@ public class AuthController {
         }
 
         // JWT에서 socialId 추출
-        String userId = jwtUtil.extractUserId(accessToken);
-        if (userId == null || userId.isEmpty()) {
+        String userIdStr = jwtUtil.extractUserId(accessToken);
+        if (userIdStr == null || userIdStr.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Access Token"));
         }
         // DB에서 사용자 정보 조회
+        Long userId = Long.parseLong(userIdStr);
         SocialUserResponseDto userResponse = userService.getUserInfoFromDb(userId);
         if (userResponse == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "User not found"));
@@ -114,7 +116,8 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "username", username,
                 "email", email,
-                "phoneNumber", phoneNumber
+                "phoneNumber", phoneNumber,
+                "socialType", userResponse.getSocialType().name()
         ));
     }
 }

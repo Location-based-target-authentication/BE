@@ -40,7 +40,11 @@ public class GoalPointHandler {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
         }
         
-        pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
+        try {
+            pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
+        } catch (Exception e) {
+            throw new RuntimeException("포인트 차감 중 오류 발생: " + e.getMessage());
+        }
     }
 
     // 2. 목표 당일 달성 시 포인트 적립

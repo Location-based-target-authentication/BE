@@ -48,6 +48,11 @@ public class GoalService {
     
 
 
+    //전체 목표 조회
+    public List<Goal> getAllGoals() {
+        return goalRepository.findAll();
+    }
+
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long userId){
         return goalRepository.findByUserId(userId);
@@ -404,6 +409,11 @@ public class GoalService {
          
          System.out.println("최종 날짜 리스트 크기: " + dateList.size());
          return dateList;
+     }
+     
+
+}
+
      }
      
 

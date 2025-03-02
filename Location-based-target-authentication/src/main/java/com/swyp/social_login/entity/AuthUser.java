@@ -27,7 +27,7 @@ public class AuthUser {
     @Column(nullable = false)
     private String username;
 
-    @Column
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, length=512)

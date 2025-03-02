@@ -32,4 +32,16 @@ public class User {
 
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
+
+    @Column(name = "privacy_agreement", nullable = false, columnDefinition = "boolean default false")
+    private boolean privacyAgreement = false;
+
+    @Column(name = "privacy_agreement_at")
+    private LocalDateTime privacyAgreementAt;
+
+    @Column(name = "terms_agreement", nullable = false, columnDefinition = "boolean default false")
+    private boolean termsAgreement = false;
+
+    @Column(name = "terms_agreement_at")
+    private LocalDateTime termsAgreementAt;
 } 

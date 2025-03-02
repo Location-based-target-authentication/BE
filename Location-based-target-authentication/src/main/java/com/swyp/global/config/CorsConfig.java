@@ -19,6 +19,9 @@ public class CorsConfig {
         config.addAllowedOrigin("http://localhost:8080");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
+        config.setMaxAge(3600L);
+        config.addExposedHeader("Authorization");
+        config.addExposedHeader("RefreshToken");
         
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

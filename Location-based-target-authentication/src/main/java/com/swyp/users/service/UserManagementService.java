@@ -57,10 +57,7 @@ public class UserManagementService {
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         
         // 연관된 데이터 삭제
-        AuthUser authUser = user.getAuthUser();
-        if (authUser != null) {
-            pointRepository.deleteByAuthUser(authUser);
-        }
+        //pointRepository.deleteAllByUserId(userId);
         goalAchievementsRepository.deleteAllByUserId(userId);
         goalRepository.deleteAllByUserId(userId);
         

@@ -45,8 +45,8 @@ public class PointController {
                     )
             }
     )
-    @GetMapping("/{user_id}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("user_id") Long userId) {
+    @GetMapping("/{id}")
+    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("id") Long userId) {
         AuthUser authUser = findAuthUser(userId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -73,9 +73,9 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{user_id}/add")
+    @PostMapping("/{id}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("user_id") Long userId,
+            @PathVariable("id") Long userId,
             @RequestBody PointAddRequest request) {
         AuthUser authUser = findAuthUser(userId);
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
@@ -109,9 +109,9 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{user_id}/deduct")
+    @PostMapping("/{id}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("user_id") Long userId,
+            @PathVariable("id") Long userId,
             @RequestBody PointDedeductRequest request) {
         AuthUser authUser = findAuthUser(userId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());

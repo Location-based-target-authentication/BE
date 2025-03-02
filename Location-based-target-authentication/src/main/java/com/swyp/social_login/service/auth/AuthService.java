@@ -66,8 +66,9 @@ public class AuthService {
 
     //JWT AccessToken & RefreshToken 생성 및 저장
     public SocialUserResponseDto generateJwtTokens(SocialUserResponseDto userResponse) {
-        // DB에서 사용자 조회
-        Optional<AuthUser> optionalUser = userRepository.findByUserId(userResponse.getUserId());
+        // DB에서 사용자 조회 (데이터베이스 ID 사용)
+        Long dbId = Long.parseLong(userResponse.getUserId());
+        Optional<AuthUser> optionalUser = userRepository.findById(dbId);
         if (optionalUser.isEmpty()) {
             throw new IllegalStateException("사용자를 찾을 수 없습니다.");
         }

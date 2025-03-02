@@ -2,6 +2,7 @@ package com.swyp.goal.repository;
 
 import java.util.List;
 
+import com.swyp.social_login.entity.AuthUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,5 +21,6 @@ public interface GoalAchievementsRepository extends JpaRepository<GoalAchievemen
     @Query("UPDATE GoalAchievements g SET g.goalId = NULL WHERE g.goalId = :goalId")
     void updateGoalIdToNull(@Param("goalId") Long goalId);
 
-	
+	void deleteAllByUserId(Long userId);
+
 }

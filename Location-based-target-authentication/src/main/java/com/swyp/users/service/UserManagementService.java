@@ -1,7 +1,11 @@
 package com.swyp.users.service;
 
+import com.swyp.social_login.entity.AuthUser;
 import com.swyp.users.domain.User;
 import com.swyp.users.repository.UserManagementRepository;
+import com.swyp.point.repository.PointRepository;
+import com.swyp.goal.repository.GoalRepository;
+import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.users.dto.UserModifyRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -12,6 +16,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserManagementService {
 
     private final UserManagementRepository userRepository;
+    private final PointRepository pointRepository;
+    private final GoalRepository goalRepository;
+    private final GoalAchievementsRepository goalAchievementsRepository;
 
     @Transactional
     public void logout(Long userId) {
@@ -49,8 +56,13 @@ public class UserManagementService {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         
-        // 연관된 데이터 삭제 처리 (필요한 경우)
-        // 예: 사용자의 목표, 포인트 내역, 약관 동의 내역 등
+        // 연관된 데이터 삭제
+        AuthUser authUser = user.getAuthUser();
+        if (authUser != null) {
+            pointRepository.deleteByAuthUser(authUser);
+        }
+        goalAchievementsRepository.deleteAllByUserId(userId);
+        goalRepository.deleteAllByUserId(userId);
         
         userRepository.delete(user);
     }

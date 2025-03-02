@@ -158,21 +158,34 @@ public class GoalRestController {
             String token = bearerToken.substring(7);
             Long tokenUserId = jwtUtil.extractUserId(token);
             
-            System.out.println("토큰에서 추출한 userId: " + tokenUserId);
+            System.out.println("[GoalRestController] 토큰에서 추출한 userId: " + tokenUserId);
             
-            // 먼저 userId로 조회 시도
-            AuthUser authUser = userRepository.findById(tokenUserId)
-                    .orElseGet(() -> {
-                        System.out.println("id로 찾지 못해 userId로 재시도");
-                        // id로 못찾으면 userId로 조회 시도
-                        return userRepository.findByUserIdEquals(tokenUserId)
-                                .orElseThrow(() -> {
-                                    System.out.println("사용자를 찾을 수 없음. tokenUserId=" + tokenUserId);
-                                    return new IllegalArgumentException("사용자를 찾을 수 없습니다.");
-                                });
-                    });
+            // 사용자 조회
+            AuthUser authUser;
+            try {
+                System.out.println("[GoalRestController] findById 시도: " + tokenUserId);
+                Optional<AuthUser> userById = userRepository.findById(tokenUserId);
+                if (userById.isPresent()) {
+                    System.out.println("[GoalRestController] findById 성공");
+                    authUser = userById.get();
+                } else {
+                    System.out.println("[GoalRestController] findById 실패, findByUserIdEquals 시도: " + tokenUserId);
+                    Optional<AuthUser> userByUserId = userRepository.findByUserIdEquals(tokenUserId);
+                    if (userByUserId.isPresent()) {
+                        System.out.println("[GoalRestController] findByUserIdEquals 성공");
+                        authUser = userByUserId.get();
+                    } else {
+                        System.out.println("[GoalRestController] 모든 조회 실패. tokenUserId=" + tokenUserId);
+                        throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("[GoalRestController] 사용자 조회 중 예외 발생: " + e.getMessage());
+                e.printStackTrace();
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            }
             
-            System.out.println("찾은 사용자 - id: " + authUser.getId() + ", userId: " + authUser.getUserId());
+            System.out.println("[GoalRestController] 찾은 사용자 - id: " + authUser.getId() + ", userId: " + authUser.getUserId());
             // request의 userId를 AuthUser의 id(PK)로 설정
             request.setUserId(authUser.getId());
             

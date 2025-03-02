@@ -74,10 +74,9 @@ public class AuthService {
         }
         AuthUser user = optionalUser.get();
         
-        // DB ID를 문자열로 변환하여 토큰 생성
-        String dbId = String.valueOf(user.getId());
-        String accessToken = jwtUtil.generateAccessToken(dbId);
-        String refreshToken = jwtUtil.generateRefreshToken(dbId);
+        // 이미 변환된 dbId를 사용하여 토큰 생성
+        String accessToken = jwtUtil.generateAccessToken(String.valueOf(dbId));
+        String refreshToken = jwtUtil.generateRefreshToken(String.valueOf(dbId));
         
         // Refresh Token을 DB에 저장
         user.setRefreshToken(refreshToken);

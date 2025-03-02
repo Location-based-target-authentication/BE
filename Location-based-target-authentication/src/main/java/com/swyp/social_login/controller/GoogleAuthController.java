@@ -23,7 +23,7 @@ public class GoogleAuthController {
     @Operation(summary = "구글 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
     public ResponseEntity<Map<String, SocialUserResponseDto>> googleLogin(
-            @RequestParam(name="code") String codeParam,
+            @RequestParam(name="code", required = false) String codeParam,
             @RequestBody(required = false) Map<String, String> body) {
         String code = codeParam;
         if (code == null && body != null) {

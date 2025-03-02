@@ -8,16 +8,10 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.swyp.goal.dto.CompleteResponseDto;
+import com.swyp.goal.dto.GoalAchieveRequestDto;
 import com.swyp.goal.dto.GoalAllSearchDto;
 import com.swyp.goal.dto.GoalCompleteDto;
 import com.swyp.goal.dto.GoalCreateRequest;
@@ -42,6 +36,7 @@ import com.swyp.social_login.repository.UserRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -472,25 +467,8 @@ public class GoalRestController {
             name = "goalId",
             description = "목표 ID",
             required = true,
-            example = "1"
-        ),
-        @Parameter(
-            name = "userId",
-            description = "사용자 ID",
-            required = true,
-            example = "1"
-        ),
-        @Parameter(
-            name = "latitude",
-            description = "현재 위도",
-            required = true,
-            example = "37.123456"
-        ),
-        @Parameter(
-            name = "longitude",
-            description = "현재 경도",
-            required = true,
-            example = "127.123456"
+            example = "1",
+            in = ParameterIn.PATH
         )
     })
 
@@ -498,16 +476,14 @@ public class GoalRestController {
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,
-            @RequestParam("userId") Long userId,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude
+            @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
             // 1. 사용자 확인
-            AuthUser authUser = userRepository.findById(userId)
+            AuthUser authUser = userRepository.findById(requestDto.getUserId())
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             
-            // 2. 목표 확인
+            // 3. 목표 확인
             Goal goal = goalRepository.findById(goalId)
                     .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
             
@@ -515,7 +491,7 @@ public class GoalRestController {
             int previousPoints = pointService.getUserPoints(authUser);
             
             // 4. 목표 위치 검증
-            boolean isVerified = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
+            boolean isVerified = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
             
             // 5. 응답 데이터 준비
             Map<String, Object> response = new HashMap<>();

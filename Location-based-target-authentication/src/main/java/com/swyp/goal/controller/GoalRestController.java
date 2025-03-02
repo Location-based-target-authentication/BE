@@ -479,9 +479,9 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 1. 사용자 확인
+            // 1. 사용자 확인 - Long 타입의 userId로 DB에서 사용자 찾기
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + requestDto.getUserId()));
             
             // 3. 목표 확인
             Goal goal = goalRepository.findById(goalId)
@@ -566,9 +566,11 @@ public class GoalRestController {
     public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
     	try {
+        // userId를 String으로 변환하여 사용
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
+        // userId를 authUser에서 가져와 전달
         Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getUserId(), isSelectedDay);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);

@@ -247,8 +247,9 @@ public class GoalService {
             goalRepository.save(goal);
             // (포인트) 지급
             boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
+            // Long 타입의 userId로 사용자 찾기
             AuthUser authUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
             goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
             return true;
         }

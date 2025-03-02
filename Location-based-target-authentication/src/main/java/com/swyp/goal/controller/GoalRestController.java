@@ -60,7 +60,7 @@ public class GoalRestController {
     private final PointService pointService;
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
-
+ 
     // 목표 home
     @Operation(
     	    summary = "목표 home",

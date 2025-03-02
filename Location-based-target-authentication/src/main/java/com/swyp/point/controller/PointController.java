@@ -128,9 +128,14 @@ public class PointController {
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    private AuthUser findAuthUser(Long id) {
+        // First try to find by primary key id
+        return userRepository.findById(id)
+                .orElseGet(() -> 
+                    // If not found, try to find by social platform userId
+                    userRepository.findByUserId(id)
+                            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."))
+                );
     }
 
 

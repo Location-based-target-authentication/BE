@@ -129,9 +129,10 @@ public class PointController {
     }
 
     private AuthUser findAuthUser(String userId) {
-        return userRepository.findByUserId(userId)
+        // userId는 이제 DB의 id 값임
+        Long id = Long.parseLong(userId);
+        return userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
     }
 
 

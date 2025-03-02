@@ -66,15 +66,21 @@ public class AuthService {
 
     //JWT AccessToken & RefreshToken 생성 및 저장
     public SocialUserResponseDto generateJwtTokens(SocialUserResponseDto userResponse) {
-        String accessToken = jwtUtil.generateAccessToken(userResponse.getUserId());
-        String refreshToken = jwtUtil.generateRefreshToken(userResponse.getUserId());
+        // DB에서 사용자 조회
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userResponse.getUserId());
+        if (optionalUser.isEmpty()) {
+            throw new IllegalStateException("사용자를 찾을 수 없습니다.");
+        }
+        AuthUser user = optionalUser.get();
+        
+        // DB ID를 문자열로 변환하여 토큰 생성
+        String dbId = String.valueOf(user.getId());
+        String accessToken = jwtUtil.generateAccessToken(dbId);
+        String refreshToken = jwtUtil.generateRefreshToken(dbId);
         
         // Refresh Token을 DB에 저장
-        Optional<AuthUser> optionalUser = userRepository.findByUserId(userResponse.getUserId());
-        optionalUser.ifPresent(user -> {
-            user.setRefreshToken(refreshToken);
-            userRepository.save(user);
-        });
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
         
         userResponse.setTokens(accessToken, refreshToken);
         return userResponse;

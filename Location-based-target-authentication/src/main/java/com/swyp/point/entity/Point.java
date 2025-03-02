@@ -16,7 +16,7 @@ public class Point {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name="user_id", referencedColumnName="user_id", nullable = false, unique = true)
+    @JoinColumn(name="user_id", referencedColumnName="id", nullable = false, unique = true)
     private AuthUser authUser;
 
     @Column(name="total_points", nullable = false)

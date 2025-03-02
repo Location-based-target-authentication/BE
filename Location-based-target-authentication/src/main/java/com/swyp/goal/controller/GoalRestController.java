@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,7 @@ import com.swyp.point.service.GoalPointHandler;
 import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
+import com.swyp.global.security.JwtUtil;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -57,6 +59,7 @@ public class GoalRestController {
     private final PointService pointService;
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
+    private final JwtUtil jwtUtil;
  
     // 목표 home
     @Operation(

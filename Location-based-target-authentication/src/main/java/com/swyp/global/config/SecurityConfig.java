@@ -21,9 +21,10 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .requiresChannel(channel -> channel
+                        .anyRequest().requiresSecure())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/**").permitAll() // 모든 경로 허용
+                        .requestMatchers("/**").permitAll()
                 );
         return http.build();
     }

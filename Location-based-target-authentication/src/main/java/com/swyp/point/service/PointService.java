@@ -19,16 +19,24 @@ public class PointService {
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final MailService mailService;
+    @Transactional
+    public Point getOrCreatePoint(AuthUser authUser) {
+        return pointRepository.findByAuthUser(authUser)
+                .orElseGet(() -> {
+                    Point newPoint = new Point(authUser);
+                    return pointRepository.save(newPoint);
+                });
+    }
+
     //포인트 조회
     public int getUserPoints(AuthUser authUser) {
-        return pointRepository.findByAuthUser(authUser)
-                .map(Point::getTotalPoints)
-                .orElseThrow(()->new IllegalArgumentException("포인트 정보가 없음"));
+        Point point = getOrCreatePoint(authUser);
+        return point.getTotalPoints();
     }
     //포인트 지급
     @Transactional
     public void addPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
-        Point point = pointRepository.findByAuthUser(authUser).orElseGet(()->pointRepository.save(new Point(authUser)));
+        Point point = getOrCreatePoint(authUser);
         point.addPoints(points);
         pointRepository.save(point);
         // 포인트 이력 저장
@@ -44,7 +52,7 @@ public class PointService {
     //포인트 차감
     @Transactional
     public boolean deductPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
-        Point point = pointRepository.findByAuthUser(authUser).orElseGet(()->pointRepository.save(new Point(authUser)));
+        Point point = getOrCreatePoint(authUser);
         if(!point.subtractPoints(points)){
             return false;
         }

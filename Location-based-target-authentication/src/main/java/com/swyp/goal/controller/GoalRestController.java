@@ -162,7 +162,7 @@ public class GoalRestController {
             response.put("goal", createdGoal);
             response.put("totalPoints", updatedPoints);
 
-            return new ResponseEntity<>("목표 생성 성공", HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {

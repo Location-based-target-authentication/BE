@@ -158,12 +158,16 @@ public class GoalRestController {
             String token = bearerToken.substring(7);
             Long tokenUserId = jwtUtil.extractUserId(token);
             
-            // 토큰에서 추출한 id로 사용자 조회
+            // 먼저 id로 사용자 조회 시도
             AuthUser authUser = userRepository.findById(tokenUserId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                    .orElseGet(() -> {
+                        // id로 못찾으면 userId로 조회 시도
+                        return userRepository.findByUserIdEquals(tokenUserId)
+                                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                    });
             
             // request의 userId를 AuthUser의 id(PK)로 설정
-            request.setUserId(tokenUserId);
+            request.setUserId(authUser.getId());
             
             // 목표 생성
             Goal createdGoal = goalService.createGoal(request);

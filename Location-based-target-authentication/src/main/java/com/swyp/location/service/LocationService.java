@@ -3,6 +3,8 @@ package com.swyp.location.service;
 import com.swyp.location.dto.LocationSearchResponse;
 import com.swyp.location.dto.KakaoApiResponse;
 import com.swyp.location.exception.LocationNotFoundException;
+import com.swyp.goal.entity.Goal;
+import com.swyp.goal.repository.GoalRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LocationService {
 
     private final WebClient webClient;
+    private final GoalRepository goalRepository;
     
     @Value("${kakao.api.key}")
     private String kakaoApiKey;
@@ -78,10 +81,13 @@ public class LocationService {
     }
 
     public Boolean verifyLocation(Long goalId, Double currentLatitude, Double currentLongitude) {
-        // TODO: 실제로는 goalId로 DB에서 목표 위치를 조회해야 함
-        double goalLatitude = 9.1;  // 테스트용 목표 위치
-        double goalLongitude = 9.1;
-        int radiusMeters = 100;  // 100m 반경
+        // 실제 DB에서 목표 위치를 조회
+        Goal goal = goalRepository.findById(goalId)
+            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+            
+        double goalLatitude = goal.getLatitude().doubleValue();  // BigDecimal을 double로 변환
+        double goalLongitude = goal.getLongitude().doubleValue();  // BigDecimal을 double로 변환
+        int radiusMeters = goal.getRadius();  // DB에 저장된 반경
 
         log.info("현재 위치: ({}, {})", currentLatitude, currentLongitude);
         log.info("목표 위치: ({}, {})", goalLatitude, goalLongitude);

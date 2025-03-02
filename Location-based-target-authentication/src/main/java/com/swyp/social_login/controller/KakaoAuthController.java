@@ -20,10 +20,7 @@ import java.util.Map;
 @Tag(name = "Kakao Auth", description = "카카오 소셜 로그인 API")
 public class KakaoAuthController {
     private final AuthService authService;
-    private final UserService userService;
     private final KakaoAuthService kakaoAuthService;
-    private final JwtUtil jwtUtil;
-
     @Operation(summary = "카카오 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
     public ResponseEntity<Map<String, SocialUserResponseDto>> kakaoLogin(
@@ -34,7 +31,7 @@ public class KakaoAuthController {
         if (code == null && body != null) {
             code = body.get("code");
         }
-        
+
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");
         }

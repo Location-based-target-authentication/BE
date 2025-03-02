@@ -2,6 +2,7 @@ package com.swyp.social_login.service.auth;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
@@ -24,6 +25,14 @@ public class KakaoAuthImpl implements KakaoAuthService {
     private String KAKAO_CLIENT_SECRET;
     @Value("${kakao.redirect.url}")
     private String KAKAO_REDIRECT_URL;
+    @Value("${kakao.redirect.url.local}")
+    private String KAKAO_REDIRECT_URL_LOCAL;
+
+    private final HttpServletRequest request;
+
+    public KakaoAuthImpl(HttpServletRequest request) {
+        this.request = request;
+    }
 
     // 1. OAuth2 Access Token 발급
     @Override
@@ -34,11 +43,16 @@ public class KakaoAuthImpl implements KakaoAuthService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
+        String referer = request.getHeader("Referer");
+        String redirectUrl = (referer != null && referer.contains("localhost")) 
+            ? KAKAO_REDIRECT_URL_LOCAL 
+            : KAKAO_REDIRECT_URL;
+
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
         params.add("client_id", KAKAO_CLIENT_ID);
         params.add("client_secret", KAKAO_CLIENT_SECRET);
-        params.add("redirect_uri", KAKAO_REDIRECT_URL);
+        params.add("redirect_uri", redirectUrl);
         params.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);

@@ -48,8 +48,8 @@ public class User {
 
     @Column(name = "terms_agreement_at")
     private LocalDateTime termsAgreementAt;
-
-    @OneToOne
+    
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "auth_user_id")
     private AuthUser authUser;
 

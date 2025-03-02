@@ -10,8 +10,11 @@ import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.users.dto.UserModifyRequest;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,8 +36,19 @@ public class UserManagementService {
 
     @Transactional(readOnly = true)
     public User getUserInfo(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("유효하지 않은 사용자 ID입니다.");
+        }
+        
+        // 먼저 ID로 조회 시도
+        Optional<User> userById = userRepository.findByIdWithAuthUser(userId);
+        if (userById.isPresent()) {
+            return userById.get();
+        }
+        
+        // userId로 조회 시도
         return userRepository.findByUserId(userId)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
     }
 
     @Transactional

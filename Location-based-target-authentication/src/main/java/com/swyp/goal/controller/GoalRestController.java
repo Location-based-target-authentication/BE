@@ -551,34 +551,5 @@ public class GoalRestController {
 
 
 
-    @Operation(
-        summary = "전체 목표 조회",
-        description = "모든 목표를 조회합니다.",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "성공",
-                content = @Content(mediaType = "application/json",
-                    array = @ArraySchema(schema = @Schema(implementation = Goal.class))
-                )
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "서버 내부 오류",
-                content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(example = "{\"message\": \"Internal server error\"}")
-                )
-            )
-        }
-    )
-    @GetMapping("/v1/goals/check")
-    public ResponseEntity<?> getAllGoals() {
-        try {
-            List<Goal> goals = goalService.getAllGoals();
-            return new ResponseEntity<>(goals, HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
+
 }

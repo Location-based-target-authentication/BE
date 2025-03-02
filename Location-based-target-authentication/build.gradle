@@ -8,9 +8,9 @@ group = 'com.swyp'
 version = '0.0.1-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
 }
 
 configurations {
@@ -65,9 +65,8 @@ tasks.named('test') {
 	useJUnitPlatform()
 }
 
-// Compiler 옵션 설정
-tasks.withType(JavaCompile).configureEach {
-	options.compilerArgs << "-parameters"
+compileJava {
+	options.compilerArgs += ['-parameters']
 }
 
 tasks.withType(Jar) {

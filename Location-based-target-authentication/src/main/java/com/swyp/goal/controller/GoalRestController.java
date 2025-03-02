@@ -145,18 +145,30 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/create")
-    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request) {
+    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request, HttpServletRequest httpRequest) {
         try {
+            // JWT 토큰에서 userId 추출
+            String bearerToken = httpRequest.getHeader("Authorization");
+            if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("인증 토큰이 필요합니다.");
+            }
+            String token = bearerToken.substring(7);
+            Long tokenUserId = jwtUtil.extractUserId(token);
+            
+            // 토큰에서 추출한 userId로 사용자 조회
+            AuthUser authUser = userRepository.findById(tokenUserId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // request의 userId를 토큰의 userId로 설정
+            request.setUserId(authUser.getUserId());
+            
+            // 목표 생성
             Goal createdGoal = goalService.createGoal(request);
             
-            // 응답 데이터: 목표 정보 & 잔여 포인트
+            // 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
             response.put("message", "목표 생성 성공");
             response.put("goal", createdGoal);
-            
-            // 생성된 목표의 userId로 사용자의 현재 포인트 조회
-            AuthUser authUser = userRepository.findByUserIdEquals(createdGoal.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             response.put("totalPoints", pointService.getUserPoints(authUser));
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);

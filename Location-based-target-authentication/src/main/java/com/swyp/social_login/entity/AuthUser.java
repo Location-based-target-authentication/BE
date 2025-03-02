@@ -39,7 +39,7 @@ public class AuthUser {
     @Column(nullable = false, length=100, unique = true)
     private String email;
 
-    @Column(length = 20, nullable = true)
+    @Column(length = 20)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING) // ENUM('GOOGLE', 'KAKAO')로 저장

@@ -6,6 +6,7 @@ import com.swyp.social_login.service.auth.GoogleAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Map;
@@ -21,15 +22,31 @@ public class GoogleAuthController {
 
     @Operation(summary = "구글 로그인", description = "인가 코드를 받아서 JWT Access Token 반환")
     @PostMapping("/login")
-    public ResponseEntity<SocialUserResponseDto> googleLogin(@RequestParam(name="code") String code) {
-        String accessToken = googleAuthService.getAccessToken(code);
-        //  Access Token으로 사용자 정보 가져오기
-        Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
-        SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
-        // JWT 토큰 생성
-        userResponse = authService.generateJwtTokens(userResponse);
-        return ResponseEntity.ok(userResponse);
+    public ResponseEntity<Map<String, SocialUserResponseDto>> googleLogin(
+            @RequestParam(name="code") String codeParam,
+            @RequestBody(required = false) Map<String, String> body) {
+        String code = codeParam;
+        if (code == null && body != null) {
+            code = body.get("code");
+        }
+
+        if (code == null || code.isEmpty()) {
+            throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");
+        }
+        try{
+            String accessToken = googleAuthService.getAccessToken(code);
+            //  Access Token으로 사용자 정보 가져오기
+            Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
+            SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
+            // JWT 토큰 생성
+            userResponse = authService.generateJwtTokens(userResponse);
+            return ResponseEntity.ok(Map.of("data", userResponse));
+        } catch (Exception e) {
+            e.printStackTrace(); // 로깅 추가
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
+
     //access token으로 직접 넘겨서 테스트
     @PostMapping("/userinfo")
     public ResponseEntity<SocialUserResponseDto> getGoogleUserInfo(@RequestParam(name = "accessToken") String accessToken) {
@@ -40,7 +57,6 @@ public class GoogleAuthController {
         SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
         return ResponseEntity.ok(userResponse);
     }
-
 
     @Operation(summary = "구글 로그인 후 callback", description = "구글 로그인 후 callback")
     @GetMapping("/callback")

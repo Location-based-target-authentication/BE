@@ -36,10 +36,11 @@ public class GoalPointHandler {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없음"));
 
         Point point = pointService.getOrCreatePoint(authUser);
-        boolean success = pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
-        if (!success) {
+        if (point.getTotalPoints() < 500) {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
         }
+        
+        pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
     }
 
     // 2. 목표 당일 달성 시 포인트 적립

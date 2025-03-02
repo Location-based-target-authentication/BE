@@ -24,6 +24,7 @@ public class PointService {
         return pointRepository.findByAuthUser(authUser)
                 .orElseGet(() -> {
                     Point newPoint = new Point(authUser);
+                    newPoint.addPoints(2000); // 초기 포인트 지급
                     return pointRepository.save(newPoint);
                 });
     }

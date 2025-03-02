@@ -427,75 +427,128 @@ public class GoalRestController {
 
 
     @Operation(
-    	    summary = "목표 1차인증",
-    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 보너스포인트가 0이 아닐때만 추가보너스 들어온것, 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
-    	    responses = {
-    	        @ApiResponse(
-    	            responseCode = "200",
-    	            description = "성공",
-    	            content = @Content(
-    	            	 mediaType = "application/json",
-        	             schema = @Schema(example = "{\"achievementStatus\": \"성공 OR 실패\", \"totalPoints\": 100, \"bonusPoints\": 30 OR 0}")
-    	            	 
-    	            )
-    	        ),
-    	        @ApiResponse(
-        	            responseCode = "400",
-        	            description = "오늘 이미 목표를 인증했습니다., 존재하지 않는 목표입니다.",
-        	            content = @Content(
-        	                mediaType = "application/json",
-        	                schema = @Schema(example = "{\"String\": \"오늘 이미 목표를 인증했습니다.\"}")
-        	            )
-        	        ),
-        	    @ApiResponse(
-            	        responseCode = "500",
-            	        description = "서버 내부 오류",
-            	        content = @Content(
-            	            mediaType = "application/json",
-            	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
-            	        )
-            	    )
-    	        
-    	    }
-    	)
+        summary = "목표 인증",
+        description = "목표 인증을 위한 API입니다. 현재 위치가 목표 위치와 100m 이내일 경우 인증이 성공합니다.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "성공",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{"
+                        + "\"achievementStatus\": \"성공\","
+                        + "\"totalPoints\": 130,"
+                        + "\"bonusPoints\": 30,"
+                        + "\"message\": \"목표 인증에 성공했습니다.\""
+                        + "}")
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "인증 실패",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{"
+                        + "\"achievementStatus\": \"실패\","
+                        + "\"totalPoints\": 100,"
+                        + "\"bonusPoints\": 0,"
+                        + "\"message\": \"목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.\""
+                        + "}")
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "서버 내부 오류",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{\"message\": \"서버 내부 오류가 발생했습니다.\"}"))
+            )
+        }
+    )
+    @Parameters({
+        @Parameter(
+            name = "goalId",
+            description = "목표 ID",
+            required = true,
+            example = "1"
+        ),
+        @Parameter(
+            name = "userId",
+            description = "사용자 ID",
+            required = true,
+            example = "1"
+        ),
+        @Parameter(
+            name = "latitude",
+            description = "현재 위도",
+            required = true,
+            example = "37.123456"
+        ),
+        @Parameter(
+            name = "longitude",
+            description = "현재 경도",
+            required = true,
+            example = "127.123456"
+        )
+    })
 
     //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
-    public ResponseEntity<?> GoalAchievementResponse(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
-    		@RequestParam("latitude") Double latitude,@RequestParam("longitude") Double longitude) {
+    public ResponseEntity<?> GoalAchievementResponse(
+            @PathVariable("goalId") Long goalId,
+            @RequestParam("userId") Long userId,
+            @RequestParam("latitude") Double latitude,
+            @RequestParam("longitude") Double longitude
+    ) {
         try {
-            boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
+            // 1. 사용자 확인
             AuthUser authUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
-			int previousPoints = pointService.getUserPoints(authUser); // 기존 포인트
-			if (verify) {
-				Goal goal = goalRepository.findById(goalId)
-						.orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없음"));
-				boolean isSelectedDay = true;
-				//당일 인증
-				goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
-				int afterDailyPoints = pointService.getUserPoints(authUser);
-				//보너스 지급
-				goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
-				int afterBonusPoints = pointService.getUserPoints(authUser);
-				int bonusPoints = afterBonusPoints - afterDailyPoints;
-
-				Map<String, Object> response = new HashMap<>();
-				response.put("achievementStatus", verify ? "성공" : "실패");
-				response.put("totalPoints", afterBonusPoints);
-				response.put("bonusPoints", bonusPoints);
-			}
-			// 목표 검증 실패
-			Map<String, Object> response = new HashMap<>();
-			response.put("achievementStatus", "실패");
-			response.put("totalPoints", previousPoints);
-			response.put("bonusPoints", 0);
-			return new ResponseEntity<>(response, HttpStatus.OK);
-
-        }catch (IllegalStateException e) {
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // 2. 목표 확인
+            Goal goal = goalRepository.findById(goalId)
+                    .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
+            
+            // 3. 기존 포인트 저장
+            int previousPoints = pointService.getUserPoints(authUser);
+            
+            // 4. 목표 위치 검증
+            boolean isVerified = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
+            
+            // 5. 응답 데이터 준비
+            Map<String, Object> response = new HashMap<>();
+            
+            if (!isVerified) {
+                response.put("achievementStatus", "실패");
+                response.put("totalPoints", previousPoints);
+                response.put("bonusPoints", 0);
+                response.put("message", "목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }
+            
+            // 6. 포인트 처리
+            boolean isSelectedDay = true; // 선택된 요일 여부 확인 로직 필요시 추가
+            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+            int afterDailyPoints = pointService.getUserPoints(authUser);
+            
+            // 7. 보너스 포인트 처리
+            goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+            int afterBonusPoints = pointService.getUserPoints(authUser);
+            
+            // 8. 최종 응답 생성
+            response.put("achievementStatus", "성공");
+            response.put("totalPoints", afterBonusPoints);
+            response.put("bonusPoints", afterBonusPoints - afterDailyPoints);
+            response.put("message", "목표 인증에 성공했습니다.");
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+            
+        } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (IllegalStateException e) {
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CompleteResponseDto("서버 내부 오류가 발생했습니다."), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     

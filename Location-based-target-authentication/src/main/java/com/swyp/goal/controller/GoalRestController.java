@@ -48,7 +48,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/")
 @Tag(name = "목표", description = "목표 관련 API")
 @RequiredArgsConstructor
 public class GoalRestController {
@@ -551,15 +551,34 @@ public class GoalRestController {
 
 
 
-}
-
-
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    @Operation(
+        summary = "전체 목표 조회",
+        description = "모든 목표를 조회합니다.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "성공",
+                content = @Content(mediaType = "application/json",
+                    array = @ArraySchema(schema = @Schema(implementation = Goal.class))
+                )
+            ),
+            @ApiResponse(
+                responseCode = "500",
+                description = "서버 내부 오류",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(example = "{\"message\": \"Internal server error\"}")
+                )
+            )
+        }
+    )
+    @GetMapping("/check")
+    public ResponseEntity<?> getAllGoals() {
+        try {
+            List<Goal> goals = goalService.getAllGoals();
+            return new ResponseEntity<>(goals, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-
-
-
 }
-

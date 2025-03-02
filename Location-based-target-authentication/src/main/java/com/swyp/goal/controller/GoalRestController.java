@@ -148,22 +148,25 @@ public class GoalRestController {
     public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request) {
         try {
             Goal createdGoal = goalService.createGoal(request);
-
-            // (포인트) 생성된 목표의 userId를 이용해 사용자를 조회
-            AuthUser authUser = userRepository.findByUserIdEquals(createdGoal.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            int updatedPoints = pointService.getUserPoints(authUser);
-
+            
             // 응답 데이터: 목표 정보 & 잔여 포인트
             Map<String, Object> response = new HashMap<>();
+            response.put("message", "목표 생성 성공");
             response.put("goal", createdGoal);
-            response.put("totalPoints", updatedPoints);
+            
+            // 생성된 목표의 userId로 사용자의 현재 포인트 조회
+            AuthUser authUser = userRepository.findByUserIdEquals(createdGoal.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            response.put("totalPoints", pointService.getUserPoints(authUser));
 
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (RuntimeException e) {
+            String errorMessage = e.getMessage().contains("포인트 부족") ? 
+                "포인트가 부족하여 목표를 생성할 수 없습니다." : 
+                "서버 오류가 발생했습니다: " + e.getMessage();
+            return new ResponseEntity<>(new CompleteResponseDto(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

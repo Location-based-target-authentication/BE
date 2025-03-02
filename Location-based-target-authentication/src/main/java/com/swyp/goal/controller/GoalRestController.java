@@ -162,8 +162,8 @@ public class GoalRestController {
             AuthUser authUser = userRepository.findById(tokenUserId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             
-            // request의 userId를 토큰의 userId로 설정
-            request.setUserId(authUser.getUserId());
+            // request의 userId를 AuthUser의 id(PK)로 설정
+            request.setUserId(authUser.getId());
             
             // 목표 생성
             Goal createdGoal = goalService.createGoal(request);

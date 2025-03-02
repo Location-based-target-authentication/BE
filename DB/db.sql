@@ -1,15 +1,23 @@
 -- 1. 사용자 테이블
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,    -- 사용자 고유 번호
-    email VARCHAR(100) NOT NULL UNIQUE,      -- 사용자 이메일
-    username VARCHAR(50) NOT NULL,           -- 사용자 이름
-    social_type ENUM('GOOGLE', 'KAKAO') NOT NULL,    -- 소셜 로그인 타입
-    social_id VARCHAR(100) NOT NULL,         -- 소셜 서비스의 사용자 식별자
-    points INT NOT NULL,                     -- 보유 포인트
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 계정 생성일
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,    -- 계정 정보일
-    is_active BOOLEAN DEFAULT TRUE           -- 계정 활성화 상태
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,   -- 사용자 ID (자동 증가)
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 계정 생성일
+    email VARCHAR(255) NOT NULL UNIQUE,             -- 이메일 (고유 값)
+    last_login_at DATETIME(6) NULL,                 -- 마지막 로그인 시간
+    name VARCHAR(255) NOT NULL,                     -- 사용자 이름
+    phone_number VARCHAR(20) NULL,                  -- 전화번호 (NULL 허용)
+    access_token VARCHAR(512) NULL,                 -- 액세스 토큰 (NULL 허용)
+    refresh_token VARCHAR(512) NULL,                -- 리프레시 토큰 (NULL 허용)
+    social_id VARCHAR(255) NULL UNIQUE,             -- 소셜 로그인 ID (고유 값)
+    social_type ENUM('GOOGLE', 'KAKAO') NULL,       -- 소셜 로그인 유형 (Google, Kakao)
+    username VARCHAR(255) NOT NULL,                 -- 사용자명
+    user_id VARCHAR(255) NOT NULL UNIQUE,           -- 사용자 ID (고유 값)
+    privacy_agree TINYINT(1) NOT NULL DEFAULT 0,    -- 개인정보 동의 여부 (0: 미동의, 1: 동의)
+    privacy_agree_at DATETIME(6) NULL,              -- 개인정보 동의 일시
+    terms_agree TINYINT(1) NOT NULL DEFAULT 0,      -- 이용약관 동의 여부 (0: 미동의, 1: 동의)
+    terms_agree_at DATETIME(6) NULL                 -- 이용약관 동의 일시
 );
+
 
 -- 2. 약관 테이블
 CREATE TABLE terms (
@@ -70,15 +78,20 @@ CREATE TABLE goal_achievements (
     FOREIGN KEY (goal_id) REFERENCES goals(id)    -- 목표 테이블 참조
 );
 
--- 7. 포인트 이력 테이블
+-- 7. 포인트 history 테이블
 CREATE TABLE point_history (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,    -- 포인트 이력 고유 번호
-    user_id BIGINT NOT NULL,                -- 사용자 ID 
-    points INT NOT NULL,                    -- 포인트 변동량 (양수: 적립, 음수: 차감)
-    type ENUM('WELCOME', 'ACHIEVEMENT', 'BONUS', 'GOAL_ACTIVATION', 'GIFT') NOT NULL,    -- 포인트 변동 유형 (가입 보너스, 목표 달성, 보너스, 목표 활성화, 기프트)
-    description VARCHAR(200) NOT NULL,      -- 변동 사유 설명
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 포인트 변동일
-    related_goal_id BIGINT,                -- 관련 목표 ID
-    FOREIGN KEY (user_id) REFERENCES users(id),    -- 사용자 테이블 참조
-    FOREIGN KEY (related_goal_id) REFERENCES goals(id)    -- 목표 테이블 참조
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 포인트 이력 ID (자동 증가)
+    created_at DATETIME(6) NOT NULL,               -- 포인트 변동 시간
+    description VARCHAR(200) NULL,                 -- 변동 사유 (NULL 허용)
+    goal_id BIGINT NULL,                           -- 관련 목표 ID (NULL 허용)
+    type ENUM('WELCOME', 'ACHIEVEMENT', 'BONUS', 'GOAL_ACTIVATION', 'GIFT') NOT NULL, -- 포인트 변동 유형
+    points INT NOT NULL,                           -- 변동된 포인트 값 (양수: 적립, 음수: 차감)
+    user_id BIGINT NOT NULL                        -- 사용자 ID (NULL 허용 안됨)
+);
+
+-- 8. 포인트 테이블
+CREATE TABLE points (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 고유 ID (자동 증가)
+    total_points INT NOT NULL,                      -- 총 포인트
+    user_id BIGINT NOT NULL UNIQUE                 -- 사용자 ID (고유 값)
 );

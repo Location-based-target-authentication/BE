@@ -45,8 +45,8 @@ public class PointController {
                     )
             }
     )
-    @GetMapping("/{id}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("id") Long userId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("userId") Long userId) {
         AuthUser authUser = findAuthUser(userId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -73,9 +73,9 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{id}/add")
+    @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("id") Long userId,
+            @PathVariable("userId") Long userId,
             @RequestBody PointAddRequest request) {
         AuthUser authUser = findAuthUser(userId);
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
@@ -109,9 +109,9 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{id}/deduct")
+    @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("id") Long userId,
+            @PathVariable("userId") Long userId,
             @RequestBody PointDedeductRequest request) {
         AuthUser authUser = findAuthUser(userId);
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
@@ -128,14 +128,9 @@ public class PointController {
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(Long id) {
-        // First try to find by primary key id
-        return userRepository.findById(id)
-                .orElseGet(() -> 
-                    // If not found, try to find by social platform userId
-                    userRepository.findByUserId(id)
-                            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."))
-                );
+    private AuthUser findAuthUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
 

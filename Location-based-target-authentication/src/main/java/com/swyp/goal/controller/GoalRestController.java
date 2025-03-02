@@ -161,13 +161,13 @@ public class GoalRestController {
             System.out.println("토큰에서 추출한 userId: " + tokenUserId);
             
             // 먼저 userId로 조회 시도
-            AuthUser authUser = userRepository.findByUserIdEquals(tokenUserId)
+            AuthUser authUser = userRepository.findById(tokenUserId)
                     .orElseGet(() -> {
-                        System.out.println("userId로 찾지 못해 id로 재시도");
-                        // userId로 못찾으면 id로 조회 시도
-                        return userRepository.findById(tokenUserId)
+                        System.out.println("id로 찾지 못해 userId로 재시도");
+                        // id로 못찾으면 userId로 조회 시도
+                        return userRepository.findByUserIdEquals(tokenUserId)
                                 .orElseThrow(() -> {
-                                    System.out.println("사용자를 찾을 수 없음. userId=" + tokenUserId);
+                                    System.out.println("사용자를 찾을 수 없음. tokenUserId=" + tokenUserId);
                                     return new IllegalArgumentException("사용자를 찾을 수 없습니다.");
                                 });
                     });

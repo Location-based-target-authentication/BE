@@ -1,6 +1,7 @@
 package com.swyp.global.security;
 
 import com.swyp.exception.RefreshTokenExpiredException;
+import com.swyp.social_login.entity.AuthUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.WeakKeyException;
@@ -45,18 +46,18 @@ public class JwtUtil {
         }
     }
 
-    public String generateAccessToken(Long userId) {
+    public String generateAccessToken(AuthUser authUser) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateRefreshToken(Long userId) {
+    public String generateRefreshToken(AuthUser authUser) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
+                .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)

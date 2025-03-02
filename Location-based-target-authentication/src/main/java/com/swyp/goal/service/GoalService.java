@@ -221,6 +221,7 @@ public class GoalService {
     //목표 달성 1차 인증 (goal의 위도 경도 확인 이후 100m이내에 있을시 achieved_count 를 +1함 )
     @Transactional
     public boolean validateGoalAchievement(Long userId, Long goalId, double latitude, double longitude){
+        String userIdStr = String.valueOf(userId);
         Goal goal = goalRepository.findById(goalId)
             .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
         //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
@@ -247,9 +248,9 @@ public class GoalService {
             goalRepository.save(goal);
             // (포인트) 지급
             boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
-            // Long 타입의 userId로 사용자 찾기
-            AuthUser authUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+            // String 타입의 userId로 사용자 찾기
+            AuthUser authUser = userRepository.findByUserIdEquals(userIdStr)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userIdStr));
             goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
             return true;
         }

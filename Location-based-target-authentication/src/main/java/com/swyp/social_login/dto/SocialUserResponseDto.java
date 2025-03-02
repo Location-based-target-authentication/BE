@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SocialUserResponseDto {
     private Long id;
-    private String socialId;
+    private String userId;
     private String accessToken;
     private String refreshToken;
     private SocialType socialType;
@@ -20,7 +20,7 @@ public class SocialUserResponseDto {
 
     public SocialUserResponseDto(AuthUser authUser) {
         this.id = authUser.getId();
-        this.socialId = authUser.getSocialId();
+        this.userId = authUser.getUserId();
         this.accessToken = authUser.getAccessToken();
         this.refreshToken = authUser.getRefreshToken();
         this.socialType = authUser.getSocialType();
@@ -29,7 +29,7 @@ public class SocialUserResponseDto {
         this.phoneNumber = authUser.getPhoneNumber();
     }
 
-    public void setTokens(String accessToken, String refreshToken){
+    public void setTokens(String accessToken, String refreshToken) {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }

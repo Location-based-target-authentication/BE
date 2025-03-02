@@ -13,8 +13,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
-    public SocialUserResponseDto getUserInfoFromDb(String socialId) {
-        Optional<AuthUser> userOptional = userRepository.findBySocialId(socialId);
+    
+    public SocialUserResponseDto getUserInfoFromDb(String userId) {
+        Optional<AuthUser> userOptional = userRepository.findByUserId(userId);
         if (userOptional.isEmpty()) {
             return null;
         }
@@ -23,10 +24,10 @@ public class UserService {
     }
 
     // 전화번호 저장 메서드
-    public SocialUserResponseDto savePhoneNumber(String socialId, String phoneNumber) {
-        Optional<AuthUser> optionalUser = userRepository.findBySocialId(socialId);
+    public SocialUserResponseDto savePhoneNumber(String userId, String phoneNumber) {
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("해당하는 socialId의 user가 없음: " + socialId);
+            throw new IllegalArgumentException("해당하는 userId의 user가 없음: " + userId);
         }
         AuthUser user = optionalUser.get();
         user.setPhoneNumber(phoneNumber); // 전화번호 업데이트

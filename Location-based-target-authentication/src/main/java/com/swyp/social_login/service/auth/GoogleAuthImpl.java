@@ -53,7 +53,7 @@ public class GoogleAuthImpl implements GoogleAuthService {
         try {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("socialId", jsonNode.get("id").asText());
+            userInfo.put("userId", jsonNode.get("id").asText());
             userInfo.put("email", jsonNode.get("email").asText());
             userInfo.put("username", jsonNode.get("name").asText());
             return userInfo;

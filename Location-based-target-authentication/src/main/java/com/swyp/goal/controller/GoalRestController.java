@@ -1,14 +1,11 @@
 package com.swyp.goal.controller;
-import java.util.HashMap;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.swyp.goal.repository.GoalRepository;
-import com.swyp.point.service.GoalPointHandler;
-import com.swyp.point.service.PointService;
-import com.swyp.social_login.entity.AuthUser;
-import com.swyp.social_login.repository.UserRepository;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
 import com.swyp.goal.dto.GoalAllSearchDto;
 import com.swyp.goal.dto.GoalCompleteDto;
 import com.swyp.goal.dto.GoalDateDto;
@@ -33,7 +31,13 @@ import com.swyp.goal.entity.GoalAchievementsLog;
 import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
+import com.swyp.goal.repository.GoalRepository;
 import com.swyp.goal.service.GoalService;
+import com.swyp.point.service.GoalPointHandler;
+import com.swyp.point.service.PointService;
+import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.repository.UserRepository;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -55,6 +59,7 @@ public class GoalRestController {
     private final PointService pointService;
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
+
     // 목표 home
     @Operation(
     	    summary = "목표 home",
@@ -107,6 +112,7 @@ public class GoalRestController {
         }
     	
     }
+
     
     //목표 생성, 프론트에서 StatusCheck는 임시저장(DRAFT) 또는 활성화(ACTIVE)를 선택해서 넘겨야 함, selectedDays는 요일 선택 체크박스에서 넘어오는 값
     //Mon, Tue, Wed, Thu, Fri, Sat, Sun 이렇게 넘어옴
@@ -115,9 +121,9 @@ public class GoalRestController {
     	    description = "목표 생성을 위해 여러 값을 넘겨야 됩니다.",
     	    responses = {
     	    	@ApiResponse(
-    	     	         responseCode = "200",
+    	     	         responseCode = "201",
     	     	         description = "성공",
-    	     	         content = @Content(mediaType = "application/json",schema = @Schema(implementation = Goal.class))
+    	     	         content = @Content(mediaType = "application/json",schema = @Schema(example = "{\"String\": \"목표 생성 성공\"}"))
     	     	     ),
     	        @ApiResponse(
     	            responseCode = "400",
@@ -197,6 +203,7 @@ public class GoalRestController {
     		List<GoalDateDto> goalDateDto = new ArrayList<>();
     		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoalIdAndAchievedSuccessIsTrue(goal.getId());
 
+
     		 for (GoalAchievementsLog log : logs) {
     	            GoalDateDto dto = new GoalDateDto(log.getAchievedAt(), log.isAchievedSuccess());
     	            goalDateDto.add(dto);
@@ -227,9 +234,6 @@ public class GoalRestController {
         }
     }
 
-
-
-
      //목표 1개 상세 목표 조회 (목표 상세조회)
     @Operation(
     	    summary = "목표 상세 조회",
@@ -238,7 +242,7 @@ public class GoalRestController {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
-    	            content = @Content(mediaType = "application/json",schema = @Schema(implementation = GoalHomeResponseDto.class))
+    	            content = @Content(mediaType = "application/json",schema = @Schema(implementation = GoalDetailDto.class))
     	        )
     	    }
     	)
@@ -369,6 +373,7 @@ public class GoalRestController {
         }catch (Exception e) {
         	return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+
     }
     
     
@@ -417,17 +422,18 @@ public class GoalRestController {
         }
     }
 
-    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1
+
     @Operation(
     	    summary = "목표 1차인증",
-    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
+    	    description = "목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 보너스포인트가 0이 아닐때만 추가보너스 들어온것, 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
     	            content = @Content(
     	            	 mediaType = "application/json",
-        	             schema = @Schema(implementation = Boolean.class, example = "true")
+        	             schema = @Schema(example = "{\"achievementStatus\": \"성공 OR 실패\", \"totalPoints\": 100, \"bonusPoints\": 30 OR 0}")
+    	            	 
     	            )
     	        ),
     	        @ApiResponse(
@@ -446,15 +452,14 @@ public class GoalRestController {
             	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
             	        )
             	    )
+    	        
     	    }
     	)
-    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1
+
+    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
-    public ResponseEntity<?> GoalAchievementResponse(
-            @PathVariable("goalId") Long goalId,
-            @RequestParam("userId") Long userId,
-            @RequestParam("latitude") Double latitude,
-            @RequestParam("longitude") Double longitude) {
+    public ResponseEntity<?> GoalAchievementResponse(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
+    		@RequestParam("latitude") Double latitude,@RequestParam("longitude") Double longitude) {
         try {
             boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
             AuthUser authUser = userRepository.findById(userId)
@@ -486,22 +491,23 @@ public class GoalRestController {
 
         }catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            e.printStackTrace(); //오류 확인 log
-            return new ResponseEntity<>("예상치 못한 에러", HttpStatus.INTERNAL_SERVER_ERROR);
+        }catch (Exception e) {
+            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
-    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장 ",
+    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장  ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
     	            description = "성공",
     	            content = @Content(
     	            	 mediaType = "application/json",
-    	            	 schema = @Schema(example = "{\"String\": \"목표 달성 완료 (목표Status:COMPLETE로변경)\"}")
+    	            	 schema = @Schema(example = "{\"String\": \"목표 달성 완료\"}")
     	            )
     	        ),
     	        @ApiResponse(
@@ -522,24 +528,23 @@ public class GoalRestController {
             	    )
     	    }
     	)
-    //목표 complete 후 목표 달성 기록 테이블에 저장
     @PostMapping("/v1/goals/{goalId}/complete")
-    public ResponseEntity<?> updateGoalStatusToComplete(
-            @PathVariable("goalId") Long goalId,
-            @RequestParam("userId") Long userId,
+    public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
             @RequestParam("isSelectedDay") boolean isSelectedDay) {
     	try {
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getUserId(), isSelectedDay);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
     	}catch (IllegalStateException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
-        }catch (Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
 

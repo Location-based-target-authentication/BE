@@ -21,4 +21,5 @@ public interface GoalAchievementsLogRepository extends JpaRepository<GoalAchieve
 
      // goalId와 achievedSuccess가 true인 기록 조회
      List<GoalAchievementsLog> findByGoalIdAndAchievedSuccessIsTrue(Long goalId);
+
 }

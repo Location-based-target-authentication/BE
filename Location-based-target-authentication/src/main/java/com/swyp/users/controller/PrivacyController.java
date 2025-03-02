@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
 
 @Tag(name = "개인정보 처리방침", description = "개인정보 처리방침 API")
 @RestController
@@ -23,8 +24,8 @@ public class PrivacyController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @GetMapping
-    public ResponseEntity<Boolean> getPrivacyAgreement(@RequestParam Long userId) {
+    @PostMapping("/{userId}")
+    public ResponseEntity<Boolean> getPrivacyAgreement(@PathVariable Long userId) {
         return ResponseEntity.ok(userAgreementService.getPrivacyAgreement(userId));
     }
 
@@ -34,9 +35,14 @@ public class PrivacyController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청"),
             @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @PostMapping("/agree")
-    public ResponseEntity<Void> agreeToPrivacyPolicy(@RequestParam Long userId) {
+    @PostMapping("/agree/{userId}")
+    public ResponseEntity<Void> agreeToPrivacyPolicy(@PathVariable Long userId) {
         userAgreementService.agreeToPrivacyPolicy(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 }

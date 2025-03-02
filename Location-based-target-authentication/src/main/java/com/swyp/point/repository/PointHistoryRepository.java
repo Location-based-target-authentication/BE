@@ -24,4 +24,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
     @Query("UPDATE PointHistory p SET p.goalId = NULL WHERE p.goalId = :goalId")
     void updateGoalIdToNull(@Param("goalId") Long goalId);
     
+    @Modifying
+    @Query("DELETE FROM PointHistory p WHERE p.authUser.id = :userId")
+    void deleteByAuthUserId(@Param("userId") Long userId);
 }

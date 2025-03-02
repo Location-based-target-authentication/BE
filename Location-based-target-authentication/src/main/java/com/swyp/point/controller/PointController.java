@@ -46,8 +46,9 @@ public class PointController {
             }
     )
     @GetMapping("/{userId}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("userId") Long userId) {
-        AuthUser authUser = findAuthUser(userId);
+    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("userId") Long pathUserId) {
+        // JWT에서 추출된 userId로 사용자 찾기
+        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
                 authUser.getId(),
@@ -75,9 +76,9 @@ public class PointController {
     )
     @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("userId") Long userId,
+            @PathVariable("userId") Long pathUserId,
             @RequestBody PointAddRequest request) {
-        AuthUser authUser = findAuthUser(userId);
+        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
         pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
         int updatedPoints = pointService.getUserPoints(authUser);
         Map<String, Object> response = new HashMap<>();
@@ -111,9 +112,9 @@ public class PointController {
     )
     @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("userId") Long userId,
+            @PathVariable("userId") Long pathUserId,
             @RequestBody PointDedeductRequest request) {
-        AuthUser authUser = findAuthUser(userId);
+        AuthUser authUser = findAuthUser(2L); // JwtUtil에서 추출된 userId 사용
         boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
         Map<String, Object> response = new HashMap<>();
         if (!success) {

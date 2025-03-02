@@ -20,7 +20,8 @@ public class SocialUserResponseDto {
 
     public SocialUserResponseDto(AuthUser authUser) {
         this.id = authUser.getId();
-        this.userId = authUser.getUserId();
+        // 데이터베이스 ID를 userId로 사용
+        this.userId = String.valueOf(authUser.getId());
         this.accessToken = authUser.getAccessToken();
         this.refreshToken = authUser.getRefreshToken();
         this.socialType = authUser.getSocialType();

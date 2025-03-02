@@ -48,7 +48,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/")
+@RequestMapping("/api")
 @Tag(name = "목표", description = "목표 관련 API")
 @RequiredArgsConstructor
 public class GoalRestController {
@@ -572,7 +572,7 @@ public class GoalRestController {
             )
         }
     )
-    @GetMapping("/check")
+    @GetMapping("/v1/goals/check")
     public ResponseEntity<?> getAllGoals() {
         try {
             List<Goal> goals = goalService.getAllGoals();

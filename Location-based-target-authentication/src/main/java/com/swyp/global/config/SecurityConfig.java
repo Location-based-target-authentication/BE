@@ -12,7 +12,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.web.filter.CorsFilter;
 
-import java.util.Arrays;
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -26,16 +25,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/v1/auth/**",
-                    "/oauth2/**",
-                    "/swagger-ui/**",
-                    "/v3/api-docs/**",
-                    "/static/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .anyRequest().permitAll()
+            );
         return http.build();
     }
 }

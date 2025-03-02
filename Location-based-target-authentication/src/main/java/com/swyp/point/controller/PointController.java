@@ -5,6 +5,7 @@ import com.swyp.point.dto.PointDedeductRequest;
 import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
+import com.swyp.global.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,10 +49,13 @@ public class PointController {
             }
     )
     @GetMapping("/{userId}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("userId") Long pathUserId) {
+    public ResponseEntity<PointBalanceResponse> getPoints(
+            @PathVariable("userId") Long pathUserId,
+            HttpServletRequest request) {
         // JWT에서 추출된 userId로 사용자 찾기
-        String token = jwtUtil.getJwtFromRequest();
-        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+        String bearerToken = request.getHeader("Authorization");
+        String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
+        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
         AuthUser authUser = findAuthUser(tokenUserId);
         int points = pointService.getUserPoints(authUser);
         PointBalanceResponse response = new PointBalanceResponse(
@@ -80,11 +85,13 @@ public class PointController {
     @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
             @PathVariable("userId") Long pathUserId,
-            @RequestBody PointAddRequest request) {
-        String token = jwtUtil.getJwtFromRequest();
-        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+            @RequestBody PointAddRequest pointRequest,
+            HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
+        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
         AuthUser authUser = findAuthUser(tokenUserId);
-        pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
+        pointService.addPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
         int updatedPoints = pointService.getUserPoints(authUser);
         Map<String, Object> response = new HashMap<>();
         response.put("status", "success");
@@ -118,11 +125,13 @@ public class PointController {
     @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
             @PathVariable("userId") Long pathUserId,
-            @RequestBody PointDedeductRequest request) {
-        String token = jwtUtil.getJwtFromRequest();
-        Long tokenUserId = jwtUtil.getUserIdFromToken(token);
+            @RequestBody PointDedeductRequest pointRequest,
+            HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        String token = bearerToken != null && bearerToken.startsWith("Bearer ") ? bearerToken.substring(7) : null;
+        Long tokenUserId = Long.parseLong(jwtUtil.extractUserId(token));
         AuthUser authUser = findAuthUser(tokenUserId);
-        boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
+        boolean success = pointService.deductPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
         Map<String, Object> response = new HashMap<>();
         if (!success) {
             response.put("status", "fail");

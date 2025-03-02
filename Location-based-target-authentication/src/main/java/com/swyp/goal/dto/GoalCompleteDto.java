@@ -1,7 +1,8 @@
 package com.swyp.goal.dto;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -24,9 +25,11 @@ public class GoalCompleteDto {
 	@Schema(description = "총 획득 포인트", example = "5000")
 	private Integer totalPointsEarned;//총 획득 포인트
 	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	@Schema(description = "목표 시작일", example = "2025-01-01")
 	private LocalDate startDate;//목표 시작일
 	
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	@Schema(description = "목표 종료일", example = "2025-12-31")
 	private LocalDate endDate;//목표 종료일
 	

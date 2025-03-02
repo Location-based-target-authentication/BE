@@ -1,9 +1,12 @@
 package com.swyp.goal.entity;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
 
 import com.swyp.users.domain.User;
 
@@ -84,6 +87,7 @@ public class Goal {
     private Integer achievedCount = 0;
     
     @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
     @Schema(description = "목표 생성 시간", example = "2025-02-22T10:15:30")
     private LocalDateTime createdAt;
     
@@ -95,8 +99,11 @@ public class Goal {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
     
-    @OneToMany(mappedBy = "goalId", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GoalDay> goalDays = new ArrayList<>();
+
+    @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<GoalAchievementsLog> goalAchievementsLogs = new ArrayList<>();
     
     @PrePersist
     protected void onCreate() {

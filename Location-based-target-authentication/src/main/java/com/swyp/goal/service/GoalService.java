@@ -9,12 +9,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.swyp.point.entity.PointHistory;
-import com.swyp.point.enums.PointType;
-import com.swyp.point.repository.PointHistoryRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.swyp.goal.dto.GoalCreateRequest;
 import com.swyp.goal.dto.GoalUpdateDto;
 import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
@@ -27,6 +25,7 @@ import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
 import com.swyp.location.service.LocationService;
+import com.swyp.point.repository.PointHistoryRepository;
 import com.swyp.point.service.GoalPointHandler;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
@@ -46,6 +45,7 @@ public class GoalService {
     private final GoalPointHandler goalPointHandler;
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    
 
 
     //전체 목표 조회 (UserId로 조회) 
@@ -70,15 +70,14 @@ public class GoalService {
     
     //목표 생성
     @Transactional
-    public Goal createGoal(Goal goal, String statusCheck, List<DayOfWeek> selectedDays) {
-        LocalDate startDate = goal.getStartDate();
-        LocalDate endDate = goal.getEndDate();
-        String name = goal.getName();
-
-        // 목표 개수 조회 (DRAFT 또는 ACTIVE 상태인 목표만)
-        List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
-        long count = goalRepository.countByUserIdAndStatusIn(goal.getUserId(), statuses);
+    public Goal createGoal(GoalCreateRequest request) {
+        LocalDate startDate = request.getStartDate();
+        LocalDate endDate = request.getEndDate();
+        String name = request.getName();
         
+        // 목표 개수 제한 검증
+        List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
+        long count = goalRepository.countByUserIdAndStatusIn(request.getUserId(), statuses);
         if (count >= 3) {
             throw new IllegalArgumentException("목표는 최대 3개까지만 생성할 수 있습니다.");
         }
@@ -87,7 +86,6 @@ public class GoalService {
         if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("목표 이름은 필수 입력 사항입니다.");
         }
-
         if (name.length() > 20 || name.length() < 2) {
             throw new IllegalArgumentException("목표 이름은 2~20자 이내여야 합니다.");
         }
@@ -96,38 +94,39 @@ public class GoalService {
         if (startDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException("시작일은 오늘 이후여야 합니다.");
         }
-
         if (endDate.isBefore(startDate)) {
             throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
         }
-
         if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
             throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
         }
-
         if (ChronoUnit.DAYS.between(startDate, endDate) > 90) {
             throw new IllegalArgumentException("종료일은 시작일 기준으로 최대 3개월 이내여야 합니다.");
         }
 
-        if(statusCheck.equals("DRAFT")){
-            goal.setStatus(GoalStatus.DRAFT);
-        }else if(statusCheck.equals("ACTIVE")){
-            goal.setStatus(GoalStatus.ACTIVE);
-        }else{
-            goal.setStatus(GoalStatus.DRAFT);
-        }
+        // Goal 객체 생성 후 데이터 설정
+        Goal goal = new Goal();
+        goal.setUserId(request.getUserId());
+        goal.setName(request.getName());
+        goal.setStartDate(request.getStartDate());
+        goal.setEndDate(request.getEndDate());
+        goal.setLocationName(request.getLocationName());
+        goal.setLatitude(request.getLatitude());
+        goal.setLongitude(request.getLongitude());
+        goal.setStatus(request.getStatus().equals("ACTIVE") ? GoalStatus.ACTIVE : GoalStatus.DRAFT);
 
-        // 목표 수행 횟수 계산
-        int targetCount = calculateTargetCount(startDate, endDate, selectedDays); // 목표 총 수행 횟수 계산 메서드
-        goal.setTargetCount(targetCount); // 목표 수행 횟수 설정
+        // 목표 수행 횟수 계산 및 설정
+        int targetCount = calculateTargetCount(startDate, endDate, request.getSelectedDays());
+        goal.setTargetCount(targetCount);
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
-        //(포인트) 차감
+        
+        // (포인트) 차감
         goalPointHandler.handleGoalCreation(savedGoal);
 
         // 선택된 요일 저장
-        for (DayOfWeek day : selectedDays) {
+        for (DayOfWeek day : request.getSelectedDays()) {
             GoalDay goalDay = new GoalDay();
             goalDay.setGoalId(savedGoal.getId());
             goalDay.setDayOfWeek(day);
@@ -181,15 +180,22 @@ public class GoalService {
 
     //목표 삭제
     @Transactional
-    public void deleteGoal(Long goalId){
+    public void deleteGoal(Long goalId) {
+        // 목표 조회
         Goal goal = goalRepository.findById(goalId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-        
-         // 상태가 DRAFT 또는 ACTIVE인지 확인 , DRAFT 또는 ACTIVE가 아니면 예외 발생 
-    if (!goal.getStatus().equals(GoalStatus.DRAFT) && !goal.getStatus().equals(GoalStatus.ACTIVE)) {
-        throw new IllegalArgumentException("임시저장 또는 활성화 목표만 삭제할 수 있습니다.");
-    }
-        
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+
+        // 상태가 DRAFT 또는 ACTIVE인지 확인
+        if (!goal.getStatus().equals(GoalStatus.DRAFT) && !goal.getStatus().equals(GoalStatus.ACTIVE)) {
+            throw new IllegalArgumentException("임시저장 또는 활성화 목표만 삭제할 수 있습니다.");
+        }
+
+        // goal_achievements 테이블의 goal_id를 NULL로 설정, points_history 테이블의 goal_id를 NULL로 설정.
+        goalAchievementsRepository.updateGoalIdToNull(goalId);
+        pointHistoryRepository.updateGoalIdToNull(goalId);
+
+
+        // 목표 삭제
         goalRepository.deleteById(goalId);
     }
 

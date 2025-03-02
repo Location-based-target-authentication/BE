@@ -9,7 +9,6 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,13 +17,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.swyp.goal.dto.CompleteResponseDto;
 import com.swyp.goal.dto.GoalAllSearchDto;
 import com.swyp.goal.dto.GoalCompleteDto;
+import com.swyp.goal.dto.GoalCreateRequest;
 import com.swyp.goal.dto.GoalDateDto;
 import com.swyp.goal.dto.GoalDetailDto;
 import com.swyp.goal.dto.GoalHomeResponseDto;
 import com.swyp.goal.dto.GoalUpdateDto;
-import com.swyp.goal.entity.DayOfWeek;
 import com.swyp.goal.entity.Goal;
 import com.swyp.goal.entity.GoalAchievements;
 import com.swyp.goal.entity.GoalAchievementsLog;
@@ -32,6 +32,7 @@ import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
+import com.swyp.goal.service.GoalScheduledService;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
 import com.swyp.point.service.PointService;
@@ -108,7 +109,7 @@ public class GoalRestController {
     	}	
     	return new ResponseEntity<>(goalHomeDtoList,HttpStatus.OK);
     	}catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR); // 적절한 HTTP 상태 코드로 변경
+            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR); // 적절한 HTTP 상태 코드로 변경
         }
     	
     }
@@ -147,24 +148,25 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/create")
-    public ResponseEntity<?> createGoal(@ModelAttribute Goal goal,
-                                        @RequestParam("status") String statusCheck,
-                                        @RequestParam("days") List<DayOfWeek> selectedDays) {
+    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request) {
         try {
-            Goal createGoal = goalService.createGoal(goal, statusCheck, selectedDays);
+            Goal createdGoal = goalService.createGoal(request);
 
-            //(포인트) 생성된 목표의 userId를 이용해 사용자를 조회
-            AuthUser authUser = userRepository.findById(createGoal.getUserId()).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            // (포인트) 생성된 목표의 userId를 이용해 사용자를 조회
+            AuthUser authUser = userRepository.findById(createdGoal.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             int updatedPoints = pointService.getUserPoints(authUser);
+
             // 응답 데이터: 목표 정보 & 잔여 포인트
             Map<String, Object> response = new HashMap<>();
-            response.put("goal", createGoal);
+            response.put("goal", createdGoal);
             response.put("totalPoints", updatedPoints);
+
             return new ResponseEntity<>("목표 생성 성공", HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -230,7 +232,7 @@ public class GoalRestController {
     	}
         return new ResponseEntity<>(goalAllDto, HttpStatus.OK);
     	} catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new CompleteResponseDto("e.getMessage()"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -328,7 +330,7 @@ public class GoalRestController {
         Goal updatedGoal = goalService.updateGoalStatus(goalId, status);
         System.out.println("도달");
         
-        return new ResponseEntity<>("목표 상태 변경 성공", HttpStatus.OK);
+        return new ResponseEntity<>(new CompleteResponseDto("목표 상태 변경 성공"), HttpStatus.OK);
     }
 
 
@@ -367,11 +369,11 @@ public class GoalRestController {
     public ResponseEntity<?> updateGoalDraft(@PathVariable("goalId") Long goalId, @RequestBody GoalUpdateDto goal){
         try {
     	Goal updatedGoal = goalService.updateGoal(goalId,goal);
-        return new ResponseEntity<>("임시 저장된 목표 수정 완료",HttpStatus.OK);
+        return new ResponseEntity<>(new CompleteResponseDto("임시 저장된 목표 수정 완료"),HttpStatus.OK);
         }catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); 	
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST); 	
         }catch (Exception e) {
-        	return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
@@ -404,7 +406,7 @@ public class GoalRestController {
             	        description = "서버 내부 오류",
             	        content = @Content(
             	            mediaType = "application/json",
-            	            schema = @Schema(example = "{\"String\": \"Internal server error\"}")
+            	            schema = @Schema(example = "{\"message\": \"Internal server error\"}")
             	        )
             	    )
     	    }
@@ -414,11 +416,12 @@ public class GoalRestController {
     public ResponseEntity<?> deleteGoal(@PathVariable("goalId") Long goalId){
         try {
     	goalService.deleteGoal(goalId);
-        return new ResponseEntity<>("목표 삭제 성공",HttpStatus.OK);
+        return new ResponseEntity<>(new CompleteResponseDto("목표 삭제 성공"),HttpStatus.OK);
         }catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST); 	
+        	System.out.println(e.getMessage());
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST); 	
         }catch (Exception e) {
-        	return new ResponseEntity<>("Internal server error", HttpStatus.BAD_REQUEST);
+        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -490,9 +493,9 @@ public class GoalRestController {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
         }catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
         }catch (Exception e) {
-            return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -537,13 +540,15 @@ public class GoalRestController {
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, authUser.getSocialId(), isSelectedDay);
         goalRepository.save(updatedGoal);
-        return new ResponseEntity<>("목표 달성 완료", HttpStatus.OK);
+        return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    
+
 
 
 }

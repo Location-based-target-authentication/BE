@@ -6,4 +6,7 @@ public enum DayOfWeek {
     public static DayOfWeek fromJavaTime(java.time.DayOfWeek javaDay) {
         return DayOfWeek.valueOf(javaDay.name().substring(0, 3).toUpperCase()); // 앞의 3글자 추출
     }
+    
+
+
 }

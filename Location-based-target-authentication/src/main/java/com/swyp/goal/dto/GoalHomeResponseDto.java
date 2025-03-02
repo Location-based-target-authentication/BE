@@ -2,6 +2,8 @@ package com.swyp.goal.dto;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -13,10 +15,12 @@ public class GoalHomeResponseDto {
 
     @Schema(description = "목표 이름", example = "매일 30분 독서")
     private String goalName;
-
+    	
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "목표 시작일", example = "2025-01-01")
     private LocalDate startDate;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "목표 종료일", example = "2025-12-31")
     private LocalDate endDate;
 

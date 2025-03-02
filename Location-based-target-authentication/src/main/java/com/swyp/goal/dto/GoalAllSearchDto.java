@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swyp.goal.entity.GoalStatus;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,9 +32,11 @@ public class GoalAllSearchDto {
     @Schema(description = "목표 상태 (DRAFT, ACTIVE, COMPLETE)", example = "ACTIVE")
     private GoalStatus status;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "목표 시작 날짜", example = "2025-03-01")
     private LocalDate startDate;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "목표 종료 날짜", example = "2025-06-01")
     private LocalDate endDate;
 
@@ -57,9 +60,11 @@ public class GoalAllSearchDto {
     
     @Schema(description = "목표 달력 인증 여부 (날짜 + 인증 여부)", 
             example = "[{\"date\":\"2025-03-01\",\"verified\":true}, {\"date\":\"2025-03-02\",\"verified\":true}]")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private List<GoalDateDto> dateAuthentication;
     
     @Schema(description = "목표 달력을 위한 전체 날짜값(today가 startDate의 주에 속하면 이번 주 + 다음 주 ,  today가 startDate의 주에 속하지 않으면 지난주 + 이번 주) ", example = "[2025-03-01,2025-03-02,2025-03-03]")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private List<LocalDate> calender;
     
     @Schema(description = "목표 설정 요일", example = "MON,TUE,THU")

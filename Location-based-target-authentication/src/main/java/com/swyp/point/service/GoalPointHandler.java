@@ -37,11 +37,11 @@ public class GoalPointHandler {
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없음"));
 
         Point point = pointService.getOrCreatePoint(authUser);
-        if (point.getTotalPoints() < 500) {
+        if (point.getTotalPoints() < 200) {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
         }
         try {
-            pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
+            pointService.deductPoints(authUser, 200, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
         } catch (Exception e) {
             throw new RuntimeException("포인트 차감 중 오류 발생: " + e.getMessage());
         }
@@ -50,16 +50,35 @@ public class GoalPointHandler {
     // 2. 목표 당일 달성 시 포인트 적립
     @Transactional
     public void handleDailyAchievement(AuthUser authUser, Goal goal, boolean isSelectedDay) {
-        int points =0 ;
-        int dayCount = goalDayRepository.findByGoalId(goal.getId()).size();
-        if (dayCount == 7) {
-            points = 60;  // 7일 목표: 매일 60P
-        } else {
-            points = isSelectedDay ? 50 : 30; // 설정 요일: 50P, 비설정 요일: 30P
+        try {
+            int points = 0;
+            int dayCount = goalDayRepository.findByGoalId(goal.getId()).size();
+            
+            // 포인트 계산 로직 개선
+            if (dayCount == 7) {
+                points = 60;  // 7일 목표
+            } else {
+                points = isSelectedDay ? 50 : 30; // 설정/비설정 요일
+            }
+            
+            // 포인트 지급 전 유효성 검사 추가
+            if (points <= 0) {
+                throw new IllegalStateException("잘못된 포인트 계산입니다.");
+            }
+            
+            String description = String.format("당일 목표 달성 (%d일 목표%s)", 
+                dayCount, 
+                isSelectedDay ? ", 설정 요일" : "");
+                
+            pointService.addPoints(authUser, points, PointType.ACHIEVEMENT, description, goal.getId());
+            
+            log.info("포인트 지급 완료 - 사용자: {}, 포인트: {}, 설명: {}", 
+                authUser.getId(), points, description);
+                
+        } catch (Exception e) {
+            log.error("포인트 지급 중 오류 발생: {}", e.getMessage());
+            throw e;
         }
-        pointService.addPoints(authUser, points, PointType.ACHIEVEMENT, "당일 목표 달성", goal.getId());
-        // 목표 달성 횟수 증가
-        goalRepository.save(goal);
     }
 
  // 3. 목표 완료 시 보너스 지급

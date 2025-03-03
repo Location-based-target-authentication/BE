@@ -6,6 +6,7 @@ import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
+import com.swyp.goal.service.GoalService;
 import com.swyp.point.entity.Point;
 import com.swyp.point.enums.PointType;
 import com.swyp.social_login.entity.AuthUser;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class GoalPointHandler {
 
     private final PointService pointService;
+    private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final GoalDayRepository goalDayRepository;
     private final UserRepository userRepository;
@@ -39,7 +41,6 @@ public class GoalPointHandler {
         if (point.getTotalPoints() < 500) {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
         }
-        
         try {
             pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
         } catch (Exception e) {
@@ -81,7 +82,10 @@ public class GoalPointHandler {
             .sorted(Comparator.reverseOrder()) // 최신 요일부터 정렬
             .collect(Collectors.toList());
 
+        // (수정) 설정 요일 횟수 초과 시 보너스 지급
+        int weeklyTargetCount = goalService.getSelectedDays(goal.getId()).size(); // 설정된 요일 개수
         // 현재 요일이 목표 요일 중 마지막 요일인지 확인
+
         if (!goalDayOfWeeks.isEmpty()) {
             com.swyp.goal.entity.DayOfWeek currentDayOfWeek = com.swyp.goal.entity.DayOfWeek.fromJavaTime(today.getDayOfWeek());
             

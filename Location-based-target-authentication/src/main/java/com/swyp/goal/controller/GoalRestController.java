@@ -3,6 +3,7 @@ package com.swyp.goal.controller;
 import java.time.LocalDate;
 import java.util.*;
 import java.net.URI;
+import java.util.stream.Collectors;
 
 import com.swyp.goal.entity.*;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import com.swyp.goal.dto.GoalUpdateDto;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
+import com.swyp.goal.repository.GoalAchievementsRepository;
 import com.swyp.goal.service.GoalScheduledService;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
@@ -56,6 +58,7 @@ public class GoalRestController {
     private final GoalAchievementsLogRepository goalAchievementLogRepository;
     private final GoalDayRepository goalDayRepository;
     private final JwtUtil jwtUtil;
+    private final GoalAchievementsRepository goalAchievementsRepository;
  
     // 목표 home
     @Operation(

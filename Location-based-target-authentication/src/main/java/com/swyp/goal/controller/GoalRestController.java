@@ -29,6 +29,7 @@ import com.swyp.goal.service.GoalScheduledService;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
 import com.swyp.point.service.PointService;
+import com.swyp.point.entity.PointType;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
 import com.swyp.global.security.JwtUtil;
@@ -531,7 +532,7 @@ public class GoalRestController {
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
             
             // 완료 보너스 포인트 지급
-            pointService.addPoints(authUser, 500, "목표 완료 보너스");
+            pointService.addPoints(authUser, 500, PointType.BONUS, "목표 완료 보너스", goalId);
             
             // 완료된 목표 저장
             GoalAchievements goalAchievements = new GoalAchievements();

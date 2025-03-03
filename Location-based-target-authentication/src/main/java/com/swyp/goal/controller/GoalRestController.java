@@ -521,11 +521,29 @@ public class GoalRestController {
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            // 목표 조회 - auth_user_id와 user_id 모두 확인
+            // 목표 조회
             Goal goal = goalRepository.findById(goalId)
-                .filter(g -> g.getAuthUserId().equals(authUser.getId()) && g.getUserId().equals(requestDto.getUserId()))
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
             
+            // 완료된 목표 저장
+            GoalAchievements goalAchievements = new GoalAchievements();
+            goalAchievements.setUser(authUser);
+            goalAchievements.setGoal(goal);
+            goalAchievements.setName(goal.getName());
+            goalAchievements.setTargetCount(goal.getTargetCount());
+            goalAchievements.setAchievedCount(goal.getTargetCount());
+            goalAchievements.setStartDate(goal.getStartDate());
+            goalAchievements.setEndDate(goal.getEndDate());
+            
+            // 요일 가져오기
+            List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+            String days = goalDays.stream()
+                .map(goalDay -> goalDay.getDayOfWeek().toString())
+                .collect(Collectors.joining(","));
+            goalAchievements.setDays(days);
+            goalAchievements.setPointsEarned(0);
+            goalAchievementsRepository.save(goalAchievements);
+
             // 목표 상태 COMPLETE로 변경
             goal.setStatus(GoalStatus.COMPLETE);
             goalRepository.save(goal);

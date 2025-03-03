@@ -523,10 +523,10 @@ public class GoalRestController {
                 goalRepository.save(goal);
             });
         
-        // 프론트로 리다이렉트
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .location(URI.create("https://locationcheckgo.netlify.app/"))
-            .build();
+        // 프론트에서 리다이렉트할 URL 반환
+        Map<String, String> response = new HashMap<>();
+        response.put("redirectUrl", "https://locationcheckgo.netlify.app/");
+        return ResponseEntity.ok(response);
     }
     
 

@@ -27,7 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
         
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://locationcheckgo.netlify.app");
-        config.addAllowedOrigin("https://locationcheckgo.com");
+        config.addExposedHeader("Location");
+        config.addExposedHeader("Access-Control-Allow-Origin");
         config.addAllowedOrigin("http://localhost:3000");
         config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("http://localhost:8080");

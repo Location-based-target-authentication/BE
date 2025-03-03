@@ -68,6 +68,9 @@ public class AuthService {
                     .socialType(socialType)
                     .build();
             
+            user = userRepository.save(user); // 먼저 저장하여 ID를 할당받음
+            user.setUserId(user.getId()); // 할당받은 ID를 userId로 설정
+            
             user = userRepository.save(user);
             
             Point point = new Point(user);

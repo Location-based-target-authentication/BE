@@ -24,8 +24,8 @@ public class AuthUser {
     @Column(nullable = false, unique = true)
     private String socialId; // 카카오 또는 구글에서 받은 고유 ID
 
-    @Column(nullable = false, unique = true)
-    private Long userId;
+    @Column(nullable = false)
+    private Long userId = 0L;
 
     @PrePersist
     @PreUpdate

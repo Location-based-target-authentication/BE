@@ -516,17 +516,28 @@ public class GoalRestController {
             @PathVariable("goalId") Long goalId,
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
-        // 목표 상태 COMPLETE로 변경
-        goalRepository.findById(goalId)
-            .ifPresent(goal -> {
-                goal.setStatus(GoalStatus.COMPLETE);
-                goalRepository.save(goal);
-            });
-        
-        // 프론트에서 리다이렉트할 URL 반환
-        Map<String, String> response = new HashMap<>();
-        response.put("redirectUrl", "https://locationcheckgo.netlify.app/");
-        return ResponseEntity.ok(response);
+        try {
+            // 사용자 정보 조회
+            AuthUser authUser = userRepository.findById(requestDto.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            // 목표 조회 - auth_user_id와 user_id 모두 확인
+            Goal goal = goalRepository.findById(goalId)
+                .filter(g -> g.getAuthUserId().equals(authUser.getId()) && g.getUserId().equals(requestDto.getUserId()))
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
+            
+            // 목표 상태 COMPLETE로 변경
+            goal.setStatus(GoalStatus.COMPLETE);
+            goalRepository.save(goal);
+            
+            // 프론트에서 리다이렉트할 URL 반환
+            Map<String, String> response = new HashMap<>();
+            response.put("redirectUrl", "https://locationcheckgo.netlify.app/");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
     
 

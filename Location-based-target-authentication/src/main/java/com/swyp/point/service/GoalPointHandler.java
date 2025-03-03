@@ -73,6 +73,7 @@ public class GoalPointHandler {
         // 현재 주의 목표 달성 횟수 가져오기
         int weeklyAchievedCount = goalAchievementsLogRepository.countByGoal_IdAndUser_IdAndAchievedSuccessAndAchievedAtBetween(
                 goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
+     
         // 주간 목표의 마지막 요일인지 확인
         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
         List<com.swyp.goal.entity.DayOfWeek> goalDayOfWeeks = goalDays.stream()

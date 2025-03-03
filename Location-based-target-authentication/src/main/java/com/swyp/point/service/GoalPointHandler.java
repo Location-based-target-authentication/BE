@@ -85,19 +85,23 @@ public class GoalPointHandler {
         // (수정) 설정 요일 횟수 초과 시 보너스 지급
         int weeklyTargetCount = goalService.getSelectedDays(goal.getId()).size(); // 설정된 요일 개수
         // 현재 요일이 목표 요일 중 마지막 요일인지 확인
-
         if (!goalDayOfWeeks.isEmpty()) {
             com.swyp.goal.entity.DayOfWeek currentDayOfWeek = com.swyp.goal.entity.DayOfWeek.fromJavaTime(today.getDayOfWeek());
-            
             if (goalDayOfWeeks.get(0) == currentDayOfWeek) {
                 // 보너스 지급 조건 만족 시
                 if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {
                     pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
-                }
-                if (weeklyAchievedCount == 7) {
+                }else if (weeklyAchievedCount == 7) {
                     pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
+                }else {
+                    throw new IllegalArgumentException("보너스 지급 조건 불만족");
                 }
+            }else {
+                throw new IllegalStateException("한 주의 마지막 요일이 아님");
             }
+        }
+        else{
+            throw new IllegalArgumentException("설정된 목표 요일이 없음");
         }
         // 6일이하, 7일 달성 보너시 지급 달성 여부
     }

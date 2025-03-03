@@ -66,10 +66,8 @@ public class AuthService {
                     .email(email)
                     .accessToken(accessToken)
                     .socialType(socialType)
+                    .userId(0L)  // 임시 userId 설정
                     .build();
-            
-            user = userRepository.save(user); // 먼저 저장하여 ID를 할당받음
-            user.setUserId(user.getId()); // 할당받은 ID를 userId로 설정
             
             user = userRepository.save(user);
             

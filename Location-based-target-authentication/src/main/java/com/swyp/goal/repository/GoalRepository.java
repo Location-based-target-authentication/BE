@@ -16,22 +16,22 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
     
 
     //전체 조회 
-    List<Goal> findByUserId(Long userId);
+    List<Goal> findByAuthUserId(Long authUserId);
     
     // 사용자 ID와 상태로 목표 조회
-    List<Goal> findByUserIdAndStatus(Long userId, GoalStatus status);
+    List<Goal> findByAuthUserIdAndStatus(Long authUserId, GoalStatus status);
     
     List<Goal> findByStatus(GoalStatus status); // 상태로 목표 조회
 
     
     // 사용자 ID와 상태가 DRAFT 또는 ACTIVE인 목표 개수 조회
 
-    long countByUserIdAndStatusIn(Long userId, List<GoalStatus> statuses);
+    long countByAuthUserIdAndStatusIn(Long authUserId, List<GoalStatus> statuses);
 
     // 목표에서 Status 상태에 따른 삭제 (현재 Complete인 애들 삭제를 위해 만듬 스케쥴링 제작)
     int deleteByStatus(GoalStatus Status);
 
-    void deleteAllByUserId(Long userId);
+    void deleteAllByAuthUserId(Long authUserId);
 
 }
    

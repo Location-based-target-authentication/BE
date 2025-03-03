@@ -1,6 +1,7 @@
 package com.swyp.social_login.repository;
 
 import com.swyp.social_login.entity.AuthUser;
+import com.swyp.social_login.enums.SocialType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -14,9 +15,6 @@ public interface UserRepository extends JpaRepository<AuthUser, Long> {
     @Query("SELECT au FROM AuthUser au WHERE au.userId = :userId")
     Optional<AuthUser> findByUserIdEquals(@Param("userId") Long userId);
 
-    // 소셜 로그인 플랫폼의 고유 ID로 사용자 검색
-    Optional<AuthUser> findBySocialId(String socialId);
-    
-    // 이메일로 사용자 검색
-    Optional<AuthUser> findByEmail(String email);
+    // 소셜 로그인 플랫폼의 고유 ID와 타입으로 사용자 검색
+    Optional<AuthUser> findBySocialIdAndSocialType(String socialId, SocialType socialType);
 }

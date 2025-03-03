@@ -20,7 +20,7 @@ public class PointHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable = false)
+    @JoinColumn(name="auth_user_id", nullable = false)
     private AuthUser authUser;
 
     @Column(name="points", nullable = false)
@@ -40,6 +40,9 @@ public class PointHistory {
     @JoinColumn(name="related_goal_id")
     private Long goalId;
 
+    @Column(name="user_id", nullable = false)
+    private Long userId;
+
 
     public PointHistory(AuthUser authUser, int points, PointType pointType, String description, Long goalId) {
         this.authUser = authUser;
@@ -47,6 +50,7 @@ public class PointHistory {
         this.pointType = pointType;
         this.description = description;
         this.goalId = goalId;
+        this.userId = authUser.getUserId();
         this.createdAt = LocalDateTime.now();
     }
 }

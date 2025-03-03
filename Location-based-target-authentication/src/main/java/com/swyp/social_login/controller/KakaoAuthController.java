@@ -28,10 +28,31 @@ public class KakaoAuthController {
             @RequestBody(required = false) Map<String, String> body) {
         
         System.out.println("[KakaoAuthController] 로그인 요청 수신");
+        // body에서 code 또는 accessToken 추출
         String code = codeParam;
-        if (code == null && body != null) {
-            code = body.get("code");
-            System.out.println("[KakaoAuthController] Body에서 code 추출");
+        String accessToken = null;
+        
+        if (body != null) {
+            if (code == null) {
+                code = body.get("code");
+                System.out.println("[KakaoAuthController] Body에서 code 추출");
+            }
+            accessToken = body.get("accessToken");
+            System.out.println("[KakaoAuthController] Body에서 accessToken 추출");
+        }
+        
+        // accessToken이 있는 경우 (모바일)
+        if (accessToken != null && !accessToken.isEmpty()) {
+            try {
+                System.out.println("[KakaoAuthController] AccessToken으로 로그인 시도");
+                Map<String, Object> kakaoUserInfo = kakaoAuthService.getUserInfo(accessToken);
+                SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
+                userResponse = authService.generateJwtTokens(userResponse);
+                return ResponseEntity.ok(Map.of("data", userResponse));
+            } catch (Exception e) {
+                System.err.println("[KakaoAuthController] AccessToken 로그인 중 오류: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
         }
 
         if (code == null || code.isEmpty()) {
@@ -41,7 +62,8 @@ public class KakaoAuthController {
 
         try {
             System.out.println("[KakaoAuthController] Access Token 요청 시작");
-            String accessToken = kakaoAuthService.getAccessToken(code);
+            // 기존의 accessToken 변수 재사용
+            accessToken = kakaoAuthService.getAccessToken(code);
             System.out.println("[KakaoAuthController] Access Token 발급 성공");
 
             System.out.println("[KakaoAuthController] 사용자 정보 요청 시작");
@@ -81,6 +103,10 @@ public class KakaoAuthController {
             System.out.println("[KakaoAuthController] 사용자 정보 저장/업데이트 시작");
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
             System.out.println("[KakaoAuthController] 사용자 정보 저장/업데이트 성공");
+
+            System.out.println("[KakaoAuthController] JWT 토큰 생성 시작");
+            userResponse = authService.generateJwtTokens(userResponse);
+            System.out.println("[KakaoAuthController] JWT 토큰 생성 성공");
 
             return ResponseEntity.ok(Map.of("data", userResponse));
         } catch (Exception e) {

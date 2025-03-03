@@ -41,14 +41,7 @@ public class PointService {
         point.addPoints(points);
         pointRepository.save(point);
         // 포인트 이력 저장
-        PointHistory pointHistory = new PointHistory();
-        pointHistory.setAuthUser(authUser);
-        pointHistory.setPoints(points);
-        pointHistory.setPointType(pointType); // ACHIEVEMENT or BONUS
-        pointHistory.setDescription(description);
-        pointHistory.setGoalId(goalId);
-        pointHistory.setCreatedAt(LocalDateTime.now());
-        pointHistoryRepository.save(pointHistory);
+        pointHistoryRepository.save(new PointHistory(authUser, points, pointType, description, goalId));
     }
     //포인트 차감
     @Transactional

@@ -28,16 +28,4 @@ public class SecurityConfig {
                 );
         return http.build();
     }
-
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(java.util.Arrays.asList("*"));
-        configuration.setAllowedMethods(java.util.Arrays.asList("*"));
-        configuration.setAllowedHeaders(java.util.Arrays.asList("*"));
-        configuration.setAllowCredentials(true);
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
 }

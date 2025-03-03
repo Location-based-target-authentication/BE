@@ -88,16 +88,16 @@ public class GoogleAuthImpl implements GoogleAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            String userId = jsonNode.get("id").asText();
+            String socialId = jsonNode.get("id").asText();
             String email = jsonNode.get("email").asText();
             String username = jsonNode.get("name").asText();
             
             System.out.println("[GoogleAuthImpl] 사용자 정보 파싱 결과:");
-            System.out.println("- userId: " + userId);
+            System.out.println("- socialId: " + socialId);
             System.out.println("- email: " + email);
             System.out.println("- username: " + username);
             
-            userInfo.put("userId", userId);
+            userInfo.put("socialId", socialId);
             userInfo.put("email", email);
             userInfo.put("username", username);
 

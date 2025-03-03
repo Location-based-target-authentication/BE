@@ -42,18 +42,18 @@ public class AuthService {
         System.out.println("- socialType: " + socialType);
         
         // 필수 사용자 정보
-        String userId = userInfo.getOrDefault("userId", "").toString();
+        String socialId = userInfo.getOrDefault("socialId", "").toString();
         String username = userInfo.getOrDefault("username", "Unknown").toString();
         String email = userInfo.getOrDefault("email", "").toString();
         
         System.out.println("- 추출된 정보:");
-        System.out.println("  - userId: " + userId);
+        System.out.println("  - socialId: " + socialId);
         System.out.println("  - username: " + username);
         System.out.println("  - email: " + email);
         
         // DB에서 기존 사용자 확인
-        System.out.println("[AuthService] DB에서 사용자 검색 시작 - userId: " + userId);
-        Optional<AuthUser> optionalUser = userRepository.findByUserId(Long.parseLong(userId));
+        System.out.println("[AuthService] DB에서 사용자 검색 시작 - socialId: " + socialId);
+        Optional<AuthUser> optionalUser = userRepository.findBySocialId(socialId);
         AuthUser user;
         
         if (optionalUser.isPresent()) {
@@ -63,7 +63,7 @@ public class AuthService {
             System.out.println("- Access Token 업데이트 완료");
         } else {
             System.out.println("[AuthService] 신규 사용자 등록 시작");
-            user = new AuthUser(String.valueOf(userId), username, email, accessToken, socialType);
+            user = new AuthUser(socialId, username, email, accessToken, socialType);
             userRepository.save(user);
             System.out.println("- 사용자 저장 완료");
             

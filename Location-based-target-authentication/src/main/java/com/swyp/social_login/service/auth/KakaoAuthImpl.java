@@ -91,16 +91,16 @@ public class KakaoAuthImpl implements KakaoAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            String userId = jsonNode.get("id").asText();
+            String socialId = jsonNode.get("id").asText();
             String email = jsonNode.get("kakao_account").get("email").asText();
             String username = jsonNode.get("kakao_account").get("profile").get("nickname").asText();
 
-            userInfo.put("userId", userId);
+            userInfo.put("socialId", socialId);
             userInfo.put("email", email);
             userInfo.put("username", username);
 
             System.out.println("[KakaoAuth] 사용자 정보 파싱 완료");
-            System.out.println("[KakaoAuth] userId: " + userId);
+            System.out.println("[KakaoAuth] socialId: " + socialId);
             System.out.println("[KakaoAuth] email: " + email);
             System.out.println("[KakaoAuth] username: " + username);
 

@@ -20,6 +20,8 @@ public class CorsConfig {
         config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("http://localhost:8080");
         config.addAllowedOrigin("https://localhost:8080");
+        config.addAllowedOrigin("https://175.45.203.57:8443");
+        config.addAllowedOrigin("http://175.45.203.57:8443");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(3600L);

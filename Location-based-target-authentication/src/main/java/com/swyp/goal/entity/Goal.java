@@ -41,8 +41,12 @@ public class Goal {
     @Schema(description = "목표 ID", example = "1")
     private Long id;
     
+    @Column(name = "user_id", nullable = false)
+    @Schema(description = "사용자 ID (외래 키)", example = "101")
+    private Long userId;
+
     @Column(name = "auth_user_id", nullable = false)
-    @Schema(description = "사용자 ID", example = "101")
+    @Schema(description = "인증 사용자 ID", example = "101")
     private Long authUserId;
     
     @Column(name = "name", length = 20, nullable = false)

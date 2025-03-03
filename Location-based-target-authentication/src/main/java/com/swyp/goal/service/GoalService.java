@@ -112,7 +112,8 @@ public class GoalService {
 
         // Goal 객체 생성 후 데이터 설정
         Goal goal = new Goal();
-        goal.setAuthUserId(request.getUserId());
+        goal.setUserId(request.getUserId());  // user_id 설정
+        goal.setAuthUserId(request.getUserId()); // auth_user_id 설정
         goal.setName(request.getName());
         goal.setStartDate(request.getStartDate());
         goal.setEndDate(request.getEndDate());

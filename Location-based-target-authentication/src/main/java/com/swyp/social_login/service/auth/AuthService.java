@@ -79,11 +79,14 @@ public class AuthService {
             System.out.println("- 초기 포인트 2000점 설정 완료");
         }
         
+        // 사용자 정보를 final 변수에 저장
+        final AuthUser savedUser = user;
+        
         //기존 유저라도 포인트 없으면 생성
         System.out.println("[AuthService] 포인트 정보 확인");
-        Point point = pointRepository.findByAuthUser(user).orElseGet(() -> {
+        Point point = pointRepository.findByAuthUser(savedUser).orElseGet(() -> {
             System.out.println("- 포인트 정보 없음, 새로 생성");
-            return pointRepository.save(new Point(user));
+            return pointRepository.save(new Point(savedUser));
         });
         System.out.println("- 현재 포인트: " + point.getTotalPoints());
         

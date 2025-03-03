@@ -50,7 +50,7 @@ public class PointController {
     )
     @GetMapping("/{userId}")
     public ResponseEntity<PointBalanceResponse> getPoints(
-            @PathVariable("userId") String pathUserId) {
+            @PathVariable("userId") Long pathUserId) {
         try {
             AuthUser authUser = findAuthUser(pathUserId);
             int points = pointService.getUserPoints(authUser);
@@ -83,7 +83,7 @@ public class PointController {
     )
     @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("userId") String pathUserId,
+            @PathVariable("userId") Long pathUserId,
             @RequestBody PointAddRequest pointRequest) {
         try {
             AuthUser authUser = findAuthUser(pathUserId);
@@ -131,7 +131,7 @@ public class PointController {
     )
     @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("userId") String pathUserId,
+            @PathVariable("userId") Long pathUserId,
             @RequestBody PointDedeductRequest pointRequest,
             HttpServletRequest request) {
         try {

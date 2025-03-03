@@ -516,20 +516,16 @@ public class GoalRestController {
             @PathVariable("goalId") Long goalId,
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
-        try {
-            // 1. 목표 상태를 무조건 COMPLETE로 변경
-            Goal goal = goalRepository.findById(goalId)
-                    .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-            
-            goal.setStatus(GoalStatus.COMPLETE);
-            goalRepository.save(goal);
-            
-        } catch (Exception e) {
-            // 에러 무시
-        }
+        // 목표 상태 COMPLETE로 변경
+        goalRepository.findById(goalId)
+            .ifPresent(goal -> {
+                goal.setStatus(GoalStatus.COMPLETE);
+                goalRepository.save(goal);
+            });
         
-        // 프론트로 무조건 리다이렉트
+        // 프론트로 리다이렉트
         return ResponseEntity.status(HttpStatus.FOUND)
+            .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
             .location(URI.create("https://locationcheckgo.netlify.app/"))
             .build();
     }

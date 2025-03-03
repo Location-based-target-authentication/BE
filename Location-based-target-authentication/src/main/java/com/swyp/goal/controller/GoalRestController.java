@@ -530,9 +530,9 @@ public class GoalRestController {
             // 목표 조회
             Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
-            
-            // 완료 보너스 포인트 지급
-            pointService.addPoints(authUser, 500, PointType.BONUS, "목표 완료 보너스", goalId);
+
+            // 목표 완료 보너스 500포인트 지급
+            pointService.addPoints(authUser, 500, PointType.BONUS, "Goal Completion Bonus", goalId);
             
             // 완료된 목표 저장
             GoalAchievements goalAchievements = new GoalAchievements();
@@ -550,11 +550,12 @@ public class GoalRestController {
                 .map(goalDay -> goalDay.getDayOfWeek().toString())
                 .collect(Collectors.joining(","));
             goalAchievements.setDays(days);
-            goalAchievements.setPointsEarned(500); // 완료 보너스 포인트 기록
+            goalAchievements.setPointsEarned(500);  // 목표 완료 보너스 500포인트
             goalAchievementsRepository.save(goalAchievements);
 
-            // goals 테이블에서 목표 삭제
-            goalRepository.delete(goal);
+            // 목표 상태 COMPLETE로 변경
+            goal.setStatus(GoalStatus.COMPLETE);
+            goalRepository.save(goal);
             
             // 프론트에서 리다이렉트할 URL 반환
             Map<String, String> response = new HashMap<>();

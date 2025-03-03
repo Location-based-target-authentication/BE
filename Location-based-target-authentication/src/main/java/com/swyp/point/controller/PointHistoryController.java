@@ -31,7 +31,6 @@ public class PointHistoryController {
                 authUser.getUsername(),
                 historyList
         );
-
         return ResponseEntity.ok(response);
     }
 

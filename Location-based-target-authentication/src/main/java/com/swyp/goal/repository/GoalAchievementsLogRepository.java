@@ -18,6 +18,7 @@ public interface GoalAchievementsLogRepository extends JpaRepository<GoalAchieve
      // 주간 달성 횟수를 조회
      int countByGoal_IdAndUser_IdAndAchievedSuccessAndAchievedAtBetween(
              Long goalId, Long userId, boolean achievedSuccess, LocalDate startDate, LocalDate endDate);
+     //주간 목표 설정 횟수
 
      // goalId와 achievedSuccess가 true인 기록 조회
      List<GoalAchievementsLog> findByGoal_IdAndAchievedSuccessIsTrue(Long goalId);

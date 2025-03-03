@@ -522,20 +522,15 @@ public class GoalRestController {
             Long userId = requestDto.getUserId();
             AuthUser authUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
-            
             // 3. 목표 확인
             Goal goal = goalRepository.findById(goalId)
                     .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
-            
             // 3. 기존 포인트 저장
             int previousPoints = pointService.getUserPoints(authUser);
-            
             // 4. 목표 위치 검증
             boolean isVerified = goalService.validateGoalAchievement(userId, goalId, requestDto.getLatitude(), requestDto.getLongitude());
-            
             // 5. 응답 데이터 준비
             Map<String, Object> response = new HashMap<>();
-            
             if (!isVerified) {
                 response.put("achievementStatus", "실패");
                 response.put("totalPoints", previousPoints);
@@ -543,7 +538,6 @@ public class GoalRestController {
                 response.put("message", "목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.");
                 return new ResponseEntity<>(response, HttpStatus.OK);
             }
-            
             // 6. 포인트 처리
             boolean isSelectedDay = true; // 선택된 요일 여부 확인 로직 필요시 추가
             goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);

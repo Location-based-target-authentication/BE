@@ -69,7 +69,6 @@ public class AuthUser {
         this.socialType = socialType;
     }
 
-
     public void updatePhoneNumber(String phone) {
         this.phoneNumber = phone;
     }

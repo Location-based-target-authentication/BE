@@ -68,19 +68,17 @@ public class AuthService {
             
             user = userRepository.save(user);
             
-            Point point = Point.builder()
-                    .authUser(user)
-                    .totalPoints(2000L)
-                    .build();
+            Point point = new Point(user);
+            point.setTotalPoints(2000);
             pointRepository.save(point);
         }
 
         // 포인트 정보 확인 및 생성
-        pointRepository.findByAuthUser(user).orElseGet(() -> 
-            pointRepository.save(Point.builder()
-                    .authUser(user)
-                    .totalPoints(0L)
-                    .build()));
+        pointRepository.findByAuthUser(user).orElseGet(() -> {
+            Point point = new Point(user);
+            point.setTotalPoints(0);
+            return pointRepository.save(point);
+        });
 
         return generateJwtTokens(new SocialUserResponseDto(user));
     }

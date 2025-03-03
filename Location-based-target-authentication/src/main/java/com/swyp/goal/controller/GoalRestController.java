@@ -525,7 +525,6 @@ public class GoalRestController {
         
         // 프론트로 리다이렉트
         return ResponseEntity.status(HttpStatus.FOUND)
-            .header("Access-Control-Allow-Origin", "https://locationcheckgo.netlify.app")
             .location(URI.create("https://locationcheckgo.netlify.app/"))
             .build();
     }

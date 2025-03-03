@@ -6,6 +6,7 @@ import java.net.URI;
 import java.util.stream.Collectors;
 
 import com.swyp.goal.entity.*;
+import com.swyp.point.enums.PointType;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -29,7 +30,6 @@ import com.swyp.goal.service.GoalScheduledService;
 import com.swyp.goal.service.GoalService;
 import com.swyp.point.service.GoalPointHandler;
 import com.swyp.point.service.PointService;
-import com.swyp.point.entity.PointType;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
 import com.swyp.global.security.JwtUtil;

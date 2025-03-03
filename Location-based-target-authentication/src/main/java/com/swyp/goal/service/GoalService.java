@@ -234,11 +234,7 @@ public class GoalService {
                 throw new IllegalStateException("활성화된 목표만 인증할 수 있습니다.");
             }
             
-            // 목표 기간 검증 추가
             LocalDate today = LocalDate.now();
-            if (today.isBefore(goal.getStartDate()) || today.isAfter(goal.getEndDate())) {
-                throw new IllegalStateException("목표 기간이 아닙니다.");
-            }
 
             //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
             boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, true);
@@ -266,6 +262,12 @@ public class GoalService {
                 // 목표 달성 횟수 증가 
                 goal.setAchievedCount(goal.getAchievedCount()+1);
                 goal.setUpdatedAt(LocalDateTime.now());
+
+                // 목표 달성 횟수가 목표 횟수에 도달하면 COMPLETE로 변경
+                if (goal.getAchievedCount() >= goal.getTargetCount()) {
+                    goal.setStatus(GoalStatus.COMPLETE);
+                }
+                
                 goalRepository.save(goal);
 
                 // (포인트) 지급

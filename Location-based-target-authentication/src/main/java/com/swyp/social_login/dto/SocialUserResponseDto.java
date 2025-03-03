@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class SocialUserResponseDto {
     private Long id;
-    private String userId;
+    private Long userId;
     private String accessToken;
     private String refreshToken;
     private SocialType socialType;
@@ -20,6 +20,7 @@ public class SocialUserResponseDto {
 
     public SocialUserResponseDto(AuthUser authUser) {
         this.id = authUser.getId();
+        // 소셜 로그인 제공자의 userId 사용
         this.userId = authUser.getUserId();
         this.accessToken = authUser.getAccessToken();
         this.refreshToken = authUser.getRefreshToken();

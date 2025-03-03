@@ -10,6 +10,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 @Tag(name = "서비스 이용약관", description = "서비스 이용약관 동의 관련 API")
 @RestController
@@ -25,11 +27,8 @@ public class TermsController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @GetMapping
-    public ResponseEntity<Terms> getTerms(
-        @Parameter(description = "사용자 ID", required = true, example = "1")
-        @RequestParam Long userId
-    ) {
+    @PostMapping("/{userId}")
+    public ResponseEntity<Terms> getTerms(@PathVariable Long userId) {
         return ResponseEntity.ok(termsService.getTerms(userId));
     }
 
@@ -39,12 +38,14 @@ public class TermsController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @PostMapping("/agree")
-    public ResponseEntity<Void> agreeToTerms(
-        @Parameter(description = "사용자 ID", required = true, example = "1")
-        @RequestParam Long userId
-    ) {
+    @PostMapping("/agree/{userId}")
+    public ResponseEntity<Void> agreeToTerms(@PathVariable Long userId) {
         termsService.agreeToTerms(userId);
         return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 } 

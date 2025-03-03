@@ -19,16 +19,25 @@ public class PointService {
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final MailService mailService;
+    @Transactional
+    public Point getOrCreatePoint(AuthUser authUser) {
+        return pointRepository.findByAuthUserUserId(authUser.getId())
+                .orElseGet(() -> {
+                    Point newPoint = new Point(authUser);
+                    newPoint.addPoints(2000); // 초기 포인트 지급
+                    return pointRepository.save(newPoint);
+                });
+    }
+
     //포인트 조회
     public int getUserPoints(AuthUser authUser) {
-        return pointRepository.findByAuthUser(authUser)
-                .map(Point::getTotalPoints)
-                .orElseThrow(()->new IllegalArgumentException("포인트 정보가 없음"));
+        Point point = getOrCreatePoint(authUser);
+        return point.getTotalPoints();
     }
     //포인트 지급
     @Transactional
     public void addPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
-        Point point = pointRepository.findByAuthUser(authUser).orElseGet(()->pointRepository.save(new Point(authUser)));
+        Point point = getOrCreatePoint(authUser);
         point.addPoints(points);
         pointRepository.save(point);
         // 포인트 이력 저장
@@ -44,30 +53,35 @@ public class PointService {
     //포인트 차감
     @Transactional
     public boolean deductPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
-        Point point = pointRepository.findByAuthUser(authUser).orElseGet(()->pointRepository.save(new Point(authUser)));
+        Point point = getOrCreatePoint(authUser);
         if(!point.subtractPoints(points)){
-            return false;
+            throw new IllegalArgumentException("포인트가 부족합니다.");
         }
-        pointRepository.save(point);
-        pointHistoryRepository.save(new PointHistory(authUser, -points, pointType, description, goalId));
-        // 메일 발송 조건 (쿠폰 지급 시)
-        if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
-            String giftType = pointType == PointType.GIFT_STARBUCKS ? "스타벅스" : "CU 만원 쿠폰";
-            try {
-                mailService.sendGiftNotification(
-                        authUser.getEmail(), // 수신자 이메일
-                        authUser.getUsername(), // 사용자 이름
-                        authUser.getPhoneNumber(),
-                        giftType                 // 쿠폰 종류
-                );
-            } catch (Exception e) {
-                throw new RuntimeException("쿠폰 지급 이메일 전송 실패: " + e.getMessage());
+        try {
+            pointRepository.save(point);
+            pointHistoryRepository.save(new PointHistory(authUser, -points, pointType, description, goalId));
+            
+            // 메일 발송 조건 (쿠폰 지급 시)
+            if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
+                String giftType = pointType == PointType.GIFT_STARBUCKS ? "스타벅스" : "CU 만원 쿠폰";
+                try {
+                    mailService.sendGiftNotification(
+                            authUser.getEmail(), // 수신자 이메일
+                            authUser.getUsername(), // 사용자 이름
+                            authUser.getPhoneNumber(),
+                            giftType                 // 쿠폰 종류
+                    );
+                } catch (Exception e) {
+                    throw new RuntimeException("쿠폰 지급 이메일 전송 실패: " + e.getMessage());
+                }
             }
+            return true;
+        } catch (Exception e) {
+            throw new RuntimeException("포인트 차감 중 오류 발생", e);
         }
-        return true;
     }
     // 포인트 이력 조회 메서드
-    public List<PointHistory> getPointHistory(Long userId) {
-        return pointHistoryRepository.findByAuthUserId(userId);
+    public List<PointHistory> getPointHistory(Long id) {
+        return pointHistoryRepository.findByAuthUser_Id(id);
     }
 }

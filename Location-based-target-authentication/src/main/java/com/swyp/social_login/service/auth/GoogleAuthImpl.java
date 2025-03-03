@@ -36,6 +36,7 @@ public class GoogleAuthImpl implements GoogleAuthService {
 
     @Override
     public String getAccessToken(String code) {
+        System.out.println("[GoogleAuthImpl] getAccessToken 시작 - code: " + code);
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -45,6 +46,8 @@ public class GoogleAuthImpl implements GoogleAuthService {
         String finalRedirectUrl = (referer != null && referer.contains("localhost")) 
             ? redirectUrlLocal 
             : redirectUrl;
+        System.out.println("[GoogleAuthImpl] Referer: " + referer);
+        System.out.println("[GoogleAuthImpl] 선택된 redirectUrl: " + finalRedirectUrl);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
@@ -59,14 +62,19 @@ public class GoogleAuthImpl implements GoogleAuthService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            String accessToken = jsonNode.get("access_token").asText();
+            System.out.println("[GoogleAuthImpl] Access Token 발급 성공");
+            return accessToken;
         } catch (Exception e) {
+            System.out.println("[GoogleAuthImpl] Access Token 발급 실패: " + e.getMessage());
+            e.printStackTrace();
             throw new RuntimeException("Google Access Token 요청 실패", e);
         }
     }
 
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
+        System.out.println("[GoogleAuthImpl] getUserInfo 시작");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);
@@ -80,12 +88,25 @@ public class GoogleAuthImpl implements GoogleAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("userId", jsonNode.get("id").asText());
-            userInfo.put("email", jsonNode.get("email").asText());
-            userInfo.put("username", jsonNode.get("name").asText());
+            String socialId = jsonNode.get("id").asText();
+            String email = jsonNode.get("email").asText();
+            String username = jsonNode.get("name").asText();
+            
+            System.out.println("[GoogleAuthImpl] 사용자 정보 파싱 결과:");
+            System.out.println("- socialId: " + socialId);
+            System.out.println("- email: " + email);
+            System.out.println("- username: " + username);
+            
+            userInfo.put("socialId", socialId);
+            userInfo.put("email", email);
+            userInfo.put("username", username);
 
+            System.out.println("[GoogleAuthImpl] 사용자 정보 조회 성공");
             return userInfo;
         } catch (Exception e) {
+            System.out.println("[GoogleAuthImpl] 사용자 정보 조회 실패: " + e.getMessage());
+            System.out.println("[GoogleAuthImpl] 응답 내용: " + response.getBody());
+            e.printStackTrace();
             throw new RuntimeException("Google 사용자 정보 요청 실패", e);
         }
     }

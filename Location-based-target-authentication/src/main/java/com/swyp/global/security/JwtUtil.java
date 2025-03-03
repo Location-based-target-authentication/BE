@@ -1,6 +1,7 @@
 package com.swyp.global.security;
 
 import com.swyp.exception.RefreshTokenExpiredException;
+import com.swyp.social_login.entity.AuthUser;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.WeakKeyException;
@@ -45,18 +46,28 @@ public class JwtUtil {
         }
     }
 
-    public String generateAccessToken(String userId) {
+    public String generateAccessToken(AuthUser authUser) {
+        // id와 userId가 일치하지 않으면 수정
+        if (!authUser.getId().equals(authUser.getUserId())) {
+            authUser.setUserId(authUser.getId());
+        }
+        
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public String generateRefreshToken(String userId) {
+    public String generateRefreshToken(AuthUser authUser) {
+        // id와 userId가 일치하지 않으면 수정
+        if (!authUser.getId().equals(authUser.getUserId())) {
+            authUser.setUserId(authUser.getId());
+        }
+        
         return Jwts.builder()
-                .setSubject(userId)
+                .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -84,7 +95,7 @@ public class JwtUtil {
         }
     }
 
-    public String extractUserId(String token) {
+    public Long extractUserId(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -92,13 +103,19 @@ public class JwtUtil {
                     .parseClaimsJws(token)
                     .getBody();
 
-            String userId = claims.getSubject();
-            if (userId == null || userId.isEmpty()) {
+            String userIdStr = claims.getSubject();
+            if (userIdStr == null || userIdStr.isEmpty()) {
                 System.out.println("[JWTUtil] JWT에서 userId 추출 오류");
+                return null;
             } else {
-                System.out.println("[JwtUtil] 추출된 userId: " + userId);
+                System.out.println("[JwtUtil] 추출된 userId: " + userIdStr);
+                try {
+                    return Long.parseLong(userIdStr);
+                } catch (NumberFormatException e) {
+                    System.out.println("[JWTUtil] userId 형변환 오류: " + e.getMessage());
+                    return null;
+                }
             }
-            return userId;
         } catch (JwtException e) {
             System.out.println("[JWTUtil] JWT 파싱 오류: " + e.getMessage());
             return null;
@@ -106,11 +123,11 @@ public class JwtUtil {
     }
 
     public Authentication getAuthentication(String token) {
-        String userId = extractUserId(token);
+        Long userId = extractUserId(token);
         if (userId == null) {
             throw new JwtException("Invalid JWT token");
         }
-        UserDetails userDetails = new User(userId, "", Collections.emptyList());
+        UserDetails userDetails = new User(userId.toString(), "", Collections.emptyList());
         return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 }

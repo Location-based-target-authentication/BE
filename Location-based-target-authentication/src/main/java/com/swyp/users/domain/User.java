@@ -1,5 +1,6 @@
 package com.swyp.users.domain;
 
+import com.swyp.social_login.entity.AuthUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,12 +20,15 @@ public class User {
     private Long id;
 
     @Column(nullable = false)
+    private Long userId;
+
+    @Column(nullable = false)
     private String name;
 
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @Column
     private String phoneNumber;
 
     @Column(name = "created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
@@ -44,4 +48,18 @@ public class User {
 
     @Column(name = "terms_agreement_at")
     private LocalDateTime termsAgreementAt;
+    
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "auth_user_id")
+    private AuthUser authUser;
+
+    public static User fromAuthUser(AuthUser authUser) {
+        User user = new User();
+        user.setUserId(authUser.getUserId());
+        user.setName(authUser.getName());
+        user.setEmail(authUser.getEmail());
+        user.setPhoneNumber(authUser.getPhoneNumber());
+        user.setAuthUser(authUser);
+        return user;
+    }
 } 

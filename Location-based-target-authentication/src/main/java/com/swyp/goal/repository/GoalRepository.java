@@ -2,6 +2,7 @@ package com.swyp.goal.repository;
 
 import java.util.List;
 
+import com.swyp.social_login.entity.AuthUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -29,6 +30,8 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
 
     // 목표에서 Status 상태에 따른 삭제 (현재 Complete인 애들 삭제를 위해 만듬 스케쥴링 제작)
     int deleteByStatus(GoalStatus Status);
+
+    void deleteAllByUserId(Long userId);
 
 }
    

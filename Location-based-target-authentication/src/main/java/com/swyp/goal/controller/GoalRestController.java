@@ -558,16 +558,14 @@ public class GoalRestController {
             response.put("bonusPoints", afterBonusPoints - afterDailyPoints);
             response.put("message", "목표 인증에 성공했습니다.");
             
-            // 목표 상태 업데이트
-            if (goal.getAchievedCount() >= goal.getTargetCount()) {
-                goal.setStatus(GoalStatus.COMPLETE);
-                goalRepository.save(goal);
-            }
+            // 목표 상태 무조건 COMPLETE로 변경
+            goal.setStatus(GoalStatus.COMPLETE);
+            goalRepository.save(goal);
             
             // 리다이렉트 응답
-            HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create("https://locationcheckgo.netlify.app/"));
-            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create("https://locationcheckgo.netlify.app/"))
+                .build();
             
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);

@@ -15,8 +15,11 @@ public class CorsConfig {
         
         config.setAllowCredentials(true);
         config.addAllowedOrigin("https://locationcheckgo.netlify.app");
+        config.addAllowedOrigin("https://locationcheckgo.com");
         config.addAllowedOrigin("http://localhost:3000");
+        config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("http://localhost:8080");
+        config.addAllowedOrigin("https://localhost:8080");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(3600L);

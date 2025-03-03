@@ -517,62 +517,43 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 1. 사용자 확인
-            Long userId = requestDto.getUserId();
-            AuthUser authUser = userRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
-            
-            // 3. 목표 확인
+            // 1. 목표 및 사용자 확인
             Goal goal = goalRepository.findById(goalId)
                     .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
             
-            // 3. 기존 포인트 저장
-            int previousPoints = pointService.getUserPoints(authUser);
+            AuthUser user = userRepository.findById(requestDto.getUserId())
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
             
-            // 4. 목표 위치 검증
-            boolean isVerified = goalService.validateGoalAchievement(userId, goalId, requestDto.getLatitude(), requestDto.getLongitude());
+            // 2. 목표 달성 처리 - 현재 요일이 선택된 요일인지 확인
+            List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+            String currentDayOfWeek = LocalDate.now().getDayOfWeek().toString();
+            boolean isSelectedDay = goalDays.stream()
+                .anyMatch(day -> day.getDayOfWeek().toString().equals(currentDayOfWeek));
             
-            // 5. 응답 데이터 준비
-            Map<String, Object> response = new HashMap<>();
-            
-            if (!isVerified) {
-                response.put("achievementStatus", "실패");
-                response.put("totalPoints", previousPoints);
-                response.put("bonusPoints", 0);
-                response.put("message", "목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.");
-                return new ResponseEntity<>(response, HttpStatus.OK);
-            }
-            
-            // 6. 포인트 처리
-            boolean isSelectedDay = true; // 선택된 요일 여부 확인 로직 필요시 추가
-            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
-            int afterDailyPoints = pointService.getUserPoints(authUser);
-            
-            // 7. 보너스 포인트 처리
-            goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
-            int afterBonusPoints = pointService.getUserPoints(authUser);
-            
-            // 8. 최종 응답 생성
-            response.put("achievementStatus", "성공");
-            response.put("totalPoints", afterBonusPoints);
-            response.put("bonusPoints", afterBonusPoints - afterDailyPoints);
-            response.put("message", "목표 인증에 성공했습니다.");
-            
-            // 목표 상태 무조건 COMPLETE로 변경
+            // 3. 목표 상태 COMPLETE로 변경 및 달성 기록 저장
             goal.setStatus(GoalStatus.COMPLETE);
             goalRepository.save(goal);
             
-            // 리다이렉트 응답
+            // 4. 포인트 처리
+            goalPointHandler.handleDailyAchievement(user, goal, isSelectedDay);
+            goalPointHandler.handleWeeklyGoalCompletion(user, goal);
+            
+            // 5. 달성 로그 기록
+            GoalAchievementsLog achievementLog = new GoalAchievementsLog();
+            achievementLog.setUser(user);
+            achievementLog.setGoal(goal);
+            achievementLog.setAchievedAt(LocalDate.now());
+            achievementLog.setAchievedSuccess(true);
+            goalAchievementLogRepository.save(achievementLog);
+            
+        } catch (Exception e) {
+            // Log the error but continue with redirect
+            System.err.println("Goal achievement error: " + e.getMessage());
+        } finally {
+            // Always redirect to frontend
             return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create("https://locationcheckgo.netlify.app/"))
                 .build();
-            
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (IllegalStateException e) {
-            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto("서버 내부 오류가 발생했습니다."), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     

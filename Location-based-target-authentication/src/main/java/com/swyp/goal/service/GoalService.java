@@ -306,8 +306,7 @@ public class GoalService {
          goalRepository.save(goal);
          
          GoalAchievements goalAchievements = new GoalAchievements();
-         User user = User.fromAuthUser(authUser);
-         goalAchievements.setUser(user);
+         goalAchievements.setUser(authUser);
          goalAchievements.setGoal(goal);
          goalAchievements.setName(goal.getName());
          goalAchievements.setTargetCount(goal.getTargetCount());

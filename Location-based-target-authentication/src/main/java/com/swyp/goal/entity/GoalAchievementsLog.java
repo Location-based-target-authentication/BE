@@ -29,7 +29,7 @@ public class GoalAchievementsLog {
     private Long id;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "auth_user_id", nullable = false)
     private AuthUser user;
     
     @ManyToOne(fetch = FetchType.LAZY)

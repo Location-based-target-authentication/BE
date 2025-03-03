@@ -2,7 +2,7 @@ package com.swyp.goal.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.swyp.users.domain.User;
+import com.swyp.social_login.entity.AuthUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,11 +28,13 @@ public class GoalAchievementsLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private AuthUser user;
     
-    @Column(name = "goal_id", nullable = false)
-    private Long goalId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_id", nullable = false)
+    private Goal goal;
     
     @Column(name = "achieved_at", nullable = false)
     private LocalDate achievedAt;
@@ -42,14 +44,6 @@ public class GoalAchievementsLog {
     
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
-    
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "goal_id", insertable = false, updatable = false)
-    private Goal goal;
     
     @PrePersist
     protected void onCreate() {

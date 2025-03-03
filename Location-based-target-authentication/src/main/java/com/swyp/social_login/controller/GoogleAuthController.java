@@ -25,24 +25,41 @@ public class GoogleAuthController {
     public ResponseEntity<Map<String, SocialUserResponseDto>> googleLogin(
             @RequestParam(name="code", required = false) String codeParam,
             @RequestBody(required = false) Map<String, String> body) {
+        System.out.println("[GoogleAuthController] 로그인 시작");
+        System.out.println("- codeParam: " + codeParam);
+        System.out.println("- body: " + (body != null ? body.toString() : "null"));
+        
         String code = codeParam;
         if (code == null && body != null) {
             code = body.get("code");
         }
+        System.out.println("- 최종 code: " + code);
 
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");
         }
         try{
+            System.out.println("[GoogleAuthController] Access Token 요청 시작");
             String accessToken = googleAuthService.getAccessToken(code);
-            //  Access Token으로 사용자 정보 가져오기
+            System.out.println("[GoogleAuthController] Access Token 발급 성공: " + accessToken.substring(0, 10) + "...");
+            
+            System.out.println("[GoogleAuthController] 사용자 정보 요청 시작");
             Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
+            System.out.println("[GoogleAuthController] 사용자 정보 조회 성공: " + googleUserInfo);
+            
+            System.out.println("[GoogleAuthController] 사용자 저장/업데이트 시작");
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
-            // JWT 토큰 생성
+            System.out.println("[GoogleAuthController] 사용자 저장/업데이트 성공: " + userResponse);
+            
+            System.out.println("[GoogleAuthController] JWT 토큰 생성 시작");
             userResponse = authService.generateJwtTokens(userResponse);
+            System.out.println("[GoogleAuthController] JWT 토큰 생성 성공");
+            
             return ResponseEntity.ok(Map.of("data", userResponse));
         } catch (Exception e) {
-            e.printStackTrace(); // 로깅 추가
+            System.out.println("[GoogleAuthController] 에러 발생: " + e.getMessage());
+            System.out.println("[GoogleAuthController] 에러 타입: " + e.getClass().getName());
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }

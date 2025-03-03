@@ -6,6 +6,7 @@ import com.swyp.goal.entity.GoalDay;
 import com.swyp.goal.repository.GoalAchievementsLogRepository;
 import com.swyp.goal.repository.GoalDayRepository;
 import com.swyp.goal.repository.GoalRepository;
+import com.swyp.point.entity.Point;
 import com.swyp.point.enums.PointType;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
@@ -34,9 +35,15 @@ public class GoalPointHandler {
         AuthUser authUser = userRepository.findById(goal.getUserId())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없음"));
 
-        boolean success = pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
-        if (!success) {
+        Point point = pointService.getOrCreatePoint(authUser);
+        if (point.getTotalPoints() < 500) {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");
+        }
+        
+        try {
+            pointService.deductPoints(authUser, 500, PointType.GOAL_ACTIVATION, "목표 생성", goal.getId());
+        } catch (Exception e) {
+            throw new RuntimeException("포인트 차감 중 오류 발생: " + e.getMessage());
         }
     }
 
@@ -64,9 +71,8 @@ public class GoalPointHandler {
         LocalDate endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SATURDAY));
 
         // 현재 주의 목표 달성 횟수 가져오기
-        int weeklyAchievedCount = goalAchievementsLogRepository.countByGoalIdAndUserIdAndAchievedSuccessAndAchievedAtBetween(
-            goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
-        
+        int weeklyAchievedCount = goalAchievementsLogRepository.countByGoal_IdAndUser_IdAndAchievedSuccessAndAchievedAtBetween(
+                goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
         // 주간 목표의 마지막 요일인지 확인
         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
         List<com.swyp.goal.entity.DayOfWeek> goalDayOfWeeks = goalDays.stream()

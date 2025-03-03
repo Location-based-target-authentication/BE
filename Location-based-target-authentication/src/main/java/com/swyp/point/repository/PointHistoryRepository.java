@@ -14,7 +14,7 @@ import com.swyp.social_login.entity.AuthUser;
 
 @Repository
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
-    List<PointHistory> findByAuthUserId(Long userId);
+    List<PointHistory> findByAuthUser_Id(Long id);
     @Query("SELECT SUM(p.points) FROM PointHistory p WHERE p.authUser = :authUser" )
     Integer getTotalPointsByAuthUser(@Param("authUser") AuthUser authUser);
     
@@ -24,4 +24,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
     @Query("UPDATE PointHistory p SET p.goalId = NULL WHERE p.goalId = :goalId")
     void updateGoalIdToNull(@Param("goalId") Long goalId);
     
+    @Modifying
+    @Query("DELETE FROM PointHistory p WHERE p.authUser.id = :userId")
+    void deleteByAuthUser_Id(@Param("userId") Long id);
 }

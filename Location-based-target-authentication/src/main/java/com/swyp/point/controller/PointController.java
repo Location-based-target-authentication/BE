@@ -5,6 +5,7 @@ import com.swyp.point.dto.PointDedeductRequest;
 import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
+import com.swyp.global.security.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +24,7 @@ import java.util.Map;
 public class PointController {
     private final PointService pointService;
     private final UserRepository userRepository;
+    
     //포인트 조회
     @Operation(
             summary = "포인트 메인 페이지",
@@ -45,17 +48,22 @@ public class PointController {
                     )
             }
     )
-    @GetMapping("/{user_id}")
-    public ResponseEntity<PointBalanceResponse> getPoints(@PathVariable("user_id") String userId) {
-        AuthUser authUser = findAuthUser(userId);
-        int points = pointService.getUserPoints(authUser);
-        PointBalanceResponse response = new PointBalanceResponse(
-                authUser.getId(),
-                authUser.getUsername(),
-                points
-        );
-        response.setTotalPoints(points);
-        return ResponseEntity.ok(response);
+    @GetMapping("/{userId}")
+    public ResponseEntity<PointBalanceResponse> getPoints(
+            @PathVariable("userId") String pathUserId) {
+        try {
+            AuthUser authUser = findAuthUser(pathUserId);
+            int points = pointService.getUserPoints(authUser);
+            PointBalanceResponse response = new PointBalanceResponse(
+                    authUser.getId(),
+                    authUser.getUsername(),
+                    points
+            );
+            response.setTotalPoints(points);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다");
+        }
     }
     //포인트 적립
     @Operation(
@@ -73,18 +81,30 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{user_id}/add")
+    @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("user_id") String userId,
-            @RequestBody PointAddRequest request) {
-        AuthUser authUser = findAuthUser(userId);
-        pointService.addPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
-        int updatedPoints = pointService.getUserPoints(authUser);
-        Map<String, Object> response = new HashMap<>();
-        response.put("status", "success");
-        response.put("message", "포인트가 적립됨");
-        response.put("totalPoints", updatedPoints);
-        return ResponseEntity.ok(response);
+            @PathVariable("userId") String pathUserId,
+            @RequestBody PointAddRequest pointRequest) {
+        try {
+            AuthUser authUser = findAuthUser(pathUserId);
+            pointService.addPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
+            int updatedPoints = pointService.getUserPoints(authUser);
+            Map<String, Object> response = new HashMap<>();
+            response.put("status", "success");
+            response.put("message", "포인트가 적립됨");
+            response.put("totalPoints", updatedPoints);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "사용자를 찾을 수 없습니다");
+            return ResponseEntity.status(404).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
     //포인트 차감
     @Operation(
@@ -109,29 +129,53 @@ public class PointController {
                     )
             }
     )
-    @PostMapping("/{user_id}/deduct")
+    @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("user_id") String userId,
-            @RequestBody PointDedeductRequest request) {
-        AuthUser authUser = findAuthUser(userId);
-        boolean success = pointService.deductPoints(authUser, request.getPoints(), request.getPointType(), request.getDescription(), request.getGoalId());
-        Map<String, Object> response = new HashMap<>();
-        if (!success) {
-            response.put("status", "fail");
-            response.put("message", "포인트가 부족함");
-            return ResponseEntity.badRequest().body(response);
+            @PathVariable("userId") String pathUserId,
+            @RequestBody PointDedeductRequest pointRequest,
+            HttpServletRequest request) {
+        try {
+            // userId로 사용자 찾기
+            AuthUser authUser = findAuthUser(pathUserId);
+            
+            try {
+                // 포인트 차감 처리
+                boolean success = pointService.deductPoints(authUser, pointRequest.getPoints(), pointRequest.getPointType(), pointRequest.getDescription(), pointRequest.getGoalId());
+                if (success) {
+                    int updatedPoints = pointService.getUserPoints(authUser);
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("status", "success");
+                    response.put("message", "포인트가 성공적으로 차감되었습니다");
+                    response.put("totalPoints", updatedPoints);
+                    return ResponseEntity.ok(response);
+                } else {
+                    Map<String, Object> response = new HashMap<>();
+                    response.put("status", "fail");
+                    response.put("message", "포인트 차감에 실패했습니다");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (IllegalArgumentException e) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("status", "fail");
+                response.put("message", e.getMessage());
+                return ResponseEntity.badRequest().body(response);
+            }
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "사용자를 찾을 수 없습니다");
+            return ResponseEntity.status(404).body(errorResponse);
+        } catch (Exception e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", "서버 오류가 발생했습니다: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
-        int updatedPoints = pointService.getUserPoints(authUser);
-        response.put("status", "success");
-        response.put("message", "포인트가 차감됨");
-        response.put("totalPoints", updatedPoints);
-        return ResponseEntity.ok(response);
     }
 
     private AuthUser findAuthUser(String userId) {
-        return userRepository.findByUserId(userId)
+        return userRepository.findByUserId(Long.parseLong(userId))
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
     }
 
 

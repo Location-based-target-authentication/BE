@@ -48,8 +48,8 @@ public class AuthController {
             ));
         }
 
-        String userId = jwtUtil.extractUserId(refreshToken);
-        if (userId == null || userId.isEmpty()) {
+        Long userId = jwtUtil.extractUserId(refreshToken);
+        if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Refresh Token"));
         }
 
@@ -60,7 +60,7 @@ public class AuthController {
         }
         AuthUser user = optionalUser.get();
         // 5. 새로운 Access Token 생성 및 반환
-        String newAccessToken = jwtUtil.generateAccessToken(user.getUserId());
+        String newAccessToken = jwtUtil.generateAccessToken(user);
         return ResponseEntity.ok(Map.of(
                 "accessToken", newAccessToken,
                 "tokenType", "Bearer"
@@ -94,9 +94,9 @@ public class AuthController {
             }
         }
 
-        // JWT에서 socialId 추출
-        String userId = jwtUtil.extractUserId(accessToken);
-        if (userId == null || userId.isEmpty()) {
+        // JWT에서 userId 추출
+        Long userId = jwtUtil.extractUserId(accessToken);
+        if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid Access Token"));
         }
         // DB에서 사용자 정보 조회
@@ -114,7 +114,8 @@ public class AuthController {
         return ResponseEntity.ok(Map.of(
                 "username", username,
                 "email", email,
-                "phoneNumber", phoneNumber
+                "phoneNumber", phoneNumber,
+                "socialType", userResponse.getSocialType().name()
         ));
     }
 }

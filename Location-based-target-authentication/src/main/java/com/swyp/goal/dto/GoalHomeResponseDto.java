@@ -13,6 +13,12 @@ import lombok.Getter;
 @Schema(description = "목표 홈 화면 응답 DTO")
 public class GoalHomeResponseDto {
 
+    @Schema(description = "목표 ID", example = "1")
+    private Long goalId;
+
+    @Schema(description = "사용자 ID", example = "1")
+    private Long userId;
+
     @Schema(description = "목표 이름", example = "매일 30분 독서")
     private String goalName;
     	

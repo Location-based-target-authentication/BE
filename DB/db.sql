@@ -74,20 +74,26 @@ CREATE TABLE goal_achievements (
     FOREIGN KEY (user_id) REFERENCES users(id)     -- 유저 테이블 참조
 );
 
--- 7. 포인트 이력 테이블
+-- 7. 포인트 history 테이블
 CREATE TABLE point_history (
-    id BIGINT PRIMARY KEY AUTO_INCREMENT,    -- 포인트 이력 고유 번호
-    user_id BIGINT NOT NULL,                -- 사용자 ID 
-    points INT NOT NULL,                    -- 포인트 변동량 (양수: 적립, 음수: 차감)
-    type ENUM('WELCOME', 'ACHIEVEMENT', 'BONUS', 'GOAL_ACTIVATION', 'GIFT') NOT NULL,    -- 포인트 변동 유형 (가입 보너스, 목표 달성, 보너스, 목표 활성화, 기프트)
-    description VARCHAR(200) NOT NULL,      -- 변동 사유 설명
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,    -- 포인트 변동일
-    related_goal_id BIGINT,                -- 관련 목표 ID (수정 NULL 허용 목표테이블 삭제를 위한)
-    FOREIGN KEY (user_id) REFERENCES users(id),    -- 사용자 테이블 참조
-    FOREIGN KEY (related_goal_id) REFERENCES goals(id) ON DELETE SET NULL    -- 목표 테이블 참조 (수정 ON DELETE SET NULL 추가)
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 포인트 이력 ID (자동 증가)
+    created_at DATETIME(6) NOT NULL,               -- 포인트 변동 시간
+    description VARCHAR(200) NULL,                 -- 변동 사유 (NULL 허용)
+    goal_id BIGINT NULL,                           -- 관련 목표 ID (NULL 허용)
+    type ENUM('WELCOME', 'ACHIEVEMENT', 'BONUS', 'GOAL_ACTIVATION', 'GIFT') NOT NULL, -- 포인트 변동 유형
+    points INT NOT NULL,                           -- 변동된 포인트 값 (양수: 적립, 음수: 차감)
+    user_id BIGINT NOT NULL                        -- 사용자 ID (NULL 허용 안됨)
 );
 
--- 8. 목표 달성 중복 방지를 위한 로그 테이블
+-- 8. 포인트 테이블
+CREATE TABLE points (
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,  -- 고유 ID (자동 증가)
+    total_points INT NOT NULL,                      -- 총 포인트
+    user_id BIGINT NOT NULL UNIQUE                 -- 사용자 ID (고유 값)
+);
+
+
+-- 9. 목표 달성 중복 방지를 위한 로그 테이블
 CREATE TABLE goal_achievement_log (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT NOT NULL,
@@ -95,6 +101,6 @@ CREATE TABLE goal_achievement_log (
     achieved_at DATE NOT NULL, -- 인증 날짜
     achieved_success BOOLEAN NOT NULL, -- 성공 여부
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT unique_goal_per_day UNIQUE (user_id, goal_id, achieved_at, achieved_success), -- 같은 날짜에 같은 목표에 대해 1개 이상의 기록 X 
+    CONSTRAINT unique_goal_per_day UNIQUE (user_id, goal_id, achieved_at, achieved_success), -- 같은 날짜에 같은 목표에 대해 1개 이상의 기록 X
     FOREIGN KEY (goal_id) REFERENCES goals(id) ON DELETE CASCADE -- 수정 : ON DELETE CASCADE
 );

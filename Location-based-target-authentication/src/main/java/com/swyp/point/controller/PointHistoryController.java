@@ -36,7 +36,7 @@ public class PointHistoryController {
     }
 
     private AuthUser findAuthUser(String userId) {
-        return userRepository.findByUserId(userId)
+        return userRepository.findByUserId(Long.parseLong(userId))
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 }

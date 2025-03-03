@@ -241,8 +241,7 @@ public class GoalService {
             GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
             AuthUser authUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
-            User user = User.fromAuthUser(authUser);
-            achievementsLog.setUser(user);
+            achievementsLog.setUser(authUser);
             achievementsLog.setGoal(goal);
             achievementsLog.setAchievedSuccess(true);
             goalAchievementsLogRepository.save(achievementsLog);
@@ -263,8 +262,7 @@ public class GoalService {
         	GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
             AuthUser authUser = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            User user = User.fromAuthUser(authUser);
-            achievementsLog.setUser(user);
+            achievementsLog.setUser(authUser);
             achievementsLog.setGoal(goal);
             achievementsLog.setAchievedSuccess(false);
             goalAchievementsLogRepository.save(achievementsLog);

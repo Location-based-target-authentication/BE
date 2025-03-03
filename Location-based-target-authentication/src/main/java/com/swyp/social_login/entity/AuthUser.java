@@ -25,14 +25,18 @@ public class AuthUser {
     private String socialId; // 카카오 또는 구글에서 받은 고유 ID
 
     @Column(nullable = false)
-    private Long userId = 0L;
+    private Long userId;
 
     @PrePersist
-    @PreUpdate
-    private void setUserIdFromId() {
-        if (this.id != null) {
-            this.userId = this.id;
+    private void prePersist() {
+        if (this.userId == null) {
+            this.userId = 0L; // 임시값 설정
         }
+    }
+
+    @PostPersist
+    private void postPersist() {
+        this.userId = this.id; // 실제 ID로 업데이트
     }
 
     @Column(nullable = false)
@@ -81,6 +85,10 @@ public class AuthUser {
 
     public void updatePhoneNumber(String phone) {
         this.phoneNumber = phone;
+    }
+
+    public Long getUserId() {
+        return this.id;
     }
 }
 

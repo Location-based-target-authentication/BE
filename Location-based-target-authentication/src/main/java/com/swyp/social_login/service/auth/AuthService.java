@@ -94,7 +94,7 @@ public class AuthService {
             throw new IllegalStateException("유효하지 않은 userId입니다.");
         }
 
-        AuthUser user = userRepository.findByUserId(userId)
+        AuthUser user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalStateException("사용자를 찾을 수 없습니다."));
 
         String accessToken = jwtUtil.generateAccessToken(user);

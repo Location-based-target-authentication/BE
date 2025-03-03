@@ -517,44 +517,21 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 1. 목표 및 사용자 확인
+            // 1. 목표 상태를 무조건 COMPLETE로 변경
             Goal goal = goalRepository.findById(goalId)
                     .orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
             
-            AuthUser user = userRepository.findById(requestDto.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            
-            // 2. 목표 달성 처리 - 현재 요일이 선택된 요일인지 확인
-            List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
-            String currentDayOfWeek = LocalDate.now().getDayOfWeek().toString();
-            boolean isSelectedDay = goalDays.stream()
-                .anyMatch(day -> day.getDayOfWeek().toString().equals(currentDayOfWeek));
-            
-            // 3. 목표 상태 COMPLETE로 변경 및 달성 기록 저장
             goal.setStatus(GoalStatus.COMPLETE);
             goalRepository.save(goal);
             
-            // 4. 포인트 처리
-            goalPointHandler.handleDailyAchievement(user, goal, isSelectedDay);
-            goalPointHandler.handleWeeklyGoalCompletion(user, goal);
-            
-            // 5. 달성 로그 기록
-            GoalAchievementsLog achievementLog = new GoalAchievementsLog();
-            achievementLog.setUser(user);
-            achievementLog.setGoal(goal);
-            achievementLog.setAchievedAt(LocalDate.now());
-            achievementLog.setAchievedSuccess(true);
-            goalAchievementLogRepository.save(achievementLog);
-            
         } catch (Exception e) {
-            // Log the error but continue with redirect
-            System.err.println("Goal achievement error: " + e.getMessage());
-        } finally {
-            // Always redirect to frontend
-            return ResponseEntity.status(HttpStatus.FOUND)
-                .location(URI.create("https://locationcheckgo.netlify.app/"))
-                .build();
+            // 에러 무시
         }
+        
+        // 프론트로 무조건 리다이렉트
+        return ResponseEntity.status(HttpStatus.FOUND)
+            .location(URI.create("https://locationcheckgo.netlify.app/"))
+            .build();
     }
     
 

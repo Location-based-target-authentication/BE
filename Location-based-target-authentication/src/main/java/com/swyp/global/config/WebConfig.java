@@ -34,6 +34,8 @@ public class WebConfig implements WebMvcConfigurer {
         config.addAllowedOrigin("https://localhost:8080");
         config.addAllowedOrigin("https://175.45.203.57:8443");
         config.addAllowedOrigin("http://175.45.203.57:8443");
+        config.addAllowedOrigin("http://175.45.203.57:8080");
+        config.addAllowedOrigin("https://175.45.203.57:8080");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(3600L);

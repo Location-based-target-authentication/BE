@@ -78,11 +78,10 @@ public class AuthService {
             System.out.println("[AuthService] 신규 사용자 등록 시작");
             user = new AuthUser(socialId, username, email, accessToken, socialType);
             
-            // 새로운 사용자 저장
-            user = userRepository.save(user);
-            
-            // 저장된 id를 userId에 설정
+            // userId를 저장하기 전에 설정 (id와 동일하게)
             user.setUserId(user.getId());
+            
+            // 새로운 사용자 저장
             user = userRepository.save(user);
             System.out.println("- 사용자 저장 완료 (id: " + user.getId() + ", userId: " + user.getUserId() + ")");
             

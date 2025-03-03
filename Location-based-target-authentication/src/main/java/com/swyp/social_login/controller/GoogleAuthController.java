@@ -29,11 +29,33 @@ public class GoogleAuthController {
         System.out.println("- codeParam: " + codeParam);
         System.out.println("- body: " + (body != null ? body.toString() : "null"));
         
+        // body에서 code 또는 accessToken 추출
         String code = codeParam;
-        if (code == null && body != null) {
-            code = body.get("code");
+        String accessToken = null;
+        
+        if (body != null) {
+            if (code == null) {
+                code = body.get("code");
+                System.out.println("[GoogleAuthController] Body에서 code 추출");
+            }
+            accessToken = body.get("accessToken");
+            System.out.println("[GoogleAuthController] Body에서 accessToken 추출");
         }
         System.out.println("- 최종 code: " + code);
+        
+        // accessToken이 있는 경우 (모바일)
+        if (accessToken != null && !accessToken.isEmpty()) {
+            try {
+                System.out.println("[GoogleAuthController] AccessToken으로 로그인 시도");
+                Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
+                SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
+                userResponse = authService.generateJwtTokens(userResponse);
+                return ResponseEntity.ok(Map.of("data", userResponse));
+            } catch (Exception e) {
+                System.err.println("[GoogleAuthController] AccessToken 로그인 중 오류: " + e.getMessage());
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+            }
+        }
 
         if (code == null || code.isEmpty()) {
             throw new IllegalArgumentException("인가 코드(code)가 필요합니다.");

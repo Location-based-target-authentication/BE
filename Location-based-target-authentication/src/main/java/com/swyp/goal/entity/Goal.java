@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.swyp.users.domain.User;
+import com.swyp.social_login.entity.AuthUser;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.CascadeType;
@@ -41,9 +41,9 @@ public class Goal {
     @Schema(description = "목표 ID", example = "1")
     private Long id;
     
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "auth_user_id", nullable = false)
     @Schema(description = "사용자 ID", example = "101")
-    private Long userId;
+    private Long authUserId;
     
     @Column(name = "name", length = 20, nullable = false)
     @Schema(description = "목표 이름", example = "매일 아침 조깅")
@@ -96,8 +96,8 @@ public class Goal {
     private LocalDateTime updatedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private User user;
+    @JoinColumn(name = "auth_user_id", insertable = false, updatable = false)
+    private AuthUser authUser;
     
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<GoalDay> goalDays = new ArrayList<>();

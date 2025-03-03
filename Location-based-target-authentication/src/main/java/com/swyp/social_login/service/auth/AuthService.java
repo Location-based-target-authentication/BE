@@ -44,19 +44,14 @@ public class AuthService {
         String username = userInfo.getOrDefault("username", "Unknown").toString();
         String email = userInfo.getOrDefault("email", "").toString();
         
-        // 기존 사용자 확인
-        Optional<AuthUser> existingUserBySocialId = userRepository.findBySocialId(socialId);
-        Optional<AuthUser> existingUserByEmail = userRepository.findByEmail(email);
+        // 기존 사용자 확인 - socialId와 socialType으로 확인
+        Optional<AuthUser> existingUser = userRepository.findBySocialIdAndSocialType(socialId, socialType);
 
         AuthUser user;
-        if (existingUserBySocialId.isPresent()) {
-            user = existingUserBySocialId.get();
+        if (existingUser.isPresent()) {
+            user = existingUser.get();
             user.setAccessToken(accessToken);
             user = userRepository.save(user);
-        } else if (existingUserByEmail.isPresent()) {
-            AuthUser duplicateUser = existingUserByEmail.get();
-            throw new DuplicateEmailException(String.format("이미 %s로 가입된 이메일입니다. %s로 로그인해주세요.",
-                    duplicateUser.getSocialType(), duplicateUser.getSocialType()));
         } else {
             // name 필드는 별도로 설정하지 않고 null로 저장
             user = AuthUser.builder()

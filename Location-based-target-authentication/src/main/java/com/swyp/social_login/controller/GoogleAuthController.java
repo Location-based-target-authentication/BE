@@ -88,14 +88,22 @@ public class GoogleAuthController {
     }
 
     //access token으로 직접 넘겨서 테스트
+    @Operation(summary = "구글 액세스 토큰으로 로그인", description = "모바일에서 받은 구글 액세스 토큰으로 로그인")
     @PostMapping("/userinfo")
-    public ResponseEntity<SocialUserResponseDto> getGoogleUserInfo(@RequestParam(name = "accessToken") String accessToken) {
+    public ResponseEntity<Map<String, SocialUserResponseDto>> getGoogleUserInfo(
+            @RequestParam(name = "accessToken") String accessToken) {
         if (accessToken == null || accessToken.isEmpty()) {
             return ResponseEntity.badRequest().body(null);
         }
-        Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
-        SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
-        return ResponseEntity.ok(userResponse);
+        try {
+            Map<String, Object> googleUserInfo = googleAuthService.getUserInfo(accessToken);
+            SocialUserResponseDto userResponse = authService.saveOrUpdateUser(googleUserInfo, accessToken, SocialType.GOOGLE);
+            userResponse = authService.generateJwtTokens(userResponse);
+            return ResponseEntity.ok(Map.of("data", userResponse));
+        } catch (Exception e) {
+            System.out.println("[GoogleAuthController] 모바일 로그인 에러: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        }
     }
 
     @Operation(summary = "구글 로그인 후 callback", description = "구글 로그인 후 callback")

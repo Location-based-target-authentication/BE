@@ -20,7 +20,7 @@ public class PointHistory {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="user_id", nullable = false)
+    @JoinColumn(name="auth_user_id", nullable = false)
     private AuthUser authUser;
 
     @Column(name="points", nullable = false)

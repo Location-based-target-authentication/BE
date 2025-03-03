@@ -85,7 +85,7 @@ public class JwtUtil {
         }
     }
 
-    public String extractUserId(String token) {
+    public Long extractUserId(String token) {
         try {
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(key)
@@ -99,7 +99,12 @@ public class JwtUtil {
                 return null;
             } else {
                 System.out.println("[JwtUtil] 추출된 userId: " + userIdStr);
-                return userIdStr;
+                try {
+                    return Long.parseLong(userIdStr);
+                } catch (NumberFormatException e) {
+                    System.out.println("[JWTUtil] userId 형변환 오류: " + e.getMessage());
+                    return null;
+                }
             }
         } catch (JwtException e) {
             System.out.println("[JWTUtil] JWT 파싱 오류: " + e.getMessage());
@@ -108,11 +113,11 @@ public class JwtUtil {
     }
 
     public Authentication getAuthentication(String token) {
-        String userId = extractUserId(token);
+        Long userId = extractUserId(token);
         if (userId == null) {
             throw new JwtException("Invalid JWT token");
         }
-        UserDetails userDetails = new User(userId, "", Collections.emptyList());
+        UserDetails userDetails = new User(userId.toString(), "", Collections.emptyList());
         return new UsernamePasswordAuthenticationToken(userDetails, token, userDetails.getAuthorities());
     }
 }

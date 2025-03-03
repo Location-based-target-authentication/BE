@@ -153,7 +153,7 @@ public class GoalRestController {
                 throw new IllegalArgumentException("인증 토큰이 필요합니다.");
             }
             String token = bearerToken.substring(7);
-            String tokenUserId = jwtUtil.extractUserId(token);
+            Long tokenUserId = jwtUtil.extractUserId(token);
             
             System.out.println("[GoalRestController] 토큰에서 추출한 userId: " + tokenUserId);
             
@@ -161,13 +161,13 @@ public class GoalRestController {
             AuthUser authUser;
             try {
                 System.out.println("[GoalRestController] findById 시도: " + tokenUserId);
-                Optional<AuthUser> userById = userRepository.findByUserId(Long.parseLong(tokenUserId));
+                Optional<AuthUser> userById = userRepository.findByUserId(tokenUserId);
                 if (userById.isPresent()) {
                     System.out.println("[GoalRestController] findById 성공");
                     authUser = userById.get();
                 } else {
                     System.out.println("[GoalRestController] findById 실패, findByUserIdEquals 시도: " + tokenUserId);
-                    Optional<AuthUser> userByUserId = userRepository.findByUserIdEquals(Long.parseLong(tokenUserId));
+                    Optional<AuthUser> userByUserId = userRepository.findByUserIdEquals(tokenUserId);
                     if (userByUserId.isPresent()) {
                         System.out.println("[GoalRestController] findByUserIdEquals 성공");
                         authUser = userByUserId.get();

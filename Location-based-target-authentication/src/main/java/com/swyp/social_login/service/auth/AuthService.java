@@ -65,10 +65,7 @@ public class AuthService {
             System.out.println("[AuthService] 신규 사용자 등록 시작");
             user = new AuthUser(socialId, username, email, accessToken, socialType);
             
-            // 먼저 저장하여 id 값을 받아옴
-            user = userRepository.save(user);
-            
-            // id 값을 userId에 설정
+            // id와 userId를 동일하게 설정하여 저장
             user.setUserId(user.getId());
             user = userRepository.save(user);
             System.out.println("- 사용자 저장 완료 (id: " + user.getId() + ", userId: " + user.getUserId() + ")");
@@ -101,6 +98,12 @@ public class AuthService {
         // DB에서 사용자 조회 (데이터베이스 ID 사용)
         Long userId = userResponse.getUserId();
         System.out.println("- userId: " + userId);
+        
+        if (userId == null) {
+            System.out.println("[AuthService] userId가 null입니다");
+            throw new IllegalStateException("유효하지 않은 userId입니다.");
+        }
+        
         Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
         if (optionalUser.isEmpty()) {
             System.out.println("[AuthService] 사용자 찾기 실패");
@@ -108,6 +111,13 @@ public class AuthService {
         }
         System.out.println("[AuthService] 사용자 찾기 성공");
         AuthUser user = optionalUser.get();
+        
+        // userId와 id가 일치하는지 확인
+        if (!user.getId().equals(user.getUserId())) {
+            System.out.println("[AuthService] userId와 id가 일치하지 않습니다. 수정합니다.");
+            user.setUserId(user.getId());
+            user = userRepository.save(user);
+        }
         
         // AuthUser 객체로 토큰 생성
         System.out.println("[AuthService] 토큰 생성 시작");

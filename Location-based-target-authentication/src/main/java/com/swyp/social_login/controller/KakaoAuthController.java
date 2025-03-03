@@ -104,6 +104,10 @@ public class KakaoAuthController {
             SocialUserResponseDto userResponse = authService.saveOrUpdateUser(kakaoUserInfo, accessToken, SocialType.KAKAO);
             System.out.println("[KakaoAuthController] 사용자 정보 저장/업데이트 성공");
 
+            System.out.println("[KakaoAuthController] JWT 토큰 생성 시작");
+            userResponse = authService.generateJwtTokens(userResponse);
+            System.out.println("[KakaoAuthController] JWT 토큰 생성 성공");
+
             return ResponseEntity.ok(Map.of("data", userResponse));
         } catch (Exception e) {
             System.err.println("[KakaoAuthController] 사용자 정보 조회 중 오류 발생: " + e.getMessage());

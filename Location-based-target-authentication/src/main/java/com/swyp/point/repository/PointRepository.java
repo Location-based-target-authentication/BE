@@ -19,6 +19,6 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     void deleteByAuthUser(AuthUser authUser);
     
     @Modifying
-    @Query("DELETE FROM Point p WHERE p.authUser.id = :userId")
-    void deleteAllByAuthUser_Id(Long userId);
+    @Query("DELETE FROM Point p WHERE p.authUser.id = :id")
+    void deleteByAuthUser_Id(@Param("id") Long id);
 }

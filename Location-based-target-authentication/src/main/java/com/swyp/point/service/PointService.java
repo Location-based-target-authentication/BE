@@ -21,7 +21,7 @@ public class PointService {
     private final MailService mailService;
     @Transactional
     public Point getOrCreatePoint(AuthUser authUser) {
-        return pointRepository.findByAuthUserUserId(authUser.getUserId())
+        return pointRepository.findByAuthUserUserId(authUser.getId())
                 .orElseGet(() -> {
                     Point newPoint = new Point(authUser);
                     newPoint.addPoints(2000); // 초기 포인트 지급
@@ -81,7 +81,7 @@ public class PointService {
         }
     }
     // 포인트 이력 조회 메서드
-    public List<PointHistory> getPointHistory(Long userId) {
-        return pointHistoryRepository.findByAuthUserId(userId);
+    public List<PointHistory> getPointHistory(Long id) {
+        return pointHistoryRepository.findByAuthUser_Id(id);
     }
 }

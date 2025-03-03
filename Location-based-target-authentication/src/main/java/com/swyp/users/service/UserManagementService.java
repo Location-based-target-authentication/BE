@@ -28,32 +28,32 @@ public class UserManagementService {
     private final EntityManager entityManager;
 
     @Transactional
-    public void logout(Long userId) {
-        User user = userRepository.findById(userId)
+    public void logout(Long id) {
+        User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         // 로그아웃 처리 로직 구현
     }
 
     @Transactional(readOnly = true)
-    public User getUserInfo(Long userId) {
-        if (userId == null) {
+    public User getUserInfo(Long id) {
+        if (id == null) {
             throw new IllegalArgumentException("유효하지 않은 사용자 ID입니다.");
         }
         
         // 먼저 ID로 조회 시도
-        Optional<User> userById = userRepository.findByIdWithAuthUser(userId);
+        Optional<User> userById = userRepository.findByIdWithAuthUser(id);
         if (userById.isPresent()) {
             return userById.get();
         }
         
-        // userId로 조회 시도
-        return userRepository.findByUserId(userId)
-            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
+        // 사용자 조회 시도
+        return userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
     }
 
     @Transactional
-    public User modifyUserInfo(Long userId, UserModifyRequest request) {
-        User user = userRepository.findById(userId)
+    public User modifyUserInfo(Long id, UserModifyRequest request) {
+        User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         if (request.getName() != null) {
@@ -70,29 +70,29 @@ public class UserManagementService {
     }
 
     @Transactional
-    public void deleteUser(Long userId) {
-        User user = userRepository.findById(userId)
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         
         try {
             // 연관된 데이터 삭제
             // 1. 포인트 히스토리 삭제
-            pointHistoryRepository.deleteByAuthUserId(userId);
+            pointHistoryRepository.deleteByAuthUser_Id(id);
             entityManager.flush();
             entityManager.clear();
             
             // 2. 포인트 삭제
-            pointRepository.deleteAllByAuthUser_Id(userId);
+            pointRepository.deleteByAuthUser_Id(id);
             entityManager.flush();
             entityManager.clear();
             
             // 3. 목표 달성 기록 삭제
-            goalAchievementsRepository.deleteAllByUserId(userId);
+            goalAchievementsRepository.deleteAllByUserId(id);
             entityManager.flush();
             entityManager.clear();
             
             // 4. 목표 삭제 (목표 반복 요일은 ON DELETE CASCADE로 자동 삭제)
-            goalRepository.deleteAllByUserId(userId);
+            goalRepository.deleteAllByUserId(id);
             entityManager.flush();
             entityManager.clear();
             

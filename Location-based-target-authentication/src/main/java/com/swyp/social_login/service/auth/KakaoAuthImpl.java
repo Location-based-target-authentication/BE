@@ -37,6 +37,7 @@ public class KakaoAuthImpl implements KakaoAuthService {
     // 1. OAuth2 Access Token 발급
     @Override
     public String getAccessToken(String code) {
+        System.out.println("[KakaoAuth] Authorization code 수신: " + code);
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -47,6 +48,7 @@ public class KakaoAuthImpl implements KakaoAuthService {
         String redirectUrl = (referer != null && referer.contains("localhost")) 
             ? KAKAO_REDIRECT_URL_LOCAL 
             : KAKAO_REDIRECT_URL;
+        System.out.println("[KakaoAuth] Redirect URL 설정: " + redirectUrl);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("grant_type", "authorization_code");
@@ -56,39 +58,55 @@ public class KakaoAuthImpl implements KakaoAuthService {
         params.add("code", code);
 
         HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
+        System.out.println("[KakaoAuth] Access Token 요청 시작");
 
         ResponseEntity<String> response = restTemplate.exchange(TOKEN_URL, HttpMethod.POST, request, String.class);
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
+            String accessToken = jsonNode.get("access_token").asText();
+            System.out.println("[KakaoAuth] Access Token 발급 성공");
+            return accessToken;
         } catch (Exception e) {
+            System.err.println("[KakaoAuth] Access Token 발급 실패: " + e.getMessage());
             throw new RuntimeException("카카오 Access Token 요청 실패", e);
         }
     }
 
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
+        System.out.println("[KakaoAuth] 사용자 정보 조회 시작");
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
         HttpEntity<Void> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(KAKAO_USER_INFO_URL, HttpMethod.GET, entity, String.class);
 
         try {
+            ResponseEntity<String> response = restTemplate.exchange(KAKAO_USER_INFO_URL, HttpMethod.GET, entity, String.class);
+            System.out.println("[KakaoAuth] 카카오 API 응답 수신 성공");
+
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
 
             Map<String, Object> userInfo = new HashMap<>();
-            // userId를 Long으로 저장
-            userInfo.put("userId", jsonNode.get("id").asLong());
-            userInfo.put("email", jsonNode.get("kakao_account").get("email").asText());
-            userInfo.put("username", jsonNode.get("kakao_account").get("profile").get("nickname").asText());
+            String userId = jsonNode.get("id").asText();
+            String email = jsonNode.get("kakao_account").get("email").asText();
+            String username = jsonNode.get("kakao_account").get("profile").get("nickname").asText();
+
+            userInfo.put("userId", userId);
+            userInfo.put("email", email);
+            userInfo.put("username", username);
+
+            System.out.println("[KakaoAuth] 사용자 정보 파싱 완료");
+            System.out.println("[KakaoAuth] userId: " + userId);
+            System.out.println("[KakaoAuth] email: " + email);
+            System.out.println("[KakaoAuth] username: " + username);
 
             return userInfo;
         } catch (Exception e) {
+            System.err.println("[KakaoAuth] 사용자 정보 조회 실패: " + e.getMessage());
             throw new RuntimeException("카카오 사용자 정보 요청 실패", e);
         }
     }

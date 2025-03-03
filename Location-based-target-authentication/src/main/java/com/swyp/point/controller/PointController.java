@@ -50,7 +50,7 @@ public class PointController {
     )
     @GetMapping("/{userId}")
     public ResponseEntity<PointBalanceResponse> getPoints(
-            @PathVariable("userId") Long pathUserId) {
+            @PathVariable("userId") String pathUserId) {
         try {
             AuthUser authUser = findAuthUser(pathUserId);
             int points = pointService.getUserPoints(authUser);
@@ -83,7 +83,7 @@ public class PointController {
     )
     @PostMapping("/{userId}/add")
     public ResponseEntity<Map<String, Object>> addPoints(
-            @PathVariable("userId") Long pathUserId,
+            @PathVariable("userId") String pathUserId,
             @RequestBody PointAddRequest pointRequest) {
         try {
             AuthUser authUser = findAuthUser(pathUserId);
@@ -131,7 +131,7 @@ public class PointController {
     )
     @PostMapping("/{userId}/deduct")
     public ResponseEntity<Map<String, Object>> deductPoints(
-            @PathVariable("userId") Long pathUserId,
+            @PathVariable("userId") String pathUserId,
             @RequestBody PointDedeductRequest pointRequest,
             HttpServletRequest request) {
         try {
@@ -173,8 +173,8 @@ public class PointController {
         }
     }
 
-    private AuthUser findAuthUser(Long userId) {
-        return userRepository.findById(userId)
+    private AuthUser findAuthUser(String userId) {
+        return userRepository.findByUserId(Long.parseLong(userId))
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 

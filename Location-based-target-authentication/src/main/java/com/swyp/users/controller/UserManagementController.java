@@ -31,12 +31,12 @@ public class UserManagementController {
         @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @PostMapping("/{userId}/logout")
+    @PostMapping("/{id}/logout")
     public ResponseEntity<Void> logout(
         @Parameter(description = "사용자 ID", required = true, example = "1")
-        @PathVariable Long userId
+        @PathVariable Long id
     ) {
-        userService.logout(userId);
+        userService.logout(id);
         return ResponseEntity.ok().build();
     }
 
@@ -45,12 +45,12 @@ public class UserManagementController {
         @ApiResponse(responseCode = "200", description = "조회 성공"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @GetMapping("/{userId}/check")
+    @GetMapping("/{id}/check")
     public ResponseEntity<UserResponse> getUserInfo(
         @Parameter(description = "사용자 ID", required = true, example = "1")
-        @PathVariable Long userId
+        @PathVariable Long id
     ) {
-        return ResponseEntity.ok(new UserResponse(userService.getUserInfo(userId)));
+        return ResponseEntity.ok(new UserResponse(userService.getUserInfo(id)));
     }
 
     @Operation(summary = "사용자 정보 수정", description = "사용자의 정보를 수정합니다.")
@@ -59,13 +59,13 @@ public class UserManagementController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @PatchMapping("/{userId}/modify")
+    @PatchMapping("/{id}/modify")
     public ResponseEntity<User> modifyUserInfo(
         @Parameter(description = "사용자 ID", required = true, example = "1")
-        @PathVariable Long userId,
+        @PathVariable Long id,
         @RequestBody UserModifyRequest request
     ) {
-        return ResponseEntity.ok(userService.modifyUserInfo(userId, request));
+        return ResponseEntity.ok(userService.modifyUserInfo(id, request));
     }
 
     @Operation(summary = "회원 탈퇴", description = "회원 탈퇴를 처리합니다.")
@@ -73,12 +73,12 @@ public class UserManagementController {
         @ApiResponse(responseCode = "200", description = "탈퇴 성공"),
         @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
     })
-    @DeleteMapping("/{userId}/delete")
+    @DeleteMapping("/{id}/delete")
     public ResponseEntity<Void> deleteUser(
         @Parameter(description = "사용자 ID", required = true, example = "1")
-        @PathVariable Long userId
+        @PathVariable Long id
     ) {
-        userService.deleteUser(userId);
+        userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 } 

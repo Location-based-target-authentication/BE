@@ -19,8 +19,8 @@ public class UserServiceImpl implements UserDetailsService {
     // Spring Security에서 사용하는 메서드 (로그인이 가능한 유저인지 확인)
     @Override
     public UserDetails loadUserByUsername(String userId) throws UsernameNotFoundException {
-        Long userIdLong = Long.parseLong(userId);
-        AuthUser user = userRepository.findByUserIdEquals(userIdLong)
+        // userId는 String으로 들어오지만 내부적으로는 Long으로 사용
+        AuthUser user = userRepository.findByUserIdEquals(Long.parseLong(userId))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with userId: " + userId));
         return new org.springframework.security.core.userdetails.User(
                 String.valueOf(user.getUserId()), "",

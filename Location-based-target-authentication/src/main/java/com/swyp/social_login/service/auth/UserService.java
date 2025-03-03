@@ -14,8 +14,8 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     
-    public SocialUserResponseDto getUserInfoFromDb(Long userId) {
-        Optional<AuthUser> userOptional = userRepository.findByUserId(userId);
+    public SocialUserResponseDto getUserInfoFromDb(String userId) {
+        Optional<AuthUser> userOptional = userRepository.findByUserId(Long.parseLong(userId));
         if (userOptional.isEmpty()) {
             return null;
         }
@@ -24,8 +24,8 @@ public class UserService {
     }
 
     // 전화번호 저장 메서드
-    public SocialUserResponseDto savePhoneNumber(Long userId, String phoneNumber) {
-        Optional<AuthUser> optionalUser = userRepository.findByUserId(userId);
+    public SocialUserResponseDto savePhoneNumber(String userId, String phoneNumber) {
+        Optional<AuthUser> optionalUser = userRepository.findByUserId(Long.parseLong(userId));
         if (optionalUser.isEmpty()) {
             throw new IllegalArgumentException("해당하는 userId의 user가 없음: " + userId);
         }

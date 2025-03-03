@@ -17,12 +17,17 @@ import java.util.List;
 @Table(name = "users")
 public class AuthUser {
 
+    // 이 id로 작업하고 FE에 전달
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private Long userId; // 카카오 또는 구글에서 받은 고유 ID
+    private String socialId; // 카카오 또는 구글에서 받은 고유 ID
+
+    // userId는 id 필드와 동일한 값을 가짐
+    @Column(nullable = false, unique = true)
+    private Long userId;
 
     @Column(nullable = false)
     private String username;
@@ -55,13 +60,18 @@ public class AuthUser {
     private List<PointHistory> pointHistories = new ArrayList<>();
 
 
-    public AuthUser(Long userId, String username, String email, String accessToken, SocialType socialType) {
-        this.userId = userId;
+    public AuthUser(String socialId, String username, String email, String accessToken, SocialType socialType) {
+        this.socialId = socialId;
         this.username = username;
         this.name = username;
         this.accessToken = accessToken;
         this.email = email;
         this.socialType = socialType;
+    }
+
+    @PostPersist
+    public void onPostPersist() {
+        this.userId = this.id;
     }
 
 

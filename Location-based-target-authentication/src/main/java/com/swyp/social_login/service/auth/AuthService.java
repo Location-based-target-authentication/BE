@@ -65,9 +65,15 @@ public class AuthService {
             System.out.println("[AuthService] 신규 사용자 등록 시작");
             user = new AuthUser(socialId, username, email, accessToken, socialType);
             
-            // id와 userId를 동일하게 설정하여 저장
-            user.setUserId(user.getId());
+            // 사용자를 저장하기 전에 userId를 null로 설정하여 JPA가 id를 자동 생성하게 함
+            user.setUserId(null);
             user = userRepository.save(user);
+            
+            // 저장 후 받은 ID를 userId에 설정
+            if (!user.getId().equals(user.getUserId())) {
+                user.setUserId(user.getId());
+                user = userRepository.save(user);
+            }
             System.out.println("- 사용자 저장 완료 (id: " + user.getId() + ", userId: " + user.getUserId() + ")");
             
             Point point = new Point(user);

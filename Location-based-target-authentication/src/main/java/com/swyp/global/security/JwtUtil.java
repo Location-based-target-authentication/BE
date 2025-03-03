@@ -47,6 +47,11 @@ public class JwtUtil {
     }
 
     public String generateAccessToken(AuthUser authUser) {
+        // id와 userId가 일치하지 않으면 수정
+        if (!authUser.getId().equals(authUser.getUserId())) {
+            authUser.setUserId(authUser.getId());
+        }
+        
         return Jwts.builder()
                 .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())
@@ -56,6 +61,11 @@ public class JwtUtil {
     }
 
     public String generateRefreshToken(AuthUser authUser) {
+        // id와 userId가 일치하지 않으면 수정
+        if (!authUser.getId().equals(authUser.getUserId())) {
+            authUser.setUserId(authUser.getId());
+        }
+        
         return Jwts.builder()
                 .setSubject(String.valueOf(authUser.getId()))
                 .setIssuedAt(new Date())

@@ -58,9 +58,11 @@ public class AuthService {
             throw new DuplicateEmailException(String.format("이미 %s로 가입된 이메일입니다. %s로 로그인해주세요.",
                     duplicateUser.getSocialType(), duplicateUser.getSocialType()));
         } else {
+            // name 필드는 별도로 설정하지 않고 null로 저장
             user = AuthUser.builder()
                     .socialId(socialId)
                     .username(username)
+                    .name(username)  // name 필드를 username으로 초기화
                     .email(email)
                     .accessToken(accessToken)
                     .socialType(socialType)

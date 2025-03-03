@@ -6,6 +6,7 @@ import com.swyp.point.repository.PointRepository;
 import com.swyp.social_login.dto.SocialUserResponseDto;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.enums.SocialType;
+import com.swyp.social_login.exception.DuplicateEmailException;
 import com.swyp.social_login.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,17 +52,29 @@ public class AuthService {
         System.out.println("  - username: " + username);
         System.out.println("  - email: " + email);
         
-        // DB에서 기존 사용자 확인
-        System.out.println("[AuthService] DB에서 사용자 검색 시작 - socialId: " + socialId);
-        Optional<AuthUser> optionalUser = userRepository.findBySocialId(socialId);
+        // DB에서 기존 사용자 확인 (socialId와 email 모두 체크)
+        System.out.println("[AuthService] DB에서 사용자 검색 시작");
+        System.out.println("- socialId: " + socialId);
+        System.out.println("- email: " + email);
+        
+        Optional<AuthUser> optionalUserBySocialId = userRepository.findBySocialId(socialId);
+        Optional<AuthUser> optionalUserByEmail = userRepository.findByEmail(email);
         AuthUser user;
         
-        if (optionalUser.isPresent()) {
-            System.out.println("[AuthService] 기존 사용자 발견");
-            user = optionalUser.get();
+        if (optionalUserBySocialId.isPresent()) {
+            // socialId로 찾은 사용자가 있는 경우
+            System.out.println("[AuthService] socialId로 기존 사용자 발견");
+            user = optionalUserBySocialId.get();
             user.setAccessToken(accessToken);
             System.out.println("- Access Token 업데이트 완료");
+        } else if (optionalUserByEmail.isPresent()) {
+            // 이메일은 있지만 다른 소셜 계정으로 가입한 경우
+            System.out.println("[AuthService] 다른 소셜 계정으로 이미 가입된 이메일");
+            AuthUser existingUser = optionalUserByEmail.get();
+            throw new DuplicateEmailException(String.format("이미 %s로 가입된 이메일입니다. %s로 로그인해주세요.",
+                existingUser.getSocialType(), existingUser.getSocialType()));
         } else {
+            // 완전히 새로운 사용자인 경우
             System.out.println("[AuthService] 신규 사용자 등록 시작");
             user = new AuthUser(socialId, username, email, accessToken, socialType);
             

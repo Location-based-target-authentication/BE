@@ -74,11 +74,11 @@ public class AuthService {
         }
 
         // 포인트 정보 확인 및 생성
-        pointRepository.findByAuthUser(user).orElseGet(() -> {
+        if (!pointRepository.findByAuthUser(user).isPresent()) {
             Point point = new Point(user);
             point.setTotalPoints(0);
-            return pointRepository.save(point);
-        });
+            pointRepository.save(point);
+        }
 
         return generateJwtTokens(new SocialUserResponseDto(user));
     }

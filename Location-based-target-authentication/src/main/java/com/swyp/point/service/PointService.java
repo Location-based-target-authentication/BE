@@ -22,11 +22,12 @@ public class PointService {
     @Transactional
     public Point getOrCreatePoint(AuthUser authUser) {
         return pointRepository.findByAuthUserUserId(authUser.getId())
-                .orElseGet(() -> {
-                    Point newPoint = new Point(authUser);
-                    newPoint.addPoints(2000); // 초기 포인트 지급
-                    return pointRepository.save(newPoint);
-                });
+                .orElseGet(() ->
+                    new Point(authUser));
+//                    Point newPoint = new Point(authUser);
+//                    newPoint.addPoints(2000); // 초기 포인트 지급
+//                    return pointRepository.save(newPoint);
+
     }
 
     //포인트 조회
@@ -38,7 +39,6 @@ public class PointService {
     @Transactional
     public void addPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
         Point point = getOrCreatePoint(authUser);
-        point.addPoints(points);
         pointRepository.save(point);
         // 포인트 이력 저장
         pointHistoryRepository.save(new PointHistory(authUser, points, pointType, description, goalId));

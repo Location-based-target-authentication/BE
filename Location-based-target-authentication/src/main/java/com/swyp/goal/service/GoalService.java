@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.swyp.point.entity.Point;
+import com.swyp.point.repository.PointRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,6 +48,7 @@ public class GoalService {
     private final GoalPointHandler goalPointHandler;
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
+    private final PointRepository pointRepository;
     
 
 
@@ -249,9 +252,9 @@ public class GoalService {
             goal.setAchievedCount(goal.getAchievedCount()+1);
             goal.setUpdatedAt(LocalDateTime.now());
             goalRepository.save(goal);
-            // (포인트) 지급
-            boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
-            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+//            // (포인트) 지급
+//            boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
+//            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
             return true;
         }
         else{

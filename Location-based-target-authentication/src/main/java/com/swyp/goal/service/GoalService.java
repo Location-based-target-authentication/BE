@@ -32,7 +32,9 @@ import com.swyp.social_login.repository.UserRepository;
 import com.swyp.users.domain.User;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor

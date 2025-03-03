@@ -62,7 +62,8 @@ public class KakaoAuthController {
 
         try {
             System.out.println("[KakaoAuthController] Access Token 요청 시작");
-            String accessToken = kakaoAuthService.getAccessToken(code);
+            // 기존의 accessToken 변수 재사용
+            accessToken = kakaoAuthService.getAccessToken(code);
             System.out.println("[KakaoAuthController] Access Token 발급 성공");
 
             System.out.println("[KakaoAuthController] 사용자 정보 요청 시작");

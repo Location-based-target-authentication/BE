@@ -62,7 +62,8 @@ public class GoogleAuthController {
         }
         try{
             System.out.println("[GoogleAuthController] Access Token 요청 시작");
-            String accessToken = googleAuthService.getAccessToken(code);
+            // 기존의 accessToken 변수 재사용
+            accessToken = googleAuthService.getAccessToken(code);
             System.out.println("[GoogleAuthController] Access Token 발급 성공: " + accessToken.substring(0, 10) + "...");
             
             System.out.println("[GoogleAuthController] 사용자 정보 요청 시작");

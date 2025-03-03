@@ -133,7 +133,7 @@
     </form>
 
     <h3>목표 1차 인증</h3>
-    <form id="goalAc" action="/api/v1/goals/2/achieve" method="post">
+    <form id="goalAc" action="/api/v1/goals/4/achieve" method="post">
         <label for="qwe1">userId:</label>
         <input type="text" id="userId" name="userId" required><br><br>
 

@@ -312,7 +312,7 @@ public class GoalService {
      
      
      
-     // 목표 총 수행 횟수 계산 메서드
+     // 목표 총 수행 횟수 계산 메서드 (targetCount)
      private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
          Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
          int count = 0;
@@ -335,76 +335,53 @@ public class GoalService {
      public List<LocalDate> DateRangeCalculator(Long goalId) {
          Goal goal = goalRepository.findById(goalId)
                  .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-         
-         LocalDate today = LocalDate.now(); // 오늘 날짜
-         
-         // today가 속한 주 (일~토)의 시작일과 종료일 계산
-         LocalDate thisWeekStart;
-         if (today.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
-             thisWeekStart = today;
-         } else {
-             thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
-         }
-         LocalDate thisWeekEnd = thisWeekStart.plusDays(6);
-         
-         List<LocalDate> dateList = new ArrayList<>();
-         
-         // 목표의 시작일
+
+         LocalDate today = LocalDate.now(); // 오늘 날짜 가져오기
+         List<LocalDate> dateList = new ArrayList<>(); // 반환할 날짜 리스트
+
+         // 목표의 시작일 가져오기
          LocalDate startDate = goal.getStartDate();
-         // 목표의 종료일
-         LocalDate endDate = goal.getEndDate();
-         
-         // startDate가 속한 주 (일~토)의 시작일 계산
-         LocalDate startWeekStart;
-         if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
-             startWeekStart = startDate;
-         } else {
-             startWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
-         }
-         LocalDate startWeekEnd = startWeekStart.plusDays(6);
-         
-         
-         
-         // today가 startDate의 주에 속하면 이번 주 + 다음 주
-         if (!today.isBefore(startWeekStart) && !today.isAfter(startWeekEnd)) {
-             System.out.println("조건1: 오늘이 시작일의 주에 속함 - 이번 주 + 다음 주");
-             
-             // 이번 주 날짜 7일 모두 추가 (일~토)
-             for (int i = 0; i < 7; i++) {
-                 LocalDate date = thisWeekStart.plusDays(i);
-                 dateList.add(date);
-                 System.out.println("이번 주 추가된 날짜: " + date);
-             }
-             
-             // 다음 주 날짜 7일 모두 추가 (일~토)
-             LocalDate nextWeekStart = thisWeekStart.plusWeeks(1);
-             for (int i = 0; i < 7; i++) {
-                 LocalDate date = nextWeekStart.plusDays(i);
-                 dateList.add(date);
-                 System.out.println("다음 주 추가된 날짜: " + date);
+
+         // 오늘이 속한 주의 시작일 (일요일)
+         LocalDate thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
+
+         // startDate가 오늘 이후라면, startDate가 속한 주의 시작일을 기준으로 설정
+         // 단, startDate가 일요일인 경우는 startDate 그대로 사용
+         LocalDate baseWeekStart;
+         if (startDate.isAfter(today)) {
+             if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+                 baseWeekStart = startDate; // startDate가 일요일인 경우, 그대로 사용
+             } else {
+                 baseWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
              }
          } else {
-             System.out.println("조건2: 오늘이 시작일의 주에 속하지 않음 - 지난 주 + 이번 주");
-             
-             // 지난 주 날짜 7일 모두 추가 (일~토)
-             LocalDate lastWeekStart = thisWeekStart.minusWeeks(1);
-             for (int i = 0; i < 7; i++) {
-                 LocalDate date = lastWeekStart.plusDays(i);
-                 dateList.add(date);
-                 System.out.println("지난 주 추가된 날짜: " + date);
-             }
-             
-             // 이번 주 날짜 7일 모두 추가 (일~토)
-             for (int i = 0; i < 7; i++) {
-                 LocalDate date = thisWeekStart.plusDays(i);
-                 dateList.add(date);
-                 System.out.println("이번 주 추가된 날짜: " + date);
-             }
+             baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
          }
-         
+
+         // 기준 주(일요일~토요일) 추가
+         addWeek(dateList, baseWeekStart);
+         // 다음 주(일요일~토요일) 추가
+         addWeek(dateList, baseWeekStart.plusWeeks(1));
+
          System.out.println("최종 날짜 리스트 크기: " + dateList.size());
          return dateList;
      }
-     
 
+     /**
+      * 특정 주(일요일~토요일)의 날짜들을 리스트에 추가하는 메서드
+      * @param dateList 날짜 리스트
+      * @param weekStart 해당 주의 시작일 (일요일)
+      */
+     private void addWeek(List<LocalDate> dateList, LocalDate weekStart) {
+         for (int i = 0; i < 7; i++) {
+             dateList.add(weekStart.plusDays(i));
+         }
+     }
+     
 }
+
+
+
+
+
+

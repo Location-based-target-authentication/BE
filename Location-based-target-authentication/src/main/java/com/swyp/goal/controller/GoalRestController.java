@@ -465,6 +465,7 @@ public class GoalRestController {
     		@RequestParam("latitude") Double latitude,@RequestParam("longitude") Double longitude) {
         try {
             boolean verify = goalService.validateGoalAchievement(userId, goalId, latitude, longitude);
+            System.out.println("검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증검증:"+verify);
             AuthUser authUser = userRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없음"));
 			int previousPoints = pointService.getUserPoints(authUser); // 기존 포인트
@@ -484,13 +485,16 @@ public class GoalRestController {
 				response.put("achievementStatus", verify ? "성공" : "실패");
 				response.put("totalPoints", afterBonusPoints);
 				response.put("bonusPoints", bonusPoints);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else {
+				// 목표 검증 실패
+				Map<String, Object> response = new HashMap<>();
+				response.put("achievementStatus", "실패");
+				response.put("totalPoints", previousPoints);
+				response.put("bonusPoints", 0);
+				return new ResponseEntity<>(response, HttpStatus.OK);
 			}
-			// 목표 검증 실패
-			Map<String, Object> response = new HashMap<>();
-			response.put("achievementStatus", "실패");
-			response.put("totalPoints", previousPoints);
-			response.put("bonusPoints", 0);
-			return new ResponseEntity<>(response, HttpStatus.OK);
+			
 
         }catch (IllegalStateException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);

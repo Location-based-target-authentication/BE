@@ -85,7 +85,9 @@ public class GoalRestController {
     @GetMapping("/v1/goals/{userId}")
     public ResponseEntity<?> goalHome(@PathVariable("userId") Long userId){
     	try {
-    	List<Goal>goals = goalService.getGoalList(userId);
+    	List<Goal>goals = goalService.getGoalList(userId).stream()
+            .filter(goal -> goal.getStatus() == GoalStatus.ACTIVE)
+            .collect(Collectors.toList());
     	List<GoalHomeResponseDto> goalHomeDtoList  = new ArrayList<>();
     	
     	for (Goal goal : goals) {

@@ -64,8 +64,14 @@ public class AuthService {
         } else {
             System.out.println("[AuthService] 신규 사용자 등록 시작");
             user = new AuthUser(socialId, username, email, accessToken, socialType);
-            userRepository.save(user);
-            System.out.println("- 사용자 저장 완료");
+            
+            // 먼저 저장하여 id 값을 받아옴
+            user = userRepository.save(user);
+            
+            // id 값을 userId에 설정
+            user.setUserId(user.getId());
+            user = userRepository.save(user);
+            System.out.println("- 사용자 저장 완료 (id: " + user.getId() + ", userId: " + user.getUserId() + ")");
             
             Point point = new Point(user);
             point.setTotalPoints(2000);

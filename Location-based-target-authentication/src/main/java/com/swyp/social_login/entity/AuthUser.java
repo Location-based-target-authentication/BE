@@ -69,11 +69,6 @@ public class AuthUser {
         this.socialType = socialType;
     }
 
-    @PostPersist
-    public void onPostPersist() {
-        this.userId = this.id;
-    }
-
 
     public void updatePhoneNumber(String phone) {
         this.phoneNumber = phone;

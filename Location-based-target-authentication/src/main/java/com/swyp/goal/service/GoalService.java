@@ -56,7 +56,7 @@ public class GoalService {
 
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long id){
-        return goalRepository.findByUserId(id);
+        return goalRepository.findByAuthUserId(id);
     }
 
     //목표 상세 조회 (GoalId로 조회 )
@@ -66,12 +66,12 @@ public class GoalService {
     
     //완료 목표 전체 조회(UserId로 조회) 
     public List<GoalAchievements> getGoalAchievementsList(Long id){
-    	return goalAchievementsRepository.findByUserId(id);
+    	return goalAchievementsRepository.findByUser_Id(id);
     }
 
     // 임시저장된 목표만 조회 ( 사용 x ) 
     public List<Goal> getDraftGoalList(Long id){
-        return goalRepository.findByUserIdAndStatus(id, GoalStatus.DRAFT);
+        return goalRepository.findByAuthUserIdAndStatus(id, GoalStatus.DRAFT);
     }
     
     //목표 생성
@@ -83,8 +83,7 @@ public class GoalService {
         
         // 목표 개수 제한 검증
         List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
-        long count = goalRepository.countByUserIdAndStatusIn(request.getUserId
-                (), statuses);
+        long count = goalRepository.countByAuthUserIdAndStatusIn(request.getUserId(), statuses);
         if (count >= 3) {
             throw new IllegalArgumentException("목표는 최대 3개까지만 생성할 수 있습니다.");
         }
@@ -113,7 +112,7 @@ public class GoalService {
 
         // Goal 객체 생성 후 데이터 설정
         Goal goal = new Goal();
-        goal.setUserId(request.getUserId());
+        goal.setAuthUserId(request.getUserId());
         goal.setName(request.getName());
         goal.setStartDate(request.getStartDate());
         goal.setEndDate(request.getEndDate());

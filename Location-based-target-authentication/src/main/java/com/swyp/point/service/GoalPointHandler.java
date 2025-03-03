@@ -33,7 +33,7 @@ public class GoalPointHandler {
     // 1. 목표 생성 시 포인트 차감
     @Transactional
     public void handleGoalCreation(Goal goal) {
-        AuthUser authUser = userRepository.findById(goal.getUserId())
+        AuthUser authUser = userRepository.findById(goal.getAuthUserId())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없음"));
 
         Point point = pointService.getOrCreatePoint(authUser);

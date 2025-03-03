@@ -87,12 +87,12 @@ public class UserManagementService {
             entityManager.clear();
             
             // 3. 목표 달성 기록 삭제
-            goalAchievementsRepository.deleteAllByUserId(id);
+            goalAchievementsRepository.deleteAllByUser_Id(id);
             entityManager.flush();
             entityManager.clear();
             
             // 4. 목표 삭제 (목표 반복 요일은 ON DELETE CASCADE로 자동 삭제)
-            goalRepository.deleteAllByUserId(id);
+            goalRepository.deleteAllByAuthUserId(id);
             entityManager.flush();
             entityManager.clear();
             

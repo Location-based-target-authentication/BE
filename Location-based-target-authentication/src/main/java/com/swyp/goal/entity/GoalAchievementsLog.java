@@ -2,7 +2,7 @@ package com.swyp.goal.entity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import com.swyp.users.domain.User;
+import com.swyp.social_login.entity.AuthUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,7 +30,7 @@ public class GoalAchievementsLog {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private AuthUser user;
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id", nullable = false)

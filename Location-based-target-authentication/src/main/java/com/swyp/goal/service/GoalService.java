@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.tags.shaded.org.apache.xpath.operations.Minus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -238,7 +239,7 @@ public class GoalService {
 
             //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
             boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, true);
-            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리  
+            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 return false  
             boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, false);
 
             if(alreadyAchievedTrue){
@@ -263,11 +264,6 @@ public class GoalService {
                 goal.setAchievedCount(goal.getAchievedCount()+1);
                 goal.setUpdatedAt(LocalDateTime.now());
 
-                // 목표 달성 횟수가 목표 횟수에 도달하면 COMPLETE로 변경
-                if (goal.getAchievedCount() >= goal.getTargetCount()) {
-                    goal.setStatus(GoalStatus.COMPLETE);
-                }
-                
                 goalRepository.save(goal);
 
                 // (포인트) 지급
@@ -276,7 +272,7 @@ public class GoalService {
                 return true;
             } else {
                 if(alreadyAchievedFalse) {
-                    throw new IllegalStateException("오늘 실패한 기록이 이미 존재합니다.");
+                	return false;
                 }
                 // 위치 검증 실패시 achieved_success = false와 함께 기록 저장
                 GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
@@ -383,10 +379,12 @@ public class GoalService {
              baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
          }
 
+         
          // 기준 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart);
+         addWeek(dateList, baseWeekStart.minusWeeks(1));
+         
          // 다음 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart.plusWeeks(1));
+         addWeek(dateList, baseWeekStart);
 
          System.out.println("최종 날짜 리스트 크기: " + dateList.size());
          return dateList;

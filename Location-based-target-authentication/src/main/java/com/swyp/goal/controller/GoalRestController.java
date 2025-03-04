@@ -87,7 +87,7 @@ public class GoalRestController {
     public ResponseEntity<?> goalHome(@PathVariable("userId") Long userId){
     	try {
     	List<Goal>goals = goalService.getGoalList(userId).stream()
-            .filter(goal -> goal.getStatus() == GoalStatus.ACTIVE)
+            .filter(goal -> goal.getStatus() == GoalStatus.ACTIVE || goal.getStatus() == GoalStatus.DRAFT)
             .collect(Collectors.toList());
     	List<GoalHomeResponseDto> goalHomeDtoList  = new ArrayList<>();
     	
@@ -210,6 +210,7 @@ public class GoalRestController {
             return new ResponseEntity<>(new CompleteResponseDto(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     
     //전체 목표 조회
@@ -479,6 +480,7 @@ public class GoalRestController {
                     schema = @Schema(example = "{"
                         + "\"achievementStatus\": \"성공\","
                         + "\"totalPoints\": 130,"
+                        + "\"currentPoints\": 50"
                         + "\"bonusPoints\": 30,"
                         + "\"message\": \"목표 인증에 성공했습니다.\""
                         + "}")
@@ -492,6 +494,7 @@ public class GoalRestController {
                     schema = @Schema(example = "{"
                         + "\"achievementStatus\": \"실패\","
                         + "\"totalPoints\": 100,"
+                        + "\"currentPoints\": 50"
                         + "\"bonusPoints\": 0,"
                         + "\"message\": \"목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.\""
                         + "}")
@@ -523,47 +526,30 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 사용자 정보 조회
+        	// 1.위치 검증 성공시 true , 실패시 false 
+        	boolean verify = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
+        	// 2.사용자 정보 조회
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-            // 목표 조회
+            // 3.목표 조회
             Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
+            // 4. 응답값을 담기위한 response
+            Map<String, Object> response = new HashMap<>();
 
-            // 목표 완료 보너스 500포인트 지급
-            pointService.addPoints(authUser, 500, PointType.BONUS, "Goal Completion Bonus", goalId);
-            
-            // 완료된 목표 저장
-            GoalAchievements goalAchievements = new GoalAchievements();
-            goalAchievements.setUser(authUser);
-            goalAchievements.setGoal(goal);
-            goalAchievements.setName(goal.getName());
-            goalAchievements.setTargetCount(goal.getTargetCount());
-            goalAchievements.setAchievedCount(goal.getTargetCount());
-            goalAchievements.setStartDate(goal.getStartDate());
-            goalAchievements.setEndDate(goal.getEndDate());
-            
-            // 요일 가져오기
-            List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
-            String days = goalDays.stream()
-                .map(goalDay -> goalDay.getDayOfWeek().toString())
-                .collect(Collectors.joining(","));
-            goalAchievements.setDays(days);
-            goalAchievements.setPointsEarned(500);  // 목표 완료 보너스 500포인트
-            goalAchievementsRepository.save(goalAchievements);
+            if(verify) { // 위치 검증 성공 
+        		response.put("achievementStatus", "성공");
+        		goalRepository.save(goal); // goal테이블의 updated_at 업데이트를 위한 save
+        		return new ResponseEntity<>(response, HttpStatus.OK);
 
-            // 목표 상태 COMPLETE로 변경
-            goal.setStatus(GoalStatus.COMPLETE);
-            goalRepository.save(goal);
-            
-            // 프론트에서 리다이렉트할 URL 반환
-            Map<String, String> response = new HashMap<>();
-            response.put("redirectUrl", "https://locationcheckgo.netlify.app/");
-            return ResponseEntity.ok(response);
-            
+        	}else { // 위치 검증 실패 
+        		response.put("achievementStatus", "실패");
+                goalRepository.save(goal);
+        		return new ResponseEntity<>(response, HttpStatus.OK);
+        	}
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -571,7 +557,7 @@ public class GoalRestController {
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
-    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장  ",
+    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장, 프론트측에서 목표조회에 있는 endDate로 조건을 설정해 endDate 이후에만 목표달성버튼 활성화 ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
@@ -608,7 +594,7 @@ public class GoalRestController {
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         // userId를 authUser에서 가져와 전달
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, userId, isSelectedDay);
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goal.getId(), authUser.getUserId(), isSelectedDay);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {

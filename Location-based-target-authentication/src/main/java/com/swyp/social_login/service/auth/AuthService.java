@@ -1,19 +1,20 @@
 package com.swyp.social_login.service.auth;
 
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.swyp.global.security.JwtUtil;
 import com.swyp.point.entity.Point;
 import com.swyp.point.repository.PointRepository;
 import com.swyp.social_login.dto.SocialUserResponseDto;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.enums.SocialType;
-import com.swyp.social_login.exception.DuplicateEmailException;
 import com.swyp.social_login.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

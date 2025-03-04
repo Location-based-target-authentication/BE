@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.eclipse.tags.shaded.org.apache.xpath.operations.Minus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -384,9 +385,9 @@ public class GoalService {
          }
 
          // 기준 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart);
+         addWeek(dateList, baseWeekStart.minusWeeks(1));
          // 다음 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart.plusWeeks(1));
+         addWeek(dateList, baseWeekStart);
 
          System.out.println("최종 날짜 리스트 크기: " + dateList.size());
          return dateList;

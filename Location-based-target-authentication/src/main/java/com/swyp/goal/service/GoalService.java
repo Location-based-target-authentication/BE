@@ -264,11 +264,6 @@ public class GoalService {
                 goal.setAchievedCount(goal.getAchievedCount()+1);
                 goal.setUpdatedAt(LocalDateTime.now());
 
-                // 목표 달성 횟수가 목표 횟수에 도달하면 COMPLETE로 변경
-                if (goal.getAchievedCount() >= goal.getTargetCount()) {
-                    goal.setStatus(GoalStatus.COMPLETE);
-                }
-                
                 goalRepository.save(goal);
 
                 // (포인트) 지급
@@ -384,8 +379,10 @@ public class GoalService {
              baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
          }
 
+         
          // 기준 주(일요일~토요일) 추가
          addWeek(dateList, baseWeekStart.minusWeeks(1));
+         
          // 다음 주(일요일~토요일) 추가
          addWeek(dateList, baseWeekStart);
 

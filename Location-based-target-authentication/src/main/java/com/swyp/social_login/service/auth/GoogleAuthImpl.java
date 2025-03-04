@@ -42,11 +42,7 @@ public class GoogleAuthImpl implements GoogleAuthService {
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
-        String referer = request.getHeader("Referer");
-        String finalRedirectUrl = (referer != null && referer.contains("localhost")) 
-            ? redirectUrlLocal 
-            : redirectUrl;
-        System.out.println("[GoogleAuthImpl] Referer: " + referer);
+        String finalRedirectUrl = redirectUrl;
         System.out.println("[GoogleAuthImpl] 선택된 redirectUrl: " + finalRedirectUrl);
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();

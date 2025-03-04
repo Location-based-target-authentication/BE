@@ -32,7 +32,9 @@ import com.swyp.social_login.repository.UserRepository;
 import com.swyp.users.domain.User;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -56,7 +58,7 @@ public class GoalService {
 
     //전체 목표 조회 (UserId로 조회) 
     public List<Goal> getGoalList(Long id){
-        return goalRepository.findByUserId(id);
+        return goalRepository.findByAuthUserId(id);
     }
 
     //목표 상세 조회 (GoalId로 조회 )
@@ -66,12 +68,12 @@ public class GoalService {
     
     //완료 목표 전체 조회(UserId로 조회) 
     public List<GoalAchievements> getGoalAchievementsList(Long id){
-    	return goalAchievementsRepository.findByUserId(id);
+    	return goalAchievementsRepository.findByUser_Id(id);
     }
 
     // 임시저장된 목표만 조회 ( 사용 x ) 
     public List<Goal> getDraftGoalList(Long id){
-        return goalRepository.findByUserIdAndStatus(id, GoalStatus.DRAFT);
+        return goalRepository.findByAuthUserIdAndStatus(id, GoalStatus.DRAFT);
     }
     
     //목표 생성
@@ -83,8 +85,7 @@ public class GoalService {
         
         // 목표 개수 제한 검증
         List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
-        long count = goalRepository.countByUserIdAndStatusIn(request.getUserId
-                (), statuses);
+        long count = goalRepository.countByAuthUserIdAndStatusIn(request.getUserId(), statuses);
         if (count >= 3) {
             throw new IllegalArgumentException("목표는 최대 3개까지만 생성할 수 있습니다.");
         }
@@ -113,7 +114,8 @@ public class GoalService {
 
         // Goal 객체 생성 후 데이터 설정
         Goal goal = new Goal();
-        goal.setUserId(request.getUserId());
+        goal.setUserId(request.getUserId());  // user_id 설정
+        goal.setAuthUserId(request.getUserId()); // auth_user_id 설정
         goal.setName(request.getName());
         goal.setStartDate(request.getStartDate());
         goal.setEndDate(request.getEndDate());
@@ -223,51 +225,73 @@ public class GoalService {
     //목표 달성 1차 인증 (goal의 위도 경도 확인 이후 100m이내에 있을시 achieved_count 를 +1함 )
     @Transactional
     public boolean validateGoalAchievement(Long id, Long goalId, double latitude, double longitude){
-        Goal goal = goalRepository.findById(goalId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-        //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
-        boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, LocalDate.now(), true);
-        //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리  
-        boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, LocalDate.now(), false);
+        try {
+            Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
 
-        if(alreadyAchievedTrue){
-            throw new IllegalStateException("오늘 이미 목표를 인증했습니다.");
-        }
-        // 위치 검증 
-        Boolean validate =  locationService.verifyLocation(goalId, latitude, longitude);
-        System.out.println(validate);
-        if(validate){
-            // 인증 기록 저장
-            GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
-            AuthUser authUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
-            achievementsLog.setUser(authUser);
-            achievementsLog.setGoal(goal);
-            achievementsLog.setAchievedSuccess(true);
-            goalAchievementsLogRepository.save(achievementsLog);
-            // 목표 달성 횟수 증가 
-            goal.setAchievedCount(goal.getAchievedCount()+1);
-            goal.setUpdatedAt(LocalDateTime.now());
-            goalRepository.save(goal);
-            // (포인트) 지급
-            boolean isSelectedDay = checkIfSelectedDay(goal, LocalDate.now());
-            goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
-            return true;
-        }
-        else{
-        	if(alreadyAchievedFalse) {
-            	throw new IllegalStateException("DB상의 인설트 막힘 - 오늘 실패한 기록이 이미 존재합니다.(DB 중복 방지)");
+            // 목표 상태 검증 추가
+            if (!goal.getStatus().equals(GoalStatus.ACTIVE)) {
+                throw new IllegalStateException("활성화된 목표만 인증할 수 있습니다.");
             }
-        	// 위치 검증 실패시 achieved_success = false와 함꼐 기록에 저장, db에서 같은 날짜에 같은 목표에 대해 동일 achieved_success값 1개 이상의 기록 X 
-        	GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
-            AuthUser authUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            achievementsLog.setUser(authUser);
-            achievementsLog.setGoal(goal);
-            achievementsLog.setAchievedSuccess(false);
-            goalAchievementsLogRepository.save(achievementsLog);
+            
+            LocalDate today = LocalDate.now();
 
-            return false;
+            //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
+            boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, true);
+            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리  
+            boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, false);
+
+            if(alreadyAchievedTrue){
+                throw new IllegalStateException("오늘 이미 목표를 인증했습니다.");
+            }
+
+            // 위치 검증 
+            Boolean validate = locationService.verifyLocation(goalId, latitude, longitude);
+            log.info("위치 검증 결과: {}", validate);
+
+            if(validate){
+                // 인증 기록 저장
+                GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
+                AuthUser authUser = userRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
+                achievementsLog.setUser(authUser);
+                achievementsLog.setGoal(goal);
+                achievementsLog.setAchievedSuccess(true);
+                goalAchievementsLogRepository.save(achievementsLog);
+
+                // 목표 달성 횟수 증가 
+                goal.setAchievedCount(goal.getAchievedCount()+1);
+                goal.setUpdatedAt(LocalDateTime.now());
+
+                // 목표 달성 횟수가 목표 횟수에 도달하면 COMPLETE로 변경
+                if (goal.getAchievedCount() >= goal.getTargetCount()) {
+                    goal.setStatus(GoalStatus.COMPLETE);
+                }
+                
+                goalRepository.save(goal);
+
+                // (포인트) 지급
+                boolean isSelectedDay = checkIfSelectedDay(goal, today);
+                goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+                return true;
+            } else {
+                if(alreadyAchievedFalse) {
+                    throw new IllegalStateException("오늘 실패한 기록이 이미 존재합니다.");
+                }
+                // 위치 검증 실패시 achieved_success = false와 함께 기록 저장
+                GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
+                AuthUser authUser = userRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                achievementsLog.setUser(authUser);
+                achievementsLog.setGoal(goal);
+                achievementsLog.setAchievedSuccess(false);
+                goalAchievementsLogRepository.save(achievementsLog);
+
+                return false;
+            }
+        } catch (Exception e) {
+            log.error("목표 인증 중 오류 발생: {}", e.getMessage());
+            throw e;
         }
     }
      //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
@@ -275,14 +299,6 @@ public class GoalService {
      public Goal updateGoalStatusToComplete(Long goalId, Long id, boolean isSelectedDay){
          Goal goal = goalRepository.findById(goalId)
          .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-         // Status가 ACTIVE인 애들만 완료 처리가능
-         if (!goal.getStatus().equals(GoalStatus.ACTIVE)) {
-             throw new IllegalArgumentException("활성화된 목표만 완료 처리할 수 있습니다.");
-         }
-         // 목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete 가능
-         if (goal.getAchievedCount()<goal.getTargetCount()){
-             throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
-         }
          // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
          AuthUser authUser = userRepository.findById(id)
                  .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -306,8 +322,7 @@ public class GoalService {
          goalRepository.save(goal);
          
          GoalAchievements goalAchievements = new GoalAchievements();
-         User user = User.fromAuthUser(authUser);
-         goalAchievements.setUser(user);
+         goalAchievements.setUser(authUser);
          goalAchievements.setGoal(goal);
          goalAchievements.setName(goal.getName());
          goalAchievements.setTargetCount(goal.getTargetCount());

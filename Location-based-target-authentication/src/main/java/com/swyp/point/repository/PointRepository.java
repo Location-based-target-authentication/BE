@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface PointRepository extends JpaRepository<Point, Long> {
     Optional<Point> findByAuthUser(AuthUser authUser);
     
-    @Query("SELECT p FROM Point p JOIN p.authUser a WHERE a.userId = :userId")
+    @Query("SELECT p FROM Point p JOIN p.authUser a WHERE a.id = :userId")
     Optional<Point> findByAuthUserUserId(@Param("userId") Long userId);
     void deleteByAuthUser(AuthUser authUser);
     

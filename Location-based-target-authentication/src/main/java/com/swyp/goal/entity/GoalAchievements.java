@@ -1,7 +1,7 @@
 package com.swyp.goal.entity;
 import java.time.LocalDate;
 
-import com.swyp.users.domain.User;
+import com.swyp.social_login.entity.AuthUser;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,8 +27,8 @@ public class GoalAchievements {
     private Long id; // 달성 기록 고유 번호
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user; // 유저
+    @JoinColumn(name = "auth_user_id", nullable = false)
+    private AuthUser user; // 유저
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")

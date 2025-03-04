@@ -14,13 +14,13 @@ import com.swyp.goal.entity.GoalAchievements;
 @Repository
 public interface GoalAchievementsRepository extends JpaRepository<GoalAchievements, Long> {
 
-	List<GoalAchievements> findByUserId(Long userId);
+	List<GoalAchievements> findByUser_Id(Long userId);
 	
 	// goal_id를 NULL로 설정
     @Modifying
     @Query("UPDATE GoalAchievements g SET g.goal = NULL WHERE g.goal.id = :goalId")
     void updateGoalIdToNull(@Param("goalId") Long goalId);
 
-	void deleteAllByUserId(Long userId);
+	void deleteAllByUser_Id(Long userId);
 
 }

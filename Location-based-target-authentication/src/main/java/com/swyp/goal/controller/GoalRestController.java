@@ -150,27 +150,67 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/create")
-    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request) {
+    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request, HttpServletRequest httpRequest) {
         try {
+            // JWT 토큰에서 userId 추출
+            String bearerToken = httpRequest.getHeader("Authorization");
+            if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("인증 토큰이 필요합니다.");
+            }
+            String token = bearerToken.substring(7);
+            Long tokenUserId = jwtUtil.extractUserId(token);
+            
+            System.out.println("[GoalRestController] 토큰에서 추출한 userId: " + tokenUserId);
+            
+            // 사용자 조회
+            AuthUser authUser;
+            try {
+                System.out.println("[GoalRestController] findById 시도: " + tokenUserId);
+                Optional<AuthUser> userById = userRepository.findByUserId(tokenUserId);
+                if (userById.isPresent()) {
+                    System.out.println("[GoalRestController] findById 성공");
+                    authUser = userById.get();
+                } else {
+                    System.out.println("[GoalRestController] findById 실패, findByUserIdEquals 시도: " + tokenUserId);
+                    Optional<AuthUser> userByUserId = userRepository.findByUserIdEquals(tokenUserId);
+                    if (userByUserId.isPresent()) {
+                        System.out.println("[GoalRestController] findByUserIdEquals 성공");
+                        authUser = userByUserId.get();
+                    } else {
+                        System.out.println("[GoalRestController] 모든 조회 실패. tokenUserId=" + tokenUserId);
+                        throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("[GoalRestController] 사용자 조회 중 예외 발생: " + e.getMessage());
+                e.printStackTrace();
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            }
+            
+            System.out.println("[GoalRestController] 찾은 사용자 - id: " + authUser.getId() + ", userId: " + authUser.getUserId());
+            // request의 userId를 AuthUser의 id(PK)로 설정
+            request.setUserId(authUser.getId());
+            
+            // 목표 생성
             Goal createdGoal = goalService.createGoal(request);
-
-            // (포인트) 생성된 목표의 userId를 이용해 사용자를 조회
-            AuthUser authUser = userRepository.findById(createdGoal.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            int updatedPoints = pointService.getUserPoints(authUser);
-
-            // 응답 데이터: 목표 정보 & 잔여 포인트
+            
+            // 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
+            response.put("message", "목표 생성 성공");
             response.put("goal", createdGoal);
-            response.put("totalPoints", updatedPoints);
+            response.put("totalPoints", pointService.getUserPoints(authUser));
 
-            return new ResponseEntity<>("목표 생성 성공", HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (RuntimeException e) {
+            String errorMessage = e.getMessage().contains("포인트 부족") ? 
+                "포인트가 부족하여 목표를 생성할 수 없습니다." : 
+                "서버 오류가 발생했습니다: " + e.getMessage();
+            return new ResponseEntity<>(new CompleteResponseDto(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
 
     
     //전체 목표 조회
@@ -440,6 +480,7 @@ public class GoalRestController {
                     schema = @Schema(example = "{"
                         + "\"achievementStatus\": \"성공\","
                         + "\"totalPoints\": 130,"
+                        + "\"currentPoints\": 50"
                         + "\"bonusPoints\": 30,"
                         + "\"message\": \"목표 인증에 성공했습니다.\""
                         + "}")
@@ -453,6 +494,7 @@ public class GoalRestController {
                     schema = @Schema(example = "{"
                         + "\"achievementStatus\": \"실패\","
                         + "\"totalPoints\": 100,"
+                        + "\"currentPoints\": 50"
                         + "\"bonusPoints\": 0,"
                         + "\"message\": \"목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.\""
                         + "}")
@@ -484,47 +526,30 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
-            // 사용자 정보 조회
+        	// 1.위치 검증 성공시 true , 실패시 false 
+        	boolean verify = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
+        	// 2.사용자 정보 조회
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-            // 목표 조회
+            // 3.목표 조회
             Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
+            // 4. 응답값을 담기위한 response
+            Map<String, Object> response = new HashMap<>();
 
-            // 목표 완료 보너스 500포인트 지급
-            pointService.addPoints(authUser, 500, PointType.BONUS, "Goal Completion Bonus", goalId);
-            
-            // 완료된 목표 저장
-            GoalAchievements goalAchievements = new GoalAchievements();
-            goalAchievements.setUser(authUser);
-            goalAchievements.setGoal(goal);
-            goalAchievements.setName(goal.getName());
-            goalAchievements.setTargetCount(goal.getTargetCount());
-            goalAchievements.setAchievedCount(goal.getTargetCount());
-            goalAchievements.setStartDate(goal.getStartDate());
-            goalAchievements.setEndDate(goal.getEndDate());
-            
-            // 요일 가져오기
-            List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
-            String days = goalDays.stream()
-                .map(goalDay -> goalDay.getDayOfWeek().toString())
-                .collect(Collectors.joining(","));
-            goalAchievements.setDays(days);
-            goalAchievements.setPointsEarned(500);  // 목표 완료 보너스 500포인트
-            goalAchievementsRepository.save(goalAchievements);
+            if(verify) { // 위치 검증 성공 
+        		response.put("achievementStatus", "성공");
+        		goalRepository.save(goal); // goal테이블의 updated_at 업데이트를 위한 save
+        		return new ResponseEntity<>(response, HttpStatus.OK);
 
-            // 목표 상태 COMPLETE로 변경
-            goal.setStatus(GoalStatus.COMPLETE);
-            goalRepository.save(goal);
-            
-            // 프론트에서 리다이렉트할 URL 반환
-            Map<String, String> response = new HashMap<>();
-            response.put("redirectUrl", "https://locationcheckgo.netlify.app/");
-            return ResponseEntity.ok(response);
-            
+        	}else { // 위치 검증 실패 
+        		response.put("achievementStatus", "실패");
+                goalRepository.save(goal);
+        		return new ResponseEntity<>(response, HttpStatus.OK);
+        	}
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     
@@ -532,7 +557,7 @@ public class GoalRestController {
     //목표 complete 후 목표 달성 기록 테이블에 저장.
     @Operation(
     	    summary = "목표 완료 (Status:Complete)",
-    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장  ",
+    	    description = "목표 complete 후 목표 달성 기록 테이블에 저장, 프론트측에서 목표조회에 있는 endDate로 조건을 설정해 endDate 이후에만 목표달성버튼 활성화 ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
@@ -569,7 +594,7 @@ public class GoalRestController {
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         // userId를 authUser에서 가져와 전달
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, userId, isSelectedDay);
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goal.getId(), authUser.getUserId(), isSelectedDay);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {

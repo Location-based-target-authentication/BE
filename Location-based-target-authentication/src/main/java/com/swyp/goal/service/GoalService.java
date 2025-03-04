@@ -239,7 +239,7 @@ public class GoalService {
 
             //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
             boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, true);
-            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리  
+            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 return false  
             boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, false);
 
             if(alreadyAchievedTrue){
@@ -272,7 +272,7 @@ public class GoalService {
                 return true;
             } else {
                 if(alreadyAchievedFalse) {
-                    throw new IllegalStateException("오늘 실패한 기록이 이미 존재합니다.");
+                	return false;
                 }
                 // 위치 검증 실패시 achieved_success = false와 함께 기록 저장
                 GoalAchievementsLog achievementsLog = new GoalAchievementsLog();

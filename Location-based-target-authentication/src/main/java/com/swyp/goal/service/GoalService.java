@@ -49,7 +49,7 @@ public class GoalService {
     private final GoalPointHandler goalPointHandler;
     private final UserRepository userRepository;
     private final PointHistoryRepository pointHistoryRepository;
-    
+
 
 
     //전체 목표 조회
@@ -57,33 +57,33 @@ public class GoalService {
         return goalRepository.findAll();
     }
 
-    //전체 목표 조회 (UserId로 조회) 
+    //전체 목표 조회 (UserId로 조회)
     public List<Goal> getGoalList(Long id){
         return goalRepository.findByAuthUserId(id);
     }
 
     //목표 상세 조회 (GoalId로 조회 )
     public Goal getGoalDetail(Long goalId) {
-          return goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-    }
-    
-    //완료 목표 전체 조회(UserId로 조회) 
-    public List<GoalAchievements> getGoalAchievementsList(Long id){
-    	return goalAchievementsRepository.findByUser_Id(id);
+        return goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
     }
 
-    // 임시저장된 목표만 조회 ( 사용 x ) 
+    //완료 목표 전체 조회(UserId로 조회)
+    public List<GoalAchievements> getGoalAchievementsList(Long id){
+        return goalAchievementsRepository.findByUser_Id(id);
+    }
+
+    // 임시저장된 목표만 조회 ( 사용 x )
     public List<Goal> getDraftGoalList(Long id){
         return goalRepository.findByAuthUserIdAndStatus(id, GoalStatus.DRAFT);
     }
-    
+
     //목표 생성
     @Transactional
     public Goal createGoal(GoalCreateRequest request) {
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();
         String name = request.getName();
-        
+
         // 목표 개수 제한 검증
         List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
         long count = goalRepository.countByAuthUserIdAndStatusIn(request.getUserId(), statuses);
@@ -131,7 +131,7 @@ public class GoalService {
 
         // 목표 저장
         Goal savedGoal = goalRepository.save(goal);
-        
+
         // (포인트) 차감
         goalPointHandler.handleGoalCreation(savedGoal);
 
@@ -151,8 +151,8 @@ public class GoalService {
     @Transactional
     public Goal updateGoalStatus(Long goalId, String status) {
         Goal goal = goalRepository.findById(goalId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-        
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+
         try {
             GoalStatus goalStatus = GoalStatus.valueOf(status.toUpperCase()); // 🔥 예외 발생 가능
             goal.setStatus(goalStatus);
@@ -168,7 +168,7 @@ public class GoalService {
     @Transactional
     public Goal updateGoal(Long goalId, GoalUpdateDto dto) {
         Goal goal = goalRepository.findById(goalId)
-            .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
 
         if (!goal.getStatus().equals(GoalStatus.DRAFT)) {
             throw new IllegalArgumentException("임시 저장된 목표만 수정할 수 있습니다.");
@@ -181,7 +181,7 @@ public class GoalService {
         if (dto.getLatitude() != null) goal.setLatitude(dto.getLatitude());
         if (dto.getLongitude() != null) goal.setLongitude(dto.getLongitude());
         if (dto.getRadius() != null) goal.setRadius(dto.getRadius());
-        
+
 
         goal.setUpdatedAt(LocalDateTime.now());
 
@@ -228,25 +228,25 @@ public class GoalService {
     public boolean validateGoalAchievement(Long id, Long goalId, double latitude, double longitude){
         try {
             Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
 
             // 목표 상태 검증 추가
             if (!goal.getStatus().equals(GoalStatus.ACTIVE)) {
                 throw new IllegalStateException("활성화된 목표만 인증할 수 있습니다.");
             }
-            
+
             LocalDate today = LocalDate.now();
 
             //목표달성기록 테이블 로그에 이미 같은날의 인증성공 기록시 예외처리
             boolean alreadyAchievedTrue = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, true);
-            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 return false  
+            //목표달성기록 테이블 로그에 이미 같은날의 인증 실패 기록 있을시 예외처리
             boolean alreadyAchievedFalse = goalAchievementsLogRepository.existsByUser_IdAndGoal_IdAndAchievedAtAndAchievedSuccess(id, goalId, today, false);
 
             if(alreadyAchievedTrue){
                 throw new IllegalStateException("오늘 이미 목표를 인증했습니다.");
             }
 
-            // 위치 검증 
+            // 위치 검증
             Boolean validate = locationService.verifyLocation(goalId, latitude, longitude);
             log.info("위치 검증 결과: {}", validate);
 
@@ -254,16 +254,20 @@ public class GoalService {
                 // 인증 기록 저장
                 GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
                 AuthUser authUser = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
+                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
                 achievementsLog.setUser(authUser);
                 achievementsLog.setGoal(goal);
                 achievementsLog.setAchievedSuccess(true);
                 goalAchievementsLogRepository.save(achievementsLog);
 
-                // 목표 달성 횟수 증가 
+                // 목표 달성 횟수 증가
                 goal.setAchievedCount(goal.getAchievedCount()+1);
                 goal.setUpdatedAt(LocalDateTime.now());
 
+                // 목표 달성 횟수가 목표 횟수에 도달하면 COMPLETE로 변경
+                if (goal.getAchievedCount() >= goal.getTargetCount()) {
+                    goal.setStatus(GoalStatus.COMPLETE);
+                }
                 goalRepository.save(goal);
 
                 // (포인트) 지급
@@ -277,7 +281,7 @@ public class GoalService {
                 // 위치 검증 실패시 achieved_success = false와 함께 기록 저장
                 GoalAchievementsLog achievementsLog = new GoalAchievementsLog();
                 AuthUser authUser = userRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
                 achievementsLog.setUser(authUser);
                 achievementsLog.setGoal(goal);
                 achievementsLog.setAchievedSuccess(false);
@@ -290,119 +294,114 @@ public class GoalService {
             throw e;
         }
     }
-     //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
-     @Transactional
-     public Goal updateGoalStatusToComplete(Long goalId, Long id, boolean isSelectedDay){
-         Goal goal = goalRepository.findById(goalId)
-         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-         // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
-         AuthUser authUser = userRepository.findById(id)
-                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-         Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
-         totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
+    //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
+    @Transactional
+    public Goal updateGoalStatusToComplete(Long goalId, Long id, boolean isSelectedDay){
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+        // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
+        AuthUser authUser = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
+        totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
 
 
-       //GoalAchievements 테이블로 day를 넘기기 위한 로직
-         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
-         StringBuilder days = new StringBuilder();
-         for (GoalDay goalDay : goalDays) {
-             days.append(goalDay.getDayOfWeek().toString()).append(",");
-         }
-         // 마지막 콤마 제거
-         if (days.length() > 0) {
-             days.setLength(days.length() - 1);
-         }
+        //GoalAchievements 테이블로 day를 넘기기 위한 로직
+        List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
+        StringBuilder days = new StringBuilder();
+        for (GoalDay goalDay : goalDays) {
+            days.append(goalDay.getDayOfWeek().toString()).append(",");
+        }
+        // 마지막 콤마 제거
+        if (days.length() > 0) {
+            days.setLength(days.length() - 1);
+        }
 
-         goal.setStatus(GoalStatus.COMPLETE);
-         goal.setUpdatedAt(LocalDateTime.now());
-         goalRepository.save(goal);
-         
-         GoalAchievements goalAchievements = new GoalAchievements();
-         goalAchievements.setUser(authUser);
-         goalAchievements.setGoal(goal);
-         goalAchievements.setName(goal.getName());
-         goalAchievements.setTargetCount(goal.getTargetCount());
-         goalAchievements.setAchievedCount(goal.getAchievedCount());
-         goalAchievements.setStartDate(goal.getStartDate());
-         goalAchievements.setEndDate(goal.getEndDate());
-         goalAchievements.setDays(days.toString()); // day 
-         goalAchievements.setPointsEarned(totalEarnedPoints); //TODO : 포인트 로직 완료시 로직 넣기
-         goalAchievementsRepository.save(goalAchievements);
-         return goal;
-     }
-     
-     
-     
-     // 목표 총 수행 횟수 계산 메서드 (targetCount)
-     private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
-         Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
-         int count = 0;
-         // 시작일부터 종료일까지 반복
-         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-             // java.time.DayOfWeek를 사용자 정의 DayOfWeek로 변환
-             DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name().substring(0, 3).toUpperCase());
-             
-             if (daysSet.contains(dayOfWeek)) {
-                 count++; // 선택된 요일이면 카운트 증가
-             }
-         }
+        goal.setStatus(GoalStatus.COMPLETE);
+        goal.setUpdatedAt(LocalDateTime.now());
+        goalRepository.save(goal);
 
-         return count; // 총 수행 횟수 반환
-     }
-     
-     
-     // 전체목표에서 달력에 사용하는 날짜값 계산기
-     @Transactional
-     public List<LocalDate> DateRangeCalculator(Long goalId) {
-         Goal goal = goalRepository.findById(goalId)
-                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+        GoalAchievements goalAchievements = new GoalAchievements();
+        goalAchievements.setUser(authUser);
+        goalAchievements.setGoal(goal);
+        goalAchievements.setName(goal.getName());
+        goalAchievements.setTargetCount(goal.getTargetCount());
+        goalAchievements.setAchievedCount(goal.getAchievedCount());
+        goalAchievements.setStartDate(goal.getStartDate());
+        goalAchievements.setEndDate(goal.getEndDate());
+        goalAchievements.setDays(days.toString()); // day
+        goalAchievements.setPointsEarned(totalEarnedPoints); //TODO : 포인트 로직 완료시 로직 넣기
+        goalAchievementsRepository.save(goalAchievements);
+        return goal;
+    }
 
-         LocalDate today = LocalDate.now(); // 오늘 날짜 가져오기
-         List<LocalDate> dateList = new ArrayList<>(); // 반환할 날짜 리스트
 
-         // 목표의 시작일 가져오기
-         LocalDate startDate = goal.getStartDate();
 
-         // 오늘이 속한 주의 시작일 (일요일)
-         LocalDate thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
+    // 목표 총 수행 횟수 계산 메서드 (targetCount)
+    private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {
+        Set<DayOfWeek> daysSet = new HashSet<>(selectedDays); // 선택된 요일을 Set으로 변환
+        int count = 0;
+        // 시작일부터 종료일까지 반복
+        for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
+            // java.time.DayOfWeek를 사용자 정의 DayOfWeek로 변환
+            DayOfWeek dayOfWeek = DayOfWeek.valueOf(date.getDayOfWeek().name().substring(0, 3).toUpperCase());
 
-         // startDate가 오늘 이후라면, startDate가 속한 주의 시작일을 기준으로 설정
-         // 단, startDate가 일요일인 경우는 startDate 그대로 사용
-         LocalDate baseWeekStart;
-         if (startDate.isAfter(today)) {
-             if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
-                 baseWeekStart = startDate; // startDate가 일요일인 경우, 그대로 사용
-             } else {
-                 baseWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
-             }
-         } else {
-             baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
-         }
+            if (daysSet.contains(dayOfWeek)) {
+                count++; // 선택된 요일이면 카운트 증가
+            }
+        }
+        return count; // 총 수행 횟수 반환
+    }
 
-         
-         // 기준 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart.minusWeeks(1));
-         
-         // 다음 주(일요일~토요일) 추가
-         addWeek(dateList, baseWeekStart);
+    // 전체목표에서 달력에 사용하는 날짜값 계산기
+    @Transactional
+    public List<LocalDate> DateRangeCalculator(Long goalId) {
+        Goal goal = goalRepository.findById(goalId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
 
-         System.out.println("최종 날짜 리스트 크기: " + dateList.size());
-         return dateList;
-     }
+        LocalDate today = LocalDate.now(); // 오늘 날짜 가져오기
+        List<LocalDate> dateList = new ArrayList<>(); // 반환할 날짜 리스트
 
-     /**
-      * 특정 주(일요일~토요일)의 날짜들을 리스트에 추가하는 메서드
-      * @param dateList 날짜 리스트
-      * @param weekStart 해당 주의 시작일 (일요일)
-      */
-     private void addWeek(List<LocalDate> dateList, LocalDate weekStart) {
-         for (int i = 0; i < 7; i++) {
-             dateList.add(weekStart.plusDays(i));
-         }
-     }
-     
+        // 목표의 시작일 가져오기
+        LocalDate startDate = goal.getStartDate();
+
+        // 오늘이 속한 주의 시작일 (일요일)
+        LocalDate thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
+
+        // startDate가 오늘 이후라면, startDate가 속한 주의 시작일을 기준으로 설정
+        // 단, startDate가 일요일인 경우는 startDate 그대로 사용
+        LocalDate baseWeekStart;
+        if (startDate.isAfter(today)) {
+            if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
+                baseWeekStart = startDate; // startDate가 일요일인 경우, 그대로 사용
+            } else {
+                baseWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
+            }
+        } else {
+            baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
+        }
+
+        // 기준 주(일요일~토요일) 추가
+        addWeek(dateList, baseWeekStart);
+        // 다음 주(일요일~토요일) 추가
+        addWeek(dateList, baseWeekStart.plusWeeks(1));
+
+        System.out.println("최종 날짜 리스트 크기: " + dateList.size());
+        return dateList;
+    }
+
+    /**
+     * 특정 주(일요일~토요일)의 날짜들을 리스트에 추가하는 메서드
+     * @param dateList 날짜 리스트
+     * @param weekStart 해당 주의 시작일 (일요일)
+     */
+    private void addWeek(List<LocalDate> dateList, LocalDate weekStart) {
+        for (int i = 0; i < 7; i++) {
+            dateList.add(weekStart.plusDays(i));
+        }
+    }
+
 }
-
 
 
 

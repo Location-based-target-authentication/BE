@@ -82,7 +82,6 @@ public class AuthUser {
         this.pointHistories = new ArrayList<>();
     }
 
-
     public void updatePhoneNumber(String phone) {
         this.phoneNumber = phone;
     }

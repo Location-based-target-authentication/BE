@@ -37,7 +37,6 @@ public class GoalPointHandler {
     public void handleGoalCreation(Goal goal) {
         AuthUser authUser = userRepository.findById(goal.getAuthUserId())
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없음"));
-
         Point point = pointService.getOrCreatePoint(authUser);
         if (point.getTotalPoints() < 200) {
             throw new IllegalArgumentException("포인트 부족으로 목표 생성 불가");

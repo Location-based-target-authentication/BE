@@ -531,7 +531,7 @@ public class GoalRestController {
         	// 2.사용자 정보 조회
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            // 3.목표 조회
+            // 목표 조회
             Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
             // 4. 응답값을 담기위한 response
@@ -547,10 +547,9 @@ public class GoalRestController {
                 goalRepository.save(goal);
         		return new ResponseEntity<>(response, HttpStatus.OK);
         	}
-
-        } catch (Exception e) {
-        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+		} catch (Exception e) {
+			return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
     }
     
 

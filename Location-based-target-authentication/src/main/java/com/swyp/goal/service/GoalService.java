@@ -296,7 +296,7 @@ public class GoalService {
     }
     //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
     @Transactional
-    public Goal updateGoalStatusToComplete(Long goalId, Long id, boolean isSelectedDay){
+    public Goal updateGoalStatusToComplete(Long goalId, Long id){
         Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
         // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
@@ -304,7 +304,6 @@ public class GoalService {
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
         totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
-
 
         //GoalAchievements 테이블로 day를 넘기기 위한 로직
         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);
@@ -334,8 +333,6 @@ public class GoalService {
         goalAchievementsRepository.save(goalAchievements);
         return goal;
     }
-
-
 
     // 목표 총 수행 횟수 계산 메서드 (targetCount)
     private int calculateTargetCount(LocalDate startDate, LocalDate endDate, List<DayOfWeek> selectedDays) {

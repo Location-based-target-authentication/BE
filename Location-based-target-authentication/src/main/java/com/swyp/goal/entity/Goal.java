@@ -100,7 +100,7 @@ public class Goal {
     private LocalDateTime updatedAt;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "auth_user_id", insertable = false, updatable = false)
+    @JoinColumn(name = "auth_user_id", insertable = false, updatable = false)ㅎ
     private AuthUser authUser;
     
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)

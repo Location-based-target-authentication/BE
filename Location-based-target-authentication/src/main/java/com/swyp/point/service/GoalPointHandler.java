@@ -54,7 +54,6 @@ public class GoalPointHandler {
         try {
             int points = 0;
             int dayCount = goalDayRepository.findByGoalId(goal.getId()).size();
-            
             // 포인트 계산 로직 개선
             if (dayCount == 7) {
                 points = 60;  // 7일 목표
@@ -101,8 +100,6 @@ public class GoalPointHandler {
             .sorted(Comparator.reverseOrder()) // 최신 요일부터 정렬
             .collect(Collectors.toList());
 
-        // (수정) 설정 요일 횟수 초과 시 보너스 지급
-        int weeklyTargetCount = goalDayRepository.findByGoalId(goal.getId()).size(); // 설정된 요일 개수
         // 현재 요일이 목표 요일 중 마지막 요일인지 확인
         if (!goalDayOfWeeks.isEmpty()) {
             com.swyp.goal.entity.DayOfWeek currentDayOfWeek = com.swyp.goal.entity.DayOfWeek.fromJavaTime(today.getDayOfWeek());
@@ -122,7 +119,6 @@ public class GoalPointHandler {
         else{
             throw new IllegalArgumentException("설정된 목표 요일이 없음");
         }
-        // 6일이하, 7일 달성 보너시 지급 달성 여부
     }
 
 }

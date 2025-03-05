@@ -21,6 +21,7 @@ public class AuthUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    //@Column(name="user_id", nullable = false, unique = true)
     @Column(nullable = false, unique = true)
     private String socialId; // 카카오 또는 구글에서 받은 고유 ID
 

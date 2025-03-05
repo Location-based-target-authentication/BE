@@ -592,7 +592,7 @@ public class GoalRestController {
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         // userId를 authUser에서 가져와 전달
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goal.getId(), authUser.getUserId());
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, userId);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {

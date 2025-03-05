@@ -47,10 +47,9 @@ public class GoalPointHandler {
             throw new RuntimeException("포인트 차감 중 오류 발생: " + e.getMessage());
         }
     }
-
     // 2. 목표 당일 달성 시 포인트 적립
     @Transactional
-    public void handleDailyAchievement(AuthUser authUser, Goal goal, boolean isSelectedDay) {
+    public int handleDailyAchievement(AuthUser authUser, Goal goal, boolean isSelectedDay) {
         try {
             int points = 0;
             int dayCount = goalDayRepository.findByGoalId(goal.getId()).size();
@@ -60,7 +59,7 @@ public class GoalPointHandler {
             } else {
                 points = isSelectedDay ? 50 : 30; // 설정/비설정 요일
             }
-            
+
             // 포인트 지급 전 유효성 검사 추가
             if (points <= 0) {
                 throw new IllegalStateException("잘못된 포인트 계산입니다.");
@@ -74,7 +73,7 @@ public class GoalPointHandler {
             
             log.info("포인트 지급 완료 - 사용자: {}, 포인트: {}, 설명: {}", 
                 authUser.getId(), points, description);
-                
+            return points;
         } catch (Exception e) {
             log.error("포인트 지급 중 오류 발생: {}", e.getMessage());
             throw e;
@@ -83,7 +82,7 @@ public class GoalPointHandler {
 
  // 3. 목표 완료 시 보너스 지급
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
+    public int handleWeeklyGoalCompletion(AuthUser authUser, Goal goal) {
         // 현재 주의 시작일과 종료일 계산 (일~토 기준)
         LocalDate today = LocalDate.now();
         LocalDate startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY));
@@ -107,8 +106,10 @@ public class GoalPointHandler {
                 // 보너스 지급 조건 만족 시
                 if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {
                     pointService.addPoints(authUser, 50, PointType.BONUS, "주간 목표 초과 달성 보너스", goal.getId());
+                    return 50;
                 }else if (weeklyAchievedCount == 7) {
                     pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
+                    return 60;
                 }else {
                     throw new IllegalArgumentException("보너스 지급 조건 불만족");
                 }

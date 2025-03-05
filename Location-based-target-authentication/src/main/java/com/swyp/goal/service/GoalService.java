@@ -273,6 +273,8 @@ public class GoalService {
                 // (포인트) 지급
                 boolean isSelectedDay = checkIfSelectedDay(goal, today);
                 goalPointHandler.handleDailyAchievement(authUser, goal, isSelectedDay);
+                // (포인트) 보너스 지급
+                goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
                 return true;
             } else {
                 if(alreadyAchievedFalse) {

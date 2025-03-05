@@ -35,6 +35,13 @@ public class PointService {
         Point point = getOrCreatePoint(authUser);
         return point.getTotalPoints();
     }
+
+    public int getTotalPoints(AuthUser authUser) {
+            Integer totalPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
+            return totalPoints != null ? totalPoints : 0; // 포인트가 없으면 0 반환
+        }
+
+
     //포인트 지급
     @Transactional
     public void addPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){

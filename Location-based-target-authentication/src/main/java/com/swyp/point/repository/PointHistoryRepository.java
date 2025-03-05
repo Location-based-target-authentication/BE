@@ -16,7 +16,7 @@ import com.swyp.social_login.entity.AuthUser;
 public interface PointHistoryRepository extends JpaRepository<PointHistory, Long> {
     List<PointHistory> findByAuthUser_Id(Long userId);
     @Query("SELECT SUM(p.points) FROM PointHistory p WHERE p.authUser = :authUser" )
-    Integer getTotalPointsByAuthUser(@Param("authUser") AuthUser authUser);
+    int getTotalPointsByAuthUser(@Param("authUser") AuthUser authUser);
     
     
     // goalId를 NULL로 설정 ( 목표 DELETE 를 위한 쿼리 ) 

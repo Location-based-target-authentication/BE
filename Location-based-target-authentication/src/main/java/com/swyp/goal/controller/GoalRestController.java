@@ -150,27 +150,67 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/create")
-    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request) {
+    public ResponseEntity<?> createGoal(@RequestBody GoalCreateRequest request, HttpServletRequest httpRequest) {
         try {
+            // JWT 토큰에서 userId 추출
+            String bearerToken = httpRequest.getHeader("Authorization");
+            if (bearerToken == null || !bearerToken.startsWith("Bearer ")) {
+                throw new IllegalArgumentException("인증 토큰이 필요합니다.");
+            }
+            String token = bearerToken.substring(7);
+            Long tokenUserId = jwtUtil.extractUserId(token);
+            
+            System.out.println("[GoalRestController] 토큰에서 추출한 userId: " + tokenUserId);
+            
+            // 사용자 조회
+            AuthUser authUser;
+            try {
+                System.out.println("[GoalRestController] findById 시도: " + tokenUserId);
+                Optional<AuthUser> userById = userRepository.findByUserId(tokenUserId);
+                if (userById.isPresent()) {
+                    System.out.println("[GoalRestController] findById 성공");
+                    authUser = userById.get();
+                } else {
+                    System.out.println("[GoalRestController] findById 실패, findByUserIdEquals 시도: " + tokenUserId);
+                    Optional<AuthUser> userByUserId = userRepository.findByUserIdEquals(tokenUserId);
+                    if (userByUserId.isPresent()) {
+                        System.out.println("[GoalRestController] findByUserIdEquals 성공");
+                        authUser = userByUserId.get();
+                    } else {
+                        System.out.println("[GoalRestController] 모든 조회 실패. tokenUserId=" + tokenUserId);
+                        throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+                    }
+                }
+            } catch (Exception e) {
+                System.out.println("[GoalRestController] 사용자 조회 중 예외 발생: " + e.getMessage());
+                e.printStackTrace();
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            }
+            
+            System.out.println("[GoalRestController] 찾은 사용자 - id: " + authUser.getId() + ", userId: " + authUser.getUserId());
+            // request의 userId를 AuthUser의 id(PK)로 설정
+            request.setUserId(authUser.getId());
+            
+            // 목표 생성
             Goal createdGoal = goalService.createGoal(request);
-
-            // (포인트) 생성된 목표의 userId를 이용해 사용자를 조회
-            AuthUser authUser = userRepository.findById(createdGoal.getUserId())
-                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            int updatedPoints = pointService.getUserPoints(authUser);
-
-            // 응답 데이터: 목표 정보 & 잔여 포인트
+            
+            // 응답 데이터 구성
             Map<String, Object> response = new HashMap<>();
+            response.put("message", "목표 생성 성공");
             response.put("goal", createdGoal);
-            response.put("totalPoints", updatedPoints);
+            response.put("totalPoints", pointService.getUserPoints(authUser));
 
-            return new ResponseEntity<>("목표 생성 성공", HttpStatus.CREATED);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(new CompleteResponseDto("Internal server error"), HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (RuntimeException e) {
+            String errorMessage = e.getMessage().contains("포인트 부족") ? 
+                "포인트가 부족하여 목표를 생성할 수 없습니다." : 
+                "서버 오류가 발생했습니다: " + e.getMessage();
+            return new ResponseEntity<>(new CompleteResponseDto(errorMessage), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
     
   //전체 목표 조회
     @Operation(

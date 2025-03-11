@@ -211,9 +211,8 @@ public class GoalRestController {
         }
     }
 
-
     
-    //전체 목표 조회
+  //전체 목표 조회
     @Operation(
     	    summary = "전체 목표 조회",
     	    description = "userId를 이용해 전체 목표 조회를 합니다.",
@@ -277,6 +276,11 @@ public class GoalRestController {
             return new ResponseEntity<>(new CompleteResponseDto("e.getMessage()"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
+
+
+    
 
      //목표 1개 상세 목표 조회 (목표 상세조회)
     @Operation(
@@ -523,7 +527,7 @@ public class GoalRestController {
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,
-            @RequestBody GoalAchieveRequestDto requestDto
+            @ModelAttribute GoalAchieveRequestDto requestDto
     ) {
         try {
         	// 1.위치 검증 성공시 true , 실패시 false 
@@ -600,7 +604,7 @@ public class GoalRestController {
     	}catch (IllegalStateException e) {
             return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
     

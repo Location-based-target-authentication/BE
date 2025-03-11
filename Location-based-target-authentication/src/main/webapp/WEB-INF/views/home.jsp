@@ -97,7 +97,7 @@
     
     <!-- 나머지 폼들 (조회, 삭제, 완료 등)은 기존 방식 유지 -->
     <h2>목표 home</h2>
-    <form id="ggggggg1" action="/api/v1/goals/1" method="get">
+    <form id="ggggggg1" action="/api/v1/goals/2" method="get">
         <input type="submit" value="목표 home 조회">
     </form>
 
@@ -117,23 +117,23 @@
     </form>
     
     <h3>완료 목표 전체 조회</h3>
-    <form id="goalActivateForm" action="/api/v1/goals/check/complete/1" method="get">
+    <form id="goalActivateForm" action="/api/v1/goals/check/complete/2" method="get">
         <input type="submit" value="완료목표전체조회">
     </form>
 
     <h3>목표 활성화</h3>
-    <form id="goalActivateForm" action="/api/v1/goals/1/activate" method="post">
+    <form id="goalActivateForm" action="/api/v1/goals/5/activate" method="post">
         <input type="hidden" name="status" value="ACTIVE">
         <input type="submit" value="목표 활성화">
     </form>
 
     <h3>목표 삭제</h3>
-    <form id="goalDeleteForm" action="/api/v1/goals/1/delete" method="post">
+    <form id="goalDeleteForm" action="/api/v1/goals/5/delete" method="post">
         <input type="submit" value="목표 삭제">
     </form>
 
     <h3>목표 1차 인증</h3>
-    <form id="goalAc" action="/api/v1/goals/4/achieve" method="post">
+    <form id="goalAc" action="/api/v1/goals/5/achieve" method="post">
         <label for="qwe1">userId:</label>
         <input type="text" id="userId" name="userId" required><br><br>
 
@@ -146,14 +146,14 @@
     </form>
 
     <h3>목표 완료</h3>
-    <form id="goalComplete" action="/api/v1/goals/1/complete" method="post">
+    <form id="goalComplete" action="/api/v1/goals/5/complete" method="post">
         <input type="text" id="userId" name="userId" required><br><br>
         <input type="text" id="isSelectedDay" name="isSelectedDay" value="true" required><br><br>
         <input type="submit" value="목표 완료">
     </form>
 
     <h3>목표 HOME</h3>
-    <form id="goalHOME" action="/api/v1/goals/1" method="get">
+    <form id="goalHOME" action="/api/v1/goals/2" method="get">
         <input type="submit" value="목표 home">
     </form>
 

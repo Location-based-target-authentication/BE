@@ -65,10 +65,7 @@ public class GoalPointHandler {
                 throw new IllegalStateException("잘못된 포인트 계산입니다.");
             }
             
-            String description = String.format("당일 목표 달성 (%d일 목표%s)", 
-                dayCount, 
-                isSelectedDay ? ", 설정 요일" : "");
-                
+            String description = String.format("당일 목표 달성 (%d일 목표%s)", dayCount, isSelectedDay ? ", 설정 요일" : "");
             pointService.addPoints(authUser, points, PointType.ACHIEVEMENT, description, goal.getId());
             
             log.info("포인트 지급 완료 - 사용자: {}, 포인트: {}, 설명: {}", 
@@ -91,7 +88,8 @@ public class GoalPointHandler {
         // 현재 주의 목표 달성 횟수 가져오기
         int weeklyAchievedCount = goalAchievementsLogRepository.countByGoal_IdAndUser_IdAndAchievedSuccessAndAchievedAtBetween(
                 goal.getId(), authUser.getId(), true, startOfWeek, endOfWeek);
-     
+        System.out.println("현재 주의 목표 달성 횟수: " + weeklyAchievedCount);
+
         // 주간 목표의 마지막 요일인지 확인
         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
         List<com.swyp.goal.entity.DayOfWeek> goalDayOfWeeks = goalDays.stream()
@@ -102,6 +100,10 @@ public class GoalPointHandler {
         // 현재 요일이 목표 요일 중 마지막 요일인지 확인
         if (!goalDayOfWeeks.isEmpty()) {
             com.swyp.goal.entity.DayOfWeek currentDayOfWeek = com.swyp.goal.entity.DayOfWeek.fromJavaTime(today.getDayOfWeek());
+            System.out.println("목표 요일 리스트: " + goalDayOfWeeks);
+            System.out.println("현재 요일: " + currentDayOfWeek);
+            System.out.println("주간 목표의 마지막 요일: " + goalDayOfWeeks.get(0));
+
             if (goalDayOfWeeks.get(0) == currentDayOfWeek) {
                 // 보너스 지급 조건 만족 시
                 if (weeklyAchievedCount <= 6 && weeklyAchievedCount >= goal.getTargetCount()) {

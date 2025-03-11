@@ -60,7 +60,6 @@ public class PointService {
         try {
             pointRepository.save(point);
             pointHistoryRepository.save(new PointHistory(authUser, -points, pointType, description, goalId));
-            
             // 쿠폰 지급은 별도의 API를 통해서만 가능하도록 수정
             if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
                 throw new IllegalArgumentException("쿠폰 지급은 별도의 API를 통해서만 가능합니다.");

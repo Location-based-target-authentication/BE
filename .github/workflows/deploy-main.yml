@@ -32,7 +32,7 @@ jobs:
             app: java@17
             options:
               ports: "8443"
-              start: ./gradlew bootJar -x test --build-cache --parallel && java -jar build/libs/*.jar
+              start: cd Location-based-target-authentication && ./gradlew clean bootJar -x test --build-cache --parallel && java -jar build/libs/*.jar
               env:
                 - name: GOOGLE_CLIENT_ID
                   value: ${{ secrets.GOOGLE_CLIENT_ID }}

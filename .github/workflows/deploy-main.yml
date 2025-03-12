@@ -18,7 +18,7 @@ jobs:
         uses: cloudtype-github-actions/deploy@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          project: kjunh972/be
+          project: Location-based-target-authentication/BE
           stage: main
           yaml: |
             name: willgo
@@ -56,6 +56,6 @@ jobs:
               buildenv: []
             context:
               git:
-                url: https://github.com/${{ github.repository }}.git
-                ref: ${{ github.ref }}
+                url: https://github.com/Location-based-target-authentication/BE.git
+                ref: main
               preset: java-springboot

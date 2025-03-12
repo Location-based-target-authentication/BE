@@ -36,5 +36,9 @@ public class Point {
         this.totalPoints -=points;
         return true;
     }
+    public void setTotalPoints(int totalPoints) {
+        this.totalPoints = totalPoints;
+    }
+
 
 }

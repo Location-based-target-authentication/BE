@@ -296,16 +296,27 @@ public class GoalService {
             throw e;
         }
     }
-    //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
-    @Transactional
-    public Goal updateGoalStatusToComplete(Long goalId, Long id){
-        Goal goal = goalRepository.findById(goalId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
-        // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
-        AuthUser authUser = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
-        totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
+     //목표 달성시 목표 Status 'COMPLETE' 로 업데이트 후 목표 달성 기록 저장
+     @Transactional
+     public Goal updateGoalStatusToComplete(Long goalId, Long id){
+         Goal goal = goalRepository.findById(goalId)
+         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 목표입니다."));
+         
+         // Status가 ACTIVE인 애들만 완료 처리가능
+         if (!goal.getStatus().equals(GoalStatus.ACTIVE)) {
+             throw new IllegalArgumentException("활성화된 목표만 완료 처리할 수 있습니다.");
+         }
+         // 목표달성 횟수보다 실제 목표 달성횟수가 커야지 Complete 가능
+         if (goal.getAchievedCount()<goal.getTargetCount()){
+             throw new IllegalArgumentException("지정된 목표 달성 횟수를 채우지 못하셨습니다.");
+         }
+
+         // (포인트) 해당 목표를 통해 얻은 포인트 총합 계산 (ACHIEVEMENT & BONUS 타입만)
+         AuthUser authUser = userRepository.findById(id)
+                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+         Integer totalEarnedPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
+         totalEarnedPoints = (totalEarnedPoints != null) ? totalEarnedPoints : 0;
+
 
         //GoalAchievements 테이블로 day를 넘기기 위한 로직
         List<GoalDay> goalDays = goalDayRepository.findByGoalId(goalId);

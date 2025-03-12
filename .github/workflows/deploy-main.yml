@@ -26,7 +26,7 @@ jobs:
             app: java@17
             options:
               ports: "8443"
-              start: ./gradlew bootRun
+              start: ./gradlew bootJar && java -jar build/libs/*.jar
               env:
                 - name: GOOGLE_CLIENT_ID
                   value: ${{ secrets.GOOGLE_CLIENT_ID }}

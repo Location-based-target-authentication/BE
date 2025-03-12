@@ -20,12 +20,12 @@ jobs:
         uses: cloudtype-github-actions/connect@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          repo: m84dpn7wb0107f79
+          repo: be
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          project: m84dpn7wb0107f79
+          project: be
           stage: main
           yaml: |
             name: willgo

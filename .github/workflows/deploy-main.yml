@@ -13,8 +13,6 @@ jobs:
         uses: cloudtype-github-actions/connect@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          ghtoken: ${{ secrets.GHP_TOKEN }}
-          repo: Location-based-target-authentication/BE
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
@@ -59,4 +57,6 @@ jobs:
               git:
                 url: https://github.com/Location-based-target-authentication/BE.git
                 ref: main
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
               preset: java-springboot

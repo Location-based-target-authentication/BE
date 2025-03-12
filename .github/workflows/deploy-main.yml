@@ -3,9 +3,16 @@ on:
   push:
     branches:
       - main
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -13,6 +20,7 @@ jobs:
         uses: cloudtype-github-actions/connect@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          repo: Location-based-target-authentication/BE
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
@@ -55,8 +63,6 @@ jobs:
               buildenv: []
             context:
               git:
-                url: https://github.com/Location-based-target-authentication/BE.git
+                url: git@github.com:Location-based-target-authentication/BE.git
                 ref: main
-                username: ${{ github.actor }}
-                password: ${{ secrets.GITHUB_TOKEN }}
               preset: java-springboot

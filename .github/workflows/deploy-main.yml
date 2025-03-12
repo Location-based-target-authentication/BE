@@ -20,12 +20,12 @@ jobs:
         uses: cloudtype-github-actions/connect@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          repo: Location-based-target-authentication/BE
+          repo: m84dpn7wb0107f79
       - name: Deploy
         uses: cloudtype-github-actions/deploy@v1
         with:
           token: ${{ secrets.CLOUDTYPE_TOKEN }}
-          project: kjunh972/willgo
+          project: m84dpn7wb0107f79
           stage: main
           yaml: |
             name: willgo

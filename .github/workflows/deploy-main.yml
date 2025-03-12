@@ -29,10 +29,7 @@ jobs:
           stage: main
           yaml: |
             name: willgo
-            app: java@17
-            options:
-              ports: "8443"
-              start: ./gradlew bootJar -x test -x clean --build-cache --parallel && java -jar build/libs/*.jar
+            app: dockerfile
               env:
                 - name: GOOGLE_CLIENT_ID
                   value: ${{ secrets.GOOGLE_CLIENT_ID }}

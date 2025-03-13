@@ -33,10 +33,11 @@ public class WebConfig implements WebMvcConfigurer {
         config.addAllowedOrigin("https://localhost:3000");
         config.addAllowedOrigin("http://localhost:8080");
         config.addAllowedOrigin("https://localhost:8080");
-        config.addAllowedOrigin("https://175.45.203.57:8443");
-        config.addAllowedOrigin("http://175.45.203.57:8443");
-        config.addAllowedOrigin("http://175.45.203.57:8080");
-        config.addAllowedOrigin("https://175.45.203.57:8080");
+        config.addAllowedOrigin("https://158.180.87.205:8443");
+        config.addAllowedOrigin("http://158.180.87.205:8443");
+        config.addAllowedOrigin("http://158.180.87.205:8080");
+        config.addAllowedOrigin("https://158.180.87.205:8080");
+        config.addAllowedOrigin("https://locationcheckgo.netlify.app");
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setMaxAge(3600L);

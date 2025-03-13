@@ -4,9 +4,15 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/Location-based-target-authentication
 
-# Skip clean task and run assemble directly
-RUN chmod +x ./gradlew && \
-    ./gradlew assemble -x test -x clean --build-cache --parallel
+# Create a custom build script
+COPY <<EOF /app/build.sh
+#!/bin/bash
+cd /app/Location-based-target-authentication
+chmod +x ./gradlew
+./gradlew bootJar -x test --build-cache --parallel
+EOF
+
+RUN chmod +x /app/build.sh && /app/build.sh
 
 FROM cloudtype/jre:17
 WORKDIR /app

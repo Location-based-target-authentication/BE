@@ -25,7 +25,7 @@ public class GoogleAuthImpl implements GoogleAuthService {
     private String clientSecret;
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUrl;
-    @Value("${google.redirect.url.local}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri-local}")
     private String redirectUrlLocal;
 
     private final HttpServletRequest request;

@@ -9,7 +9,7 @@ RUN ./gradlew bootJar -x test -x clean --build-cache --parallel
 
 FROM cloudtype/jre:17
 WORKDIR /app
-COPY --from=build /app/Location-based-target-authentication/build/libs/*.jar app.jar
+COPY --from=build /app/Location-based-target-authentication/build/libs/*.jar /app/app.jar
 
 EXPOSE 8443
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]

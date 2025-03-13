@@ -83,6 +83,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/${{ secrets.SERVER_USER }}
+          
           # JAR 파일 권한 설정
           chmod +x Location-based-target-authentication-0.0.1-SNAPSHOT.jar
           
@@ -98,68 +99,66 @@ jobs:
           WorkingDirectory=/home/${{ secrets.SERVER_USER }}
 
           # 환경 변수 설정
-          Environment="JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}"
-          Environment="JWT_ACCESS_TOKEN_EXPIRATION=600000"
-          Environment="JWT_REFRESH_TOKEN_EXPIRATION=604800000"
-          Environment="KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}"
-          Environment="KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}"
-          Environment="KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}"
-          Environment="KAKAO_REDIRECT_URI=https://${{ secrets.SERVER_IP }}:8443/api/v1/auth/kakao/callback"
-          Environment="GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}"
-          Environment="GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}"
-          Environment="GOOGLE_REDIRECT_URI=https://${{ secrets.SERVER_IP }}:8443/api/v1/auth/google/callback"
-          Environment="SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}"
-          Environment="SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}"
-          Environment="SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}"
-          Environment="SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}"
-          Environment="SERVER_PORT=8443"
-          Environment="SERVER_ADDRESS=0.0.0.0"
-          Environment="SPRING_PROFILES_ACTIVE=secret"
-          
-          # 로깅 설정
-          Environment="LOGGING_LEVEL_ROOT=INFO"
-          Environment="LOGGING_LEVEL_COM_SWYP=DEBUG"
-          Environment="LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG"
-          Environment="LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG"
-          Environment="LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2=DEBUG"
+          Environment=JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
+          Environment=JWT_ACCESS_TOKEN_EXPIRATION=600000
+          Environment=JWT_REFRESH_TOKEN_EXPIRATION=604800000
+          Environment=KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
+          Environment=KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          Environment=KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          Environment=KAKAO_REDIRECT_URI=https://${{ secrets.SERVER_IP }}:8443/api/v1/auth/kakao/callback
+          Environment=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          Environment=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          Environment=GOOGLE_REDIRECT_URI=https://${{ secrets.SERVER_IP }}:8443/api/v1/auth/google/callback
+          Environment=SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
+          Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
+          Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          Environment=SERVER_PORT=8443
+          Environment=SERVER_ADDRESS=0.0.0.0
+          Environment=SPRING_PROFILES_ACTIVE=secret
+          Environment=LOGGING_LEVEL_ROOT=INFO
+          Environment=LOGGING_LEVEL_COM_SWYP=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2=DEBUG
 
-          ExecStart=/usr/bin/java \\
+          ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \\
             -Xms512m \\
             -Xmx1024m \\
             -XX:+HeapDumpOnOutOfMemoryError \\
             -XX:HeapDumpPath=/home/${{ secrets.SERVER_USER }}/heapdump.hprof \\
             -Dspring.output.ansi.enabled=always \\
             -Dlogging.file.name=/home/${{ secrets.SERVER_USER }}/logs/willgo.log \\
-            -Dlogging.pattern.console="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" \\
-            -Dlogging.pattern.file="%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n" \\
+            -Dlogging.pattern.console='%d{yyyy-MM-dd HH:mm:ss} [%%thread] %-5level %logger{36} - %msg%%n' \\
+            -Dlogging.pattern.file='%d{yyyy-MM-dd HH:mm:ss} [%%thread] %-5level %logger{36} - %msg%%n' \\
             -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \\
-            --spring.profiles.active=${SPRING_PROFILES_ACTIVE} \\
-            --server.port=${SERVER_PORT} \\
-            --server.address=${SERVER_ADDRESS} \\
+            --spring.profiles.active=\${SPRING_PROFILES_ACTIVE} \\
+            --server.port=\${SERVER_PORT} \\
+            --server.address=\${SERVER_ADDRESS} \\
             --server.ssl.enabled=true \\
-            --logging.level.root=${LOGGING_LEVEL_ROOT} \\
-            --logging.level.com.swyp=${LOGGING_LEVEL_COM_SWYP} \\
-            --logging.level.org.springframework.security=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \\
-            --logging.level.org.springframework.web=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB} \\
-            --logging.level.org.springframework.oauth2=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2} \\
+            --logging.level.root=\${LOGGING_LEVEL_ROOT} \\
+            --logging.level.com.swyp=\${LOGGING_LEVEL_COM_SWYP} \\
+            --logging.level.org.springframework.security=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \\
+            --logging.level.org.springframework.web=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB} \\
+            --logging.level.org.springframework.oauth2=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2} \\
             --logging.level.org.springframework.web.cors=TRACE \\
             --debug=true \\
             --trace=true \\
-            --spring.mail.host=${SPRING_MAIL_HOST} \\
-            --spring.mail.port=${SPRING_MAIL_PORT} \\
-            --spring.mail.username=${SPRING_MAIL_USERNAME} \\
-            --spring.mail.password=${SPRING_MAIL_PASSWORD} \\
+            --spring.mail.host=\${SPRING_MAIL_HOST} \\
+            --spring.mail.port=\${SPRING_MAIL_PORT} \\
+            --spring.mail.username=\${SPRING_MAIL_USERNAME} \\
+            --spring.mail.password=\${SPRING_MAIL_PASSWORD} \\
             --spring.mail.properties.mail.smtp.auth=true \\
             --spring.mail.properties.mail.smtp.starttls.enable=true \\
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
             --spring.mail.properties.mail.debug=true \\
-            --spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \\
-            --spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \\
-            --spring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \\
-            --spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID} \\
-            --spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET} \\
-            --spring.security.oauth2.client.registration.kakao.redirect-uri=${KAKAO_REDIRECT_URI} \\
+            --spring.security.oauth2.client.registration.google.client-id=\${GOOGLE_CLIENT_ID} \\
+            --spring.security.oauth2.client.registration.google.client-secret=\${GOOGLE_CLIENT_SECRET} \\
+            --spring.security.oauth2.client.registration.google.redirect-uri=\${GOOGLE_REDIRECT_URI} \\
+            --spring.security.oauth2.client.registration.kakao.client-id=\${KAKAO_CLIENT_ID} \\
+            --spring.security.oauth2.client.registration.kakao.client-secret=\${KAKAO_CLIENT_SECRET} \\
+            --spring.security.oauth2.client.registration.kakao.redirect-uri=\${KAKAO_REDIRECT_URI} \\
             --cors.allowed-origins="https://locationcheckgo.netlify.app,https://localhost:8443,https://${{ secrets.SERVER_IP }}:8443"
 
           Restart=always
@@ -173,15 +172,16 @@ jobs:
           sudo mkdir -p /home/${{ secrets.SERVER_USER }}/logs
           sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/${{ secrets.SERVER_USER }}/logs
 
+          # Java 버전 확인
+          /usr/lib/jvm/java-17-openjdk-amd64/bin/java -version
+          
           # 서비스 시작
           sudo systemctl daemon-reload
           sudo systemctl enable willgo
           sudo systemctl restart willgo
+          sleep 3
           sudo systemctl status willgo
           
           # 로그 확인
-          echo "Waiting for service to start..."
-          sleep 5
-          sudo journalctl -u willgo -n 100 --no-pager
-          echo "Checking application logs..."
-          tail -n 100 /home/${{ secrets.SERVER_USER }}/logs/willgo.log
+          echo "Checking system logs..."
+          sudo journalctl -u willgo -n 50 --no-pager

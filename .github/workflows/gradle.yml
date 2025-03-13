@@ -1,0 +1,65 @@
+name: Deploy to cloudtype
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Connect deploy key
+        uses: cloudtype-github-actions/connect@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          repo: be
+      - name: Deploy
+        uses: cloudtype-github-actions/deploy@v1
+        with:
+          token: ${{ secrets.CLOUDTYPE_TOKEN }}
+          project: be
+          stage: main
+          yaml: |
+            name: willgo
+            app: dockerfile
+              env:
+                - name: GOOGLE_CLIENT_ID
+                  value: ${{ secrets.GOOGLE_CLIENT_ID }}
+                - name: GOOGLE_CLIENT_SECRET
+                  value: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+                - name: JWT_SECRET_KEY
+                  value: ${{ secrets.JWT_SECRET_KEY }}
+                - name: KAKAO_API_KEY
+                  value: ${{ secrets.KAKAO_API_KEY }}
+                - name: KAKAO_CLIENT_ID
+                  value: ${{ secrets.KAKAO_CLIENT_ID }}
+                - name: KAKAO_CLIENT_SECRET
+                  value: ${{ secrets.KAKAO_CLIENT_SECRET }}
+                - name: MAIL_HOST
+                  value: ${{ secrets.MAIL_HOST }}
+                - name: MAIL_PASSWORD
+                  value: ${{ secrets.MAIL_PASSWORD }}
+                - name: MAIL_PORT
+                  value: ${{ secrets.MAIL_PORT }}
+                - name: MAIL_USERNAME
+                  value: ${{ secrets.MAIL_USERNAME }}
+                - name: SERVER_IP
+                  value: ${{ secrets.SERVER_IP }}
+                - name: SERVER_USER
+                  value: ${{ secrets.SERVER_USER }}
+                - name: SSH_PRIVATE_KEY
+                  value: ${{ secrets.SSH_PRIVATE_KEY }}
+              buildenv: []
+            context:
+              git:
+                url: git@github.com:Location-based-target-authentication/BE.git
+                ref: main
+              preset: java-springboot

@@ -1,0 +1,10 @@
+plugins {
+    id 'base'
+}
+
+clean {
+    delete 'build'
+    delete fileTree(dir: '.') {
+        include '**/*.class'
+    }
+}

@@ -19,11 +19,11 @@ public class GoogleAuthImpl implements GoogleAuthService {
     private final String GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
     private final String GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v2/userinfo";
 
-    @Value("${google.client.id}")
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
     private String clientId;
-    @Value("${google.client.secret}")
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
     private String clientSecret;
-    @Value("${google.redirect.url}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String redirectUrl;
     @Value("${google.redirect.url.local}")
     private String redirectUrlLocal;

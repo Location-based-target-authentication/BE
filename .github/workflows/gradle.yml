@@ -105,10 +105,10 @@ jobs:
           Environment=KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
           Environment=KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
           Environment=KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-          Environment=KAKAO_REDIRECT_URI=http://${{ secrets.SERVER_IP }}:8443/api/v1/auth/kakao/callback
+          Environment=KAKAO_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/kakao
           Environment=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           Environment=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          Environment=GOOGLE_REDIRECT_URI=http://${{ secrets.SERVER_IP }}:8443/api/v1/auth/google/callback
+          Environment=GOOGLE_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/google
           Environment=SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
           Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
           Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
@@ -163,12 +163,7 @@ jobs:
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \
             --spring.mail.properties.mail.debug=true \
-            --spring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \
-            --spring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \
-            --spring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \
-            --spring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID} \
-            --spring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET} \
-            --spring.security.oauth2.client.registration.kakao.redirect-uri=${KAKAO_REDIRECT_URI} \
+             \
             --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8443,http://${{ secrets.SERVER_IP }}:8443
 
           Restart=always

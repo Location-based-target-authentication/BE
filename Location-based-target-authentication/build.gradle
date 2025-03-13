@@ -74,6 +74,11 @@ tasks.withType(Jar) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.register('clean', Delete) {
-    delete layout.buildDirectory
+task clean {
+    doLast {
+        delete fileTree(dir: projectDir) {
+            include '**/*.class'
+        }
+        delete 'build'
+    }
 }

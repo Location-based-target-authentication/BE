@@ -130,7 +130,7 @@ jobs:
             -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
-            --spring.config.import=optional:application-local.properties,application-secret.properties
+            --spring.config.import=optional:application-local.properties,optional:application-secret.properties
             --spring.profiles.active=default \
             --server.port=${SERVER_PORT} \
             --server.address=${SERVER_ADDRESS} \

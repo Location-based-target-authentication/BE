@@ -121,6 +121,10 @@ jobs:
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2=DEBUG
+          Environment=SPRINGDOC_SWAGGER_UI_PATH=/swagger-ui.html
+          Environment=SPRINGDOC_API_DOCS_PATH=/v3/api-docs
+          Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
+          Environment=SPRINGDOC_API_DOCS_ENABLED=true
 
           ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \\
             -Xms512m \\
@@ -135,7 +139,11 @@ jobs:
             --spring.profiles.active=\${SPRING_PROFILES_ACTIVE} \\
             --server.port=\${SERVER_PORT} \\
             --server.address=\${SERVER_ADDRESS} \\
-            --server.ssl.enabled=true \\
+            --server.ssl.enabled=false \\
+            --springdoc.swagger-ui.path=\${SPRINGDOC_SWAGGER_UI_PATH} \\
+            --springdoc.api-docs.path=\${SPRINGDOC_API_DOCS_PATH} \\
+            --springdoc.swagger-ui.enabled=\${SPRINGDOC_SWAGGER_UI_ENABLED} \\
+            --springdoc.api-docs.enabled=\${SPRINGDOC_API_DOCS_ENABLED} \\
             --logging.level.root=\${LOGGING_LEVEL_ROOT} \\
             --logging.level.com.swyp=\${LOGGING_LEVEL_COM_SWYP} \\
             --logging.level.org.springframework.security=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \\

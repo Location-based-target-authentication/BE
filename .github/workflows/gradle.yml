@@ -68,14 +68,6 @@ jobs:
         echo "${{ secrets.SERVER_IP }} $(ssh-keyscan -t ecdsa ${{ secrets.SERVER_IP }} 2>/dev/null)" >> ~/.ssh/known_hosts
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
 
-    # SSH 연결 테스트
-    - name: Test SSH connection
-      run: |
-        chmod 600 ~/.ssh/deploy_key
-        eval $(ssh-agent -s)
-        ssh-add ~/.ssh/deploy_key
-        ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
-
     # JAR 파일 전송
     - name: Copy JAR to Server
       run: |
@@ -189,14 +181,14 @@ jobs:
             -Dmail.debug=true \
             -Dcors.allowed-origins=https://locationcheckgo.netlify.app,https://localhost:8443,https://175.45.203.57:8443 \
             -Dserver.tomcat.additional-tld-skip-patterns=*.jar \
-            -Dserver.tomcat.relaxed-query-chars=|,{,},[,],^,`,<,> \
-            -Dserver.tomcat.relaxed-path-chars=|,{,},[,],^,`,<,> \
-            -Dserver.tomcat.connector.protocol=${TOMCAT_CONNECTOR_PROTOCOL} \
-            -Dserver.tomcat.max-connections=${TOMCAT_CONNECTOR_MAX_CONNECTIONS} \
-            -Dserver.tomcat.accept-count=${TOMCAT_CONNECTOR_ACCEPT_COUNT} \
-            -Dserver.tomcat.connection-timeout=${TOMCAT_CONNECTOR_CONNECTION_TIMEOUT} \
-            -Dserver.tomcat.max-keep-alive-requests=${TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS} \
-            -Dserver.tomcat.keep-alive-timeout=${TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT} \
+            -Dserver.tomcat.relaxed-query-chars='|,{,},[,],^,`,<,>' \
+            -Dserver.tomcat.relaxed-path-chars='|,{,},[,],^,`,<,>' \
+            -Dserver.tomcat.connector.protocol="${TOMCAT_CONNECTOR_PROTOCOL}" \
+            -Dserver.tomcat.max-connections="${TOMCAT_CONNECTOR_MAX_CONNECTIONS}" \
+            -Dserver.tomcat.accept-count="${TOMCAT_CONNECTOR_ACCEPT_COUNT}" \
+            -Dserver.tomcat.connection-timeout="${TOMCAT_CONNECTOR_CONNECTION_TIMEOUT}" \
+            -Dserver.tomcat.max-keep-alive-requests="${TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS}" \
+            -Dserver.tomcat.keep-alive-timeout="${TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT}" \
             -Dserver.tomcat.reject-illegal-header-values=false \
             -Dserver.tomcat.uri-encoding=UTF-8
           

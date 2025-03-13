@@ -4,15 +4,8 @@ WORKDIR /app
 COPY . .
 WORKDIR /app/Location-based-target-authentication
 
-# Create a custom build script
-COPY <<EOF /app/build.sh
-#!/bin/bash
-cd /app/Location-based-target-authentication
-chmod +x ./gradlew
-./gradlew bootJar -x test --build-cache --parallel
-EOF
-
-RUN chmod +x /app/build.sh && /app/build.sh
+RUN chmod +x ./gradlew
+RUN ./gradlew bootJar -x test --build-cache --parallel
 
 FROM cloudtype/jre:17
 WORKDIR /app

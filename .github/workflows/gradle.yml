@@ -107,7 +107,7 @@ jobs:
           Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
           Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          Environment=SERVER_PORT=8443
+          Environment=SERVER_PORT=8080
           Environment=SERVER_ADDRESS=0.0.0.0
           Environment=SPRING_PROFILES_ACTIVE=default
           Environment=LOGGING_LEVEL_ROOT=INFO
@@ -159,7 +159,7 @@ jobs:
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \
             --spring.mail.properties.mail.debug=true \
              \
-            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8443,http://${{ secrets.SERVER_IP }}:8443
+            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080
 
           Restart=always
           RestartSec=10

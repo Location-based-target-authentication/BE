@@ -73,3 +73,7 @@ compileJava {
 tasks.withType(Jar) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
+
+tasks.register('clean', Delete) {
+    delete layout.buildDirectory
+}

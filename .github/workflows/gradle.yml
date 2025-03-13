@@ -71,7 +71,10 @@ jobs:
     # SSH 연결 테스트
     - name: Test SSH connection
       run: |
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
+        chmod 600 ~/.ssh/deploy_key
+        eval $(ssh-agent -s)
+        ssh-add ~/.ssh/deploy_key
+        ssh -v -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
 
     # JAR 파일 전송
     - name: Copy JAR to Server

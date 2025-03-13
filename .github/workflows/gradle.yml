@@ -102,12 +102,12 @@ jobs:
           Environment=KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
           Environment=KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
           Environment=KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-          Environment=KAKAO_REDIRECT_URI=https://175.45.203.57:8443/api/v1/auth/kakao/callback
+          Environment=KAKAO_REDIRECT_URI=https://158.180.87.205:8443/api/v1/auth/kakao/callback
           
           # 구글 설정
           Environment=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           Environment=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          Environment=GOOGLE_REDIRECT_URI=https://175.45.203.57:8443/api/v1/auth/google/callback
+          Environment=GOOGLE_REDIRECT_URI=https://158.180.87.205:8443/api/v1/auth/google/callback
           
           # 메일 설정
           Environment=MAIL_HOST=${{ secrets.MAIL_HOST }}
@@ -179,7 +179,7 @@ jobs:
             -Dspring.mail.properties.mail.smtp.socketFactory.fallback=false \
             -Dspring.mail.properties.mail.smtp.socketFactory.port=587 \
             -Dspring.mail.properties.mail.debug=true \
-            -Dcors.allowed-origins=https://locationcheckgo.netlify.app,https://localhost:8443,https://175.45.203.57:8443 \
+            -Dcors.allowed-origins=https://locationcheckgo.netlify.app,https://localhost:8443,https://158.180.87.205:8443 \
             -Dserver.tomcat.additional-tld-skip-patterns=*.jar \
             -Dserver.tomcat.relaxed-query-chars=|,{,},[,],^,<,> \
             -Dserver.tomcat.relaxed-path-chars=|,{,},[,],^,<,> \

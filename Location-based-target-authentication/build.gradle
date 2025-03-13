@@ -64,6 +64,10 @@ dependencies {
 	// JSON
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+	// Logging
+	implementation 'ch.qos.logback:logback-classic:1.4.14'
+	implementation 'ch.qos.logback:logback-core:1.4.14'
+
 	// Development Tools
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

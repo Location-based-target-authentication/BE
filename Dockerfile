@@ -5,7 +5,7 @@ COPY . .
 WORKDIR /app/Location-based-target-authentication
 
 RUN chmod +x ./gradlew
-RUN ./gradlew bootJar -x test --build-cache --parallel
+RUN ./gradlew bootJar -x test -x clean --build-cache --parallel
 
 FROM cloudtype/jre:17
 WORKDIR /app

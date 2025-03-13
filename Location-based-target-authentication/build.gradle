@@ -2,8 +2,6 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.2.2'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'base'
-	id 'lifecycle-base'
 }
 
 group = 'com.swyp'
@@ -75,11 +73,4 @@ tasks.withType(Jar) {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
-tasks.named('clean') {
-    doLast {
-        delete layout.buildDirectory
-        delete fileTree(dir: projectDir) {
-            include '**/*.class'
-        }
-    }
-}
+

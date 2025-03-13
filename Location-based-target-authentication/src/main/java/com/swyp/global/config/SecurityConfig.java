@@ -21,8 +21,9 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .requiresChannel(channel -> channel
-                        .anyRequest().requiresSecure())
+                // HTTPS 설정 임시 비활성화
+                //.requiresChannel(channel -> channel
+                //        .anyRequest().requiresSecure())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/**").permitAll()
                 );

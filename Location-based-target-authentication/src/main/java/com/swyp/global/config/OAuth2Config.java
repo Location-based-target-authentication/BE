@@ -8,8 +8,10 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 
 @Configuration
+@EnableWebSecurity
 public class OAuth2Config {
 
     @Value("${spring.security.oauth2.client.registration.google.client-id}")

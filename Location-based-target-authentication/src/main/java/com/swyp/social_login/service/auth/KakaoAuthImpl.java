@@ -19,13 +19,13 @@ public class KakaoAuthImpl implements KakaoAuthService {
     private final String KAKAO_USER_INFO_URL = "https://kapi.kakao.com/v2/user/me";
     private final String TOKEN_URL = "https://kauth.kakao.com/oauth/token";
 
-    @Value("${kakao.client.id}")
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
     private String KAKAO_CLIENT_ID;
-    @Value("${kakao.client.secret}")
+    @Value("${spring.security.oauth2.client.registration.kakao.client-secret}")
     private String KAKAO_CLIENT_SECRET;
-    @Value("${kakao.redirect.url}")
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
     private String KAKAO_REDIRECT_URL;
-    @Value("${kakao.redirect.url.local}")
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri-local}")
     private String KAKAO_REDIRECT_URL_LOCAL;
 
     private final HttpServletRequest request;

@@ -110,7 +110,7 @@ jobs:
           Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           Environment=SERVER_PORT=8080
           Environment=SERVER_ADDRESS=0.0.0.0
-          Environment=SPRING_PROFILES_ACTIVE=secret
+          Environment=SPRING_PROFILES_ACTIVE=default
           Environment=LOGGING_LEVEL_ROOT=INFO
           Environment=LOGGING_LEVEL_COM_SWYP=DEBUG
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
@@ -120,63 +120,56 @@ jobs:
           Environment=SPRINGDOC_API_DOCS_PATH=/v3/api-docs
           Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
           Environment=SPRINGDOC_API_DOCS_ENABLED=true
-          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_ENABLED=true
-          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_ENABLED=true
-          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_NAME=Authorization
-          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_TYPE=Bearer
           
           # OAuth2 설정
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=profile,email
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/google
+          
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_SCOPE=profile_nickname,account_email
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/kakao
 
-          ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \
-            -Xms512m \
-            -Xmx1024m \
-            -XX:+HeapDumpOnOutOfMemoryError \
-            -XX:HeapDumpPath=/home/${{ secrets.SERVER_USER }}/heapdump.hprof \
-            -Dspring.output.ansi.enabled=always \
-            -Dlogging.file.name=/home/${{ secrets.SERVER_USER }}/logs/willgo.log \
-            -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
-            -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
-            -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
-            --spring.profiles.active=secret \
-            --kakao.local.search.url=${kakao.local.search.url} \
-            --kakao.api.key=${kakao.api.key} \
-            --server.port=${SERVER_PORT} \
-            --server.address=${SERVER_ADDRESS} \
-            --server.ssl.enabled=false \
-            --springdoc.swagger-ui.path=${SPRINGDOC_SWAGGER_UI_PATH} \
-            --springdoc.api-docs.path=${SPRINGDOC_API_DOCS_PATH} \
-            --springdoc.swagger-ui.enabled=${SPRINGDOC_SWAGGER_UI_ENABLED} \
-            --springdoc.api-docs.enabled=${SPRINGDOC_API_DOCS_ENABLED} \
-            --springdoc.swagger-ui.security.enabled=${SPRINGDOC_SWAGGER_UI_SECURITY_ENABLED} \
-            --springdoc.swagger-ui.security.bearer.enabled=${SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_ENABLED} \
-            --springdoc.swagger-ui.security.bearer.name=${SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_NAME} \
-            --springdoc.swagger-ui.security.bearer.type=${SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_TYPE} \
-            --springdoc.swagger-ui.configUrl=/v3/api-docs/swagger-config \
-            --springdoc.swagger-ui.url=/v3/api-docs \
-            --logging.level.root=${LOGGING_LEVEL_ROOT} \
-            --logging.level.com.swyp=${LOGGING_LEVEL_COM_SWYP} \
-            --logging.level.org.springframework.security=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \
-            --logging.level.org.springframework.web=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB} \
-            --logging.level.org.springframework.oauth2=${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2} \
-            --logging.level.org.springframework.web.cors=TRACE \
-            --debug=true \
-            --trace=true \
-            --spring.mail.host=${SPRING_MAIL_HOST} \
-            --spring.mail.port=${SPRING_MAIL_PORT} \
-            --spring.mail.username=${SPRING_MAIL_USERNAME} \
-            --spring.mail.password=${SPRING_MAIL_PASSWORD} \
-            --spring.mail.properties.mail.smtp.auth=true \
-            --spring.mail.properties.mail.smtp.starttls.enable=true \
-            --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \
-            --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \
-            --spring.mail.properties.mail.debug=true \
-             \
+          ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \\
+            -Xms512m \\
+            -Xmx1024m \\
+            -XX:+HeapDumpOnOutOfMemoryError \\
+            -XX:HeapDumpPath=/home/${{ secrets.SERVER_USER }}/heapdump.hprof \\
+            -Dspring.output.ansi.enabled=always \\
+            -Dlogging.file.name=/home/${{ secrets.SERVER_USER }}/logs/willgo.log \\
+            -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \\
+            -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \\
+            -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \\
+            --spring.config.import=optional:application-local.properties,optional:application-secret.properties \\
+            --spring.profiles.active=\${SPRING_PROFILES_ACTIVE} \\
+            --server.port=\${SERVER_PORT} \\
+            --server.address=\${SERVER_ADDRESS} \\
+            --server.ssl.enabled=false \\
+            --springdoc.swagger-ui.path=\${SPRINGDOC_SWAGGER_UI_PATH} \\
+            --springdoc.api-docs.path=\${SPRINGDOC_API_DOCS_PATH} \\
+            --springdoc.swagger-ui.enabled=\${SPRINGDOC_SWAGGER_UI_ENABLED} \\
+            --springdoc.api-docs.enabled=\${SPRINGDOC_API_DOCS_ENABLED} \\
+            --springdoc.swagger-ui.configUrl=/v3/api-docs/swagger-config \\
+            --springdoc.swagger-ui.url=/v3/api-docs \\
+            --logging.level.root=\${LOGGING_LEVEL_ROOT} \\
+            --logging.level.com.swyp=\${LOGGING_LEVEL_COM_SWYP} \\
+            --logging.level.org.springframework.security=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \\
+            --logging.level.org.springframework.web=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB} \\
+            --logging.level.org.springframework.oauth2=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2} \\
+            --logging.level.org.springframework.web.cors=TRACE \\
+            --debug=true \\
+            --trace=true \\
+            --spring.mail.host=\${SPRING_MAIL_HOST} \\
+            --spring.mail.port=\${SPRING_MAIL_PORT} \\
+            --spring.mail.username=\${SPRING_MAIL_USERNAME} \\
+            --spring.mail.password=\${SPRING_MAIL_PASSWORD} \\
+            --spring.mail.properties.mail.smtp.auth=true \\
+            --spring.mail.properties.mail.smtp.starttls.enable=true \\
+            --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
+            --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
+            --spring.mail.properties.mail.debug=true \\
             --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080
 
           Restart=always

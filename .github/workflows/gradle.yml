@@ -84,6 +84,15 @@ jobs:
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           
+          # SSL 디렉토리 및 인증서 확인
+          if [ ! -d "/etc/ssl/willgo" ]; then
+            sudo mkdir -p /etc/ssl/willgo
+            sudo keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore /etc/ssl/willgo/keystore.p12 -validity 3650 -storepass willgo86
+            sudo chown root:root -R /etc/ssl/willgo
+            sudo chmod 700 /etc/ssl/willgo
+            sudo chmod 600 /etc/ssl/willgo/keystore.p12
+          fi
+          
           # JAR 파일 권한 설정
           chmod +x Location-based-target-authentication-0.0.1-SNAPSHOT.jar
           
@@ -108,9 +117,10 @@ jobs:
           Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
           Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          Environment=SERVER_PORT=8080
+          Environment=SERVER_PORT=8443
+          Environment=SERVER_HTTP_PORT=80
           Environment=SERVER_ADDRESS=0.0.0.0
-          Environment=SPRING_PROFILES_ACTIVE=default
+          Environment=SPRING_PROFILES_ACTIVE=secret
           Environment=LOGGING_LEVEL_ROOT=INFO
           Environment=LOGGING_LEVEL_COM_SWYP=DEBUG
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
@@ -120,6 +130,14 @@ jobs:
           Environment=SPRINGDOC_API_DOCS_PATH=/v3/api-docs
           Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
           Environment=SPRINGDOC_API_DOCS_ENABLED=true
+          
+          # SSL 설정 - application.properties와 일치
+          Environment=SERVER_SSL_ENABLED=true
+          Environment=SERVER_SSL_KEY_STORE=/etc/ssl/willgo/keystore.p12
+          Environment=SERVER_SSL_KEY_STORE_PASSWORD=willgo86
+          Environment=SERVER_SSL_KEY_STORE_TYPE=PKCS12
+          Environment=SERVER_SSL_KEY_ALIAS=tomcat
+          Environment=SECURITY_REQUIRE_SSL=true
           
           # OAuth2 설정
           Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
@@ -145,8 +163,14 @@ jobs:
             --spring.config.import=optional:application-local.properties,optional:application-secret.properties \\
             --spring.profiles.active=\${SPRING_PROFILES_ACTIVE} \\
             --server.port=\${SERVER_PORT} \\
+            --server.http.port=\${SERVER_HTTP_PORT} \\
             --server.address=\${SERVER_ADDRESS} \\
-            --server.ssl.enabled=false \\
+            --server.ssl.enabled=\${SERVER_SSL_ENABLED} \\
+            --server.ssl.key-store=\${SERVER_SSL_KEY_STORE} \\
+            --server.ssl.key-store-password=\${SERVER_SSL_KEY_STORE_PASSWORD} \\
+            --server.ssl.key-store-type=\${SERVER_SSL_KEY_STORE_TYPE} \\
+            --server.ssl.key-alias=\${SERVER_SSL_KEY_ALIAS} \\
+            --security.require-ssl=\${SECURITY_REQUIRE_SSL} \\
             --springdoc.swagger-ui.path=\${SPRINGDOC_SWAGGER_UI_PATH} \\
             --springdoc.api-docs.path=\${SPRINGDOC_API_DOCS_PATH} \\
             --springdoc.swagger-ui.enabled=\${SPRINGDOC_SWAGGER_UI_ENABLED} \\
@@ -170,7 +194,7 @@ jobs:
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
             --spring.mail.properties.mail.debug=true \\
-            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080
+            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080,https://${{ secrets.SERVER_IP }}:8443,https://locationcheckgo.netlify.app
 
           Restart=always
           RestartSec=10

@@ -84,14 +84,50 @@ jobs:
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           
-          # SSL 디렉토리 및 인증서 확인
-          if [ ! -d "/etc/ssl/willgo" ]; then
+          # Let's Encrypt 인증서 확인 및 PKCS12 변환
+          if [ -d "/etc/letsencrypt/live/willgo6.duckdns.org" ]; then
             sudo mkdir -p /etc/ssl/willgo
-            sudo keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 -keystore /etc/ssl/willgo/keystore.p12 -validity 3650 -storepass willgo86
-            sudo chown root:root -R /etc/ssl/willgo
-            sudo chmod 700 /etc/ssl/willgo
+            
+            # Let's Encrypt 인증서를 PKCS12 형식으로 변환
+            sudo openssl pkcs12 -export -in /etc/letsencrypt/live/willgo6.duckdns.org/fullchain.pem \
+              -inkey /etc/letsencrypt/live/willgo6.duckdns.org/privkey.pem \
+              -out /etc/ssl/willgo/letsencrypt.p12 -name tomcat \
+              -CAfile /etc/letsencrypt/live/willgo6.duckdns.org/chain.pem \
+              -caname root -password pass:willgo86
+            
+            sudo chmod 600 /etc/ssl/willgo/letsencrypt.p12
+            echo "Let's Encrypt 인증서가 PKCS12 형식으로 변환되었습니다."
+          else
+            # Let's Encrypt 인증서가 없는 경우 자체 서명 인증서 생성
+            sudo mkdir -p /etc/ssl/willgo
+            sudo keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 \
+              -keystore /etc/ssl/willgo/keystore.p12 -validity 3650 -storepass willgo86 \
+              -dname "CN=willgo6.duckdns.org, OU=NA, O=NA, L=NA, ST=NA, C=NA"
+            
             sudo chmod 600 /etc/ssl/willgo/keystore.p12
+            echo "자체 서명 인증서가 생성되었습니다."
           fi
+          
+          # 인증서 갱신 후 자동 변환 스크립트 생성
+          sudo mkdir -p /etc/letsencrypt/renewal-hooks/post
+          sudo tee /etc/letsencrypt/renewal-hooks/post/convert-to-pkcs12.sh << EOF
+          #!/bin/bash
+          
+          # Let's Encrypt 인증서를 PKCS12 형식으로 변환
+          openssl pkcs12 -export -in /etc/letsencrypt/live/willgo6.duckdns.org/fullchain.pem \\
+            -inkey /etc/letsencrypt/live/willgo6.duckdns.org/privkey.pem \\
+            -out /etc/ssl/willgo/letsencrypt.p12 -name tomcat \\
+            -CAfile /etc/letsencrypt/live/willgo6.duckdns.org/chain.pem \\
+            -caname root -password pass:willgo86
+          
+          # 권한 설정
+          chmod 600 /etc/ssl/willgo/letsencrypt.p12
+          
+          # 서비스 재시작
+          systemctl restart willgo
+          EOF
+          
+          sudo chmod +x /etc/letsencrypt/renewal-hooks/post/convert-to-pkcs12.sh
           
           # JAR 파일 권한 설정
           chmod +x Location-based-target-authentication-0.0.1-SNAPSHOT.jar
@@ -131,9 +167,9 @@ jobs:
           Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
           Environment=SPRINGDOC_API_DOCS_ENABLED=true
           
-          # SSL 설정 - application.properties와 일치
+          # SSL 설정 - Let's Encrypt 인증서 사용
           Environment=SERVER_SSL_ENABLED=true
-          Environment=SERVER_SSL_KEY_STORE=/etc/ssl/willgo/keystore.p12
+          Environment=SERVER_SSL_KEY_STORE=/etc/ssl/willgo/letsencrypt.p12
           Environment=SERVER_SSL_KEY_STORE_PASSWORD=willgo86
           Environment=SERVER_SSL_KEY_STORE_TYPE=PKCS12
           Environment=SERVER_SSL_KEY_ALIAS=tomcat
@@ -194,7 +230,7 @@ jobs:
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
             --spring.mail.properties.mail.debug=true \\
-            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080,https://${{ secrets.SERVER_IP }}:8443,https://locationcheckgo.netlify.app
+            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080,https://${{ secrets.SERVER_IP }}:8443,https://locationcheckgo.netlify.app,http://willgo6.duckdns.org,https://willgo6.duckdns.org,https://willgo6.duckdns.org:8443
 
           Restart=always
           RestartSec=10

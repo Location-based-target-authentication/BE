@@ -102,6 +102,7 @@ jobs:
           Environment=JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
           Environment=JWT_ACCESS_TOKEN_EXPIRATION=600000
           Environment=JWT_REFRESH_TOKEN_EXPIRATION=604800000
+          Environment=KAKAO_LOCAL_SEARCH_URL=https://dapi.kakao.com/v2/local/search/keyword.json
           Environment=KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
           Environment=SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
           Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
@@ -109,7 +110,7 @@ jobs:
           Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           Environment=SERVER_PORT=8080
           Environment=SERVER_ADDRESS=0.0.0.0
-          Environment=SPRING_PROFILES_ACTIVE=default
+          Environment=SPRING_PROFILES_ACTIVE=secret
           Environment=LOGGING_LEVEL_ROOT=INFO
           Environment=LOGGING_LEVEL_COM_SWYP=DEBUG
           Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
@@ -130,8 +131,10 @@ jobs:
             -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
-            --spring.config.import=optional:application-local.properties,optional:application-secret.properties
-            --spring.profiles.active=default \
+            --spring.config.location=file:/home/${{ secrets.SERVER_USER }}/application.properties,file:/home/${{ secrets.SERVER_USER }}/application-secret.properties \
+            --spring.profiles.active=secret \
+            --kakao.local.search.url=${KAKAO_LOCAL_SEARCH_URL} \
+            --kakao.api.key=${KAKAO_API_KEY} \
             --server.port=${SERVER_PORT} \
             --server.address=${SERVER_ADDRESS} \
             --server.ssl.enabled=false \

@@ -18,7 +18,7 @@ public class ServerConfig {
     private int httpsPort;
     
     @Bean
-    @Profile("prod")
+    @Profile("secret")
     public ServletWebServerFactory servletContainer() {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
         tomcat.addAdditionalTomcatConnectors(createStandardConnector());

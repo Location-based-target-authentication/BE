@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("prod")
 public class ServerConfig {
     
     @Value("${server.http.port}")
@@ -19,6 +18,7 @@ public class ServerConfig {
     private int httpsPort;
     
     @Bean
+    @Profile("prod")
     public ServletWebServerFactory servletContainer() {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory();
         tomcat.addAdditionalTomcatConnectors(createStandardConnector());

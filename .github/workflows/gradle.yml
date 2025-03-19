@@ -124,6 +124,14 @@ jobs:
           Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_ENABLED=true
           Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_NAME=Authorization
           Environment=SPRINGDOC_SWAGGER_UI_SECURITY_BEARER_TYPE=Bearer
+          
+          # OAuth2 설정
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=profile,email
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/google
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
 
           ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \
             -Xms512m \

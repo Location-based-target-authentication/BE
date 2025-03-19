@@ -78,7 +78,7 @@ public class OAuth2Config {
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String googleRedirectUri;
 
-    @Value("${spring.security.oauth2.client.registration.google.redirect-uri-local}")
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri:${spring.security.oauth2.client.registration.google.redirect-uri}}")
     private String googleRedirectUriLocal;
 
     @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
@@ -90,7 +90,7 @@ public class OAuth2Config {
     @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
     private String kakaoRedirectUri;
 
-    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri-local}")
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri:${spring.security.oauth2.client.registration.kakao.redirect-uri}}")
     private String kakaoRedirectUriLocal;
 
     @Bean

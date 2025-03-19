@@ -120,6 +120,11 @@ jobs:
           Environment=SPRINGDOC_API_DOCS_PATH=/v3/api-docs
           Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
           Environment=SPRINGDOC_API_DOCS_ENABLED=true
+          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_ENABLED=true
+          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_USE_BASIC_AUTH=true
+          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_REALM=swagger-ui
+          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_APP_NAME=Swagger UI
+          Environment=SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_USE_PKCE=true
 
           ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \
             -Xms512m \
@@ -142,6 +147,11 @@ jobs:
             --springdoc.api-docs.path=${SPRINGDOC_API_DOCS_PATH} \
             --springdoc.swagger-ui.enabled=${SPRINGDOC_SWAGGER_UI_ENABLED} \
             --springdoc.api-docs.enabled=${SPRINGDOC_API_DOCS_ENABLED} \
+            --springdoc.swagger-ui.security.enabled=${SPRINGDOC_SWAGGER_UI_SECURITY_ENABLED} \
+            --springdoc.swagger-ui.security.oauth2.use-basic-authentication-with-access-code-grant=${SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_USE_BASIC_AUTH} \
+            --springdoc.swagger-ui.security.oauth2.realm=${SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_REALM} \
+            --springdoc.swagger-ui.security.oauth2.app-name=${SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_APP_NAME} \
+            --springdoc.swagger-ui.security.oauth2.use-pkce-with-authorization-code-grant=${SPRINGDOC_SWAGGER_UI_SECURITY_OAUTH2_USE_PKCE} \
             --springdoc.swagger-ui.configUrl=/v3/api-docs/swagger-config \
             --springdoc.swagger-ui.url=/v3/api-docs \
             --logging.level.root=${LOGGING_LEVEL_ROOT} \

@@ -143,8 +143,14 @@ jobs:
             -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \
             -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
-            --spring.config.import=optional:file:/home/${{ secrets.SERVER_USER }}/application.properties,optional:file:/home/${{ secrets.SERVER_USER }}/application-secret.properties \
+            --spring.config.import=optional:file:/home/${{ secrets.SERVER_USER }}/application.properties \
             --spring.profiles.active=secret \
+            --spring.security.oauth2.client.registration.google.client-id=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID} \
+            --spring.security.oauth2.client.registration.google.client-secret=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET} \
+            --spring.security.oauth2.client.registration.google.scope=profile,email \
+            --spring.security.oauth2.client.registration.google.redirect-uri=https://locationcheckgo.netlify.app/auth/callback/google \
+            --spring.security.oauth2.client.registration.kakao.client-id=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID} \
+            --spring.security.oauth2.client.registration.kakao.client-secret=${SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET} \
             --kakao.local.search.url=${kakao.local.search.url} \
             --kakao.api.key=${kakao.api.key} \
             --server.port=${SERVER_PORT} \

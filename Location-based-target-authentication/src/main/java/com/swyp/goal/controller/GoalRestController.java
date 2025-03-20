@@ -211,6 +211,7 @@ public class GoalRestController {
         }
     }
 
+
     
   //전체 목표 조회
     @Operation(
@@ -523,7 +524,7 @@ public class GoalRestController {
         )
     })
 
-    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 ,
+    //목표 1차인증 (위치 조회후 100m 이내시 1차인증 완료 ), 같은 목표는 하루에 한번만 인증 가능 , 인증시 achieved_count = achieved_count+1 
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,

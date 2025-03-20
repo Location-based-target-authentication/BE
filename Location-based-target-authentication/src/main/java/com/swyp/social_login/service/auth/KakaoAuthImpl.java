@@ -9,6 +9,8 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ public class KakaoAuthImpl implements KakaoAuthService {
     private String KAKAO_REDIRECT_URL_LOCAL;
 
     private final HttpServletRequest request;
+    private static final Logger log = LoggerFactory.getLogger(KakaoAuthImpl.class);
 
     public KakaoAuthImpl(HttpServletRequest request) {
         this.request = request;
@@ -36,8 +39,10 @@ public class KakaoAuthImpl implements KakaoAuthService {
 
     // 1. OAuth2 Access Token 발급
     @Override
-    public String getAccessToken(String code) {
-        System.out.println("[KakaoAuth] Authorization code 수신: " + code);
+    public TokenDto getAccessToken(String code) {
+        log.info("카카오 인증 코드: {}", code);
+        log.info("사용하는 리다이렉트 URI: {}", redirectUri);
+        
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -67,7 +72,7 @@ public class KakaoAuthImpl implements KakaoAuthService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             String accessToken = jsonNode.get("access_token").asText();
             System.out.println("[KakaoAuth] Access Token 발급 성공");
-            return accessToken;
+            return new TokenDto(accessToken);
         } catch (Exception e) {
             System.err.println("[KakaoAuth] Access Token 발급 실패: " + e.getMessage());
             throw new RuntimeException("카카오 Access Token 요청 실패", e);

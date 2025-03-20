@@ -1,11 +1,9 @@
 // package com.swyp.Swagger.controller;
-
 // import com.swyp.Swagger.dto.goal.GoalCreateRequest;
 // import com.swyp.Swagger.dto.goal.GoalResponse;
 // import com.swyp.Swagger.dto.goal.GoalUpdateRequest;
 // import com.swyp.Swagger.dto.goal.GoalAchievementResponse;
 // import com.swyp.Swagger.dto.goal.GoalListResponse;
-
 // import io.swagger.v3.oas.annotations.Operation;
 // import io.swagger.v3.oas.annotations.Parameter;
 // import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,11 +12,9 @@
 // import io.swagger.v3.oas.annotations.tags.Tag;
 // import org.springframework.web.bind.annotation.*;
 // import java.util.List;
-
 // @Tag(name = "목표", description = "목표 관련 API")
 // @RestController
-// public class GoalSwaggerController {
-
+// public class GoalSwaggerCoantroller {
 //     @Operation(
 //         summary = "목표 메인 페이지",
 //         description = "목표 메인 페이지를 조회합니다.",
@@ -37,7 +33,6 @@
 //     public List<GoalResponse> getGoals() {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "전체 목표 조회",
 //         description = "전체 목표 목록을 조회합니다.",
@@ -53,7 +48,6 @@
 //     public GoalListResponse getGoalList() {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "상세 목표 조회",
 //         description = "목표 상세 정보를 조회합니다.",
@@ -72,7 +66,6 @@
 //     ) {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "목표 생성",
 //         description = "새로운 목표를 생성합니다.",
@@ -90,7 +83,6 @@
 //     ) {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "임시 저장된 목표 수정",
 //         description = "임시 저장된 목표를 수정합니다.",
@@ -110,7 +102,6 @@
 //     ) {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "목표 활성화",
 //         description = "목표를 활성화합니다.",
@@ -129,7 +120,6 @@
 //     ) {
 //         return null;
 //     }
-
 //     @Operation(
 //         summary = "목표 삭제",
 //         description = "목표를 삭제합니다.",
@@ -146,7 +136,6 @@
 //         @PathVariable Long goalID
 //     ) {
 //     }
-
 //     @Operation(
 //         summary = "목표 달성 인증",
 //         description = "목표 달성 인증을 진행합니다.",

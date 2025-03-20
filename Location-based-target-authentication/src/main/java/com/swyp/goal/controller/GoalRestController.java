@@ -211,6 +211,7 @@ public class GoalRestController {
         }
     }
 
+
     
   //전체 목표 조회
     @Operation(
@@ -527,7 +528,7 @@ public class GoalRestController {
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,
-            @ModelAttribute GoalAchieveRequestDto requestDto
+            @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
         	// 1.위치 검증 성공시 true , 실패시 false 

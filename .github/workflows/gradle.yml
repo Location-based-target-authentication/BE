@@ -84,6 +84,9 @@ jobs:
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           
+          # Java에 443 포트 바인딩 권한 부여
+          sudo setcap 'cap_net_bind_service=+ep' /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+          
           # Let's Encrypt 인증서 확인 및 PKCS12 변환
           if [ -d "/etc/letsencrypt/live/willgo6.duckdns.org" ]; then
             sudo mkdir -p /etc/ssl/willgo
@@ -153,8 +156,8 @@ jobs:
           Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
           Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
           Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          Environment=SERVER_PORT=8443
-          Environment=SERVER_HTTP_PORT=80
+          Environment=SERVER_PORT=443
+          Environment=SERVER_HTTP_PORT=8080
           Environment=SERVER_ADDRESS=0.0.0.0
           Environment=SPRING_PROFILES_ACTIVE=secret
           Environment=LOGGING_LEVEL_ROOT=INFO
@@ -230,7 +233,7 @@ jobs:
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
             --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
             --spring.mail.properties.mail.debug=true \\
-            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080,https://${{ secrets.SERVER_IP }}:8443,https://locationcheckgo.netlify.app,http://willgo6.duckdns.org,https://willgo6.duckdns.org,https://willgo6.duckdns.org:8443
+            --cors.allowed-origins=http://locationcheckgo.netlify.app,http://localhost:8080,http://${{ secrets.SERVER_IP }}:8080,https://${{ secrets.SERVER_IP }},https://locationcheckgo.netlify.app,http://willgo6.duckdns.org:8080,https://willgo6.duckdns.org
 
           Restart=always
           RestartSec=10
@@ -238,7 +241,11 @@ jobs:
           [Install]
           WantedBy=multi-user.target
           EOF
-
+          
+          # 방화벽 설정 - 포트 개방
+          sudo ufw allow 443/tcp
+          sudo ufw allow 8080/tcp
+          
           # 로그 디렉토리 생성
           sudo mkdir -p /home/${{ secrets.SERVER_USER }}/logs
           sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/${{ secrets.SERVER_USER }}/logs

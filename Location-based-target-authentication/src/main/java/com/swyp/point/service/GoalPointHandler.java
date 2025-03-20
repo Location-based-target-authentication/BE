@@ -113,14 +113,22 @@ public class GoalPointHandler {
                     pointService.addPoints(authUser, 60, PointType.BONUS, "7일 목표 완벽 달성 보너스", goal.getId());
                     return 60;
                 }else {
-                    throw new IllegalArgumentException("보너스 지급 조건 불만족");
+                    // 보너스 지급 조건 불만족 시 예외 대신 0 반환
+                    log.info("보너스 지급 조건 불만족: 주간 달성 횟수({})가 목표 횟수({})보다 적음", 
+                            weeklyAchievedCount, goal.getTargetCount());
+                    return 0;
                 }
             }else {
-                throw new IllegalStateException("한 주의 마지막 요일이 아님");
+                // 한 주의 마지막 요일이 아님 - 예외 대신 0 반환
+                log.info("한 주의 마지막 요일(현재:{}, 마지막:{})이 아니므로 보너스 미지급", 
+                        currentDayOfWeek, goalDayOfWeeks.get(0));
+                return 0;
             }
         }
         else{
-            throw new IllegalArgumentException("설정된 목표 요일이 없음");
+            // 설정된 목표 요일이 없음 - 예외 대신 0 반환
+            log.info("설정된 목표 요일이 없으므로 보너스 미지급");
+            return 0;
         }
     }
 

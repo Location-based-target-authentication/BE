@@ -527,9 +527,17 @@ public class GoalRestController {
     @PostMapping("/v1/goals/{goalId}/achieve")
     public ResponseEntity<?> GoalAchievementResponse(
             @PathVariable("goalId") Long goalId,
-            @ModelAttribute GoalAchieveRequestDto requestDto
+            @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
+            // 필수 파라미터 검증
+            if (requestDto.getUserId() == null) {
+                return new ResponseEntity<>(new CompleteResponseDto("사용자 ID가 입력되지 않았습니다."), HttpStatus.BAD_REQUEST);
+            }
+            if (requestDto.getLatitude() == null || requestDto.getLongitude() == null) {
+                return new ResponseEntity<>(new CompleteResponseDto("위치 정보(위도/경도)가 입력되지 않았습니다."), HttpStatus.BAD_REQUEST);
+            }
+            
         	// 1.위치 검증 성공시 true , 실패시 false 
         	boolean verify = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
         	// 2. 사용자 정보 조회
@@ -562,6 +570,7 @@ public class GoalRestController {
         		return new ResponseEntity<>(response, HttpStatus.OK);
         	}
 		} catch (Exception e) {
+		    e.printStackTrace(); // 로그에 스택 트레이스 출력
 			return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }

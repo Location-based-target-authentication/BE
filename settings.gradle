@@ -1,1 +1,2 @@
-rootProject.name = 'Location-based-target-authentication'
+rootProject.name = 'BE'
+include 'Location-based-target-authentication'

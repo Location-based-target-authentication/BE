@@ -17,4 +17,5 @@ public class PointHistoryResponse {
     private Long userId;
     private String socialId;
     private List<PointHistory> pointHistory;
+
 }

@@ -65,12 +65,8 @@ jobs:
         chmod 600 ~/.ssh/deploy_key
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/deploy_key
+        echo "${{ secrets.SERVER_IP }} $(ssh-keyscan -t ecdsa ${{ secrets.SERVER_IP }} 2>/dev/null)" >> ~/.ssh/known_hosts
         ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
-
-    # SSH 연결 테스트
-    - name: Test SSH connection
-      run: |
-        ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} 'echo "Connection test successful"'
 
     # JAR 파일 전송
     - name: Copy JAR to Server
@@ -87,6 +83,59 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /home/${{ secrets.SERVER_USER }}
+          
+          # Java에 443 포트 바인딩 권한 부여
+          sudo setcap 'cap_net_bind_service=+ep' /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+          
+          # Let's Encrypt 인증서 확인 및 PKCS12 변환
+          if [ -d "/etc/letsencrypt/live/willgo6.duckdns.org" ]; then
+            sudo mkdir -p /etc/ssl/willgo
+            
+            # Let's Encrypt 인증서를 PKCS12 형식으로 변환
+            sudo openssl pkcs12 -export -in /etc/letsencrypt/live/willgo6.duckdns.org/fullchain.pem \
+              -inkey /etc/letsencrypt/live/willgo6.duckdns.org/privkey.pem \
+              -out /etc/ssl/willgo/letsencrypt.p12 -name tomcat \
+              -CAfile /etc/letsencrypt/live/willgo6.duckdns.org/chain.pem \
+              -caname root -password pass:willgo86
+            
+            sudo chmod 600 /etc/ssl/willgo/letsencrypt.p12
+            echo "Let's Encrypt 인증서가 PKCS12 형식으로 변환되었습니다."
+          else
+            # Let's Encrypt 인증서가 없는 경우 자체 서명 인증서 생성
+            sudo mkdir -p /etc/ssl/willgo
+            sudo keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -storetype PKCS12 \
+              -keystore /etc/ssl/willgo/keystore.p12 -validity 3650 -storepass willgo86 \
+              -dname "CN=willgo6.duckdns.org, OU=NA, O=NA, L=NA, ST=NA, C=NA"
+            
+            sudo chmod 600 /etc/ssl/willgo/keystore.p12
+            echo "자체 서명 인증서가 생성되었습니다."
+          fi
+          
+          # 인증서 갱신 후 자동 변환 스크립트 생성
+          sudo mkdir -p /etc/letsencrypt/renewal-hooks/post
+          sudo tee /etc/letsencrypt/renewal-hooks/post/convert-to-pkcs12.sh << EOF
+          #!/bin/bash
+          
+          # Let's Encrypt 인증서를 PKCS12 형식으로 변환
+          openssl pkcs12 -export -in /etc/letsencrypt/live/willgo6.duckdns.org/fullchain.pem \\
+            -inkey /etc/letsencrypt/live/willgo6.duckdns.org/privkey.pem \\
+            -out /etc/ssl/willgo/letsencrypt.p12 -name tomcat \\
+            -CAfile /etc/letsencrypt/live/willgo6.duckdns.org/chain.pem \\
+            -caname root -password pass:willgo86
+          
+          # 권한 설정
+          chmod 600 /etc/ssl/willgo/letsencrypt.p12
+          
+          # 서비스 재시작
+          systemctl restart willgo
+          EOF
+          
+          sudo chmod +x /etc/letsencrypt/renewal-hooks/post/convert-to-pkcs12.sh
+          
+          # JAR 파일 권한 설정
+          chmod +x Location-based-target-authentication-0.0.1-SNAPSHOT.jar
+          
+          # 서비스 파일 생성
           sudo tee /etc/systemd/system/willgo.service << EOF
           [Unit]
           Description=Willgo Backend Application
@@ -96,113 +145,121 @@ jobs:
           Type=simple
           User=root
           WorkingDirectory=/home/${{ secrets.SERVER_USER }}
-          
-          # JWT 설정
+
+          # 환경 변수 설정
           Environment=JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}
           Environment=JWT_ACCESS_TOKEN_EXPIRATION=600000
           Environment=JWT_REFRESH_TOKEN_EXPIRATION=604800000
+          Environment=kakao.local.search.url=https://dapi.kakao.com/v2/local/search/keyword.json
+          Environment=kakao.api.key=${{ secrets.KAKAO_API_KEY }}
+          Environment=SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
+          Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
+          Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          Environment=SERVER_PORT=443
+          Environment=SERVER_HTTP_PORT=8080
+          Environment=SERVER_ADDRESS=0.0.0.0
+          Environment=SPRING_PROFILES_ACTIVE=secret
+          Environment=LOGGING_LEVEL_ROOT=INFO
+          Environment=LOGGING_LEVEL_COM_SWYP=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
+          Environment=LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2=DEBUG
+          Environment=SPRINGDOC_SWAGGER_UI_PATH=/swagger-ui/index.html
+          Environment=SPRINGDOC_API_DOCS_PATH=/v3/api-docs
+          Environment=SPRINGDOC_SWAGGER_UI_ENABLED=true
+          Environment=SPRINGDOC_API_DOCS_ENABLED=true
           
-          # 카카오 설정
-          Environment=KAKAO_API_KEY=${{ secrets.KAKAO_API_KEY }}
-          Environment=KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
-          Environment=KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
-          Environment=KAKAO_REDIRECT_URI=https://175.45.203.57:8443/api/v1/auth/kakao/callback
+          # SSL 설정 - Let's Encrypt 인증서 사용
+          Environment=SERVER_SSL_ENABLED=true
+          Environment=SERVER_SSL_KEY_STORE=/etc/ssl/willgo/letsencrypt.p12
+          Environment=SERVER_SSL_KEY_STORE_PASSWORD=willgo86
+          Environment=SERVER_SSL_KEY_STORE_TYPE=PKCS12
+          Environment=SERVER_SSL_KEY_ALIAS=tomcat
+          Environment=SECURITY_REQUIRE_SSL=true
           
-          # 구글 설정
-          Environment=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          Environment=GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
-          Environment=GOOGLE_REDIRECT_URI=https://175.45.203.57:8443/api/v1/auth/google/callback
+          # OAuth2 설정
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_SCOPE=profile,email
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_GOOGLE_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/google
           
-          # 메일 설정
-          Environment=MAIL_HOST=${{ secrets.MAIL_HOST }}
-          Environment=MAIL_PORT=${{ secrets.MAIL_PORT }}
-          Environment=MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-          Environment=MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
-          
-          # Tomcat 설정
-          Environment=TOMCAT_CONNECTOR_PROTOCOL=org.apache.coyote.http11.Http11NioProtocol
-          Environment=TOMCAT_CONNECTOR_MAX_CONNECTIONS=10000
-          Environment=TOMCAT_CONNECTOR_ACCEPT_COUNT=100
-          Environment=TOMCAT_CONNECTOR_CONNECTION_TIMEOUT=20000
-          Environment=TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS=1
-          Environment=TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT=1
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_CLIENT_SECRET=${{ secrets.KAKAO_CLIENT_SECRET }}
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_SCOPE=profile_nickname,account_email
+          Environment=SPRING_SECURITY_OAUTH2_CLIENT_REGISTRATION_KAKAO_REDIRECT_URI=https://locationcheckgo.netlify.app/auth/callback/kakao
 
-          ExecStart=/usr/bin/java -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \
-            --spring.profiles.active=secret \
-            --logging.level.com.swyp.global.security=DEBUG \
-            --logging.level.org.springframework.web=DEBUG \
-            --logging.level.org.springframework.web.cors=TRACE \
-            --spring.config.location=classpath:/application.properties \
-            --server.tomcat.remoteip.remote-ip-header=x-forwarded-for \
-            --server.tomcat.remoteip.protocol-header=x-forwarded-proto \
-            --server.tomcat.redirect-context-root=false \
-            --server.tomcat.use-relative-redirects=true \
-            --server.forward-headers-strategy=native \
-            --server.tomcat.max-http-form-post-size=10MB \
-            --server.tomcat.max-swallow-size=20MB \
-            -Dspring.security.oauth2.client.registration.google.client-id=${GOOGLE_CLIENT_ID} \
-            -Dspring.security.oauth2.client.registration.google.client-secret=${GOOGLE_CLIENT_SECRET} \
-            -Dspring.security.oauth2.client.registration.google.redirect-uri=${GOOGLE_REDIRECT_URI} \
-            -Dgoogle.redirect.url=${GOOGLE_REDIRECT_URI} \
-            -Dgoogle.client.id=${GOOGLE_CLIENT_ID} \
-            -Dgoogle.client.secret=${GOOGLE_CLIENT_SECRET} \
-            -Dkakao.client.id=${KAKAO_CLIENT_ID} \
-            -Dkakao.client.secret=${KAKAO_CLIENT_SECRET} \
-            -Dkakao.redirect.url=${KAKAO_REDIRECT_URI} \
-            -Dspring.security.oauth2.client.registration.google.scope=profile,email \
-            -Dspring.security.oauth2.client.registration.google.client-name=Google \
-            -Dspring.security.oauth2.client.registration.google.authorization-grant-type=authorization_code \
-            -Dspring.security.oauth2.client.provider.google.authorization-uri=https://accounts.google.com/o/oauth2/v2/auth \
-            -Dspring.security.oauth2.client.provider.google.token-uri=https://oauth2.googleapis.com/token \
-            -Dspring.security.oauth2.client.provider.google.user-info-uri=https://www.googleapis.com/oauth2/v3/userinfo \
-            -Dspring.security.oauth2.client.provider.google.user-name-attribute=sub \
-            -Dspring.security.oauth2.client.registration.kakao.client-id=${KAKAO_CLIENT_ID} \
-            -Dspring.security.oauth2.client.registration.kakao.client-secret=${KAKAO_CLIENT_SECRET} \
-            -Dspring.security.oauth2.client.registration.kakao.redirect-uri=${KAKAO_REDIRECT_URI} \
-            -Dspring.security.oauth2.client.registration.kakao.client-name=Kakao \
-            -Dspring.security.oauth2.client.registration.kakao.authorization-grant-type=authorization_code \
-            -Dspring.security.oauth2.client.registration.kakao.client-authentication-method=client_secret_post \
-            -Dspring.security.oauth2.client.registration.kakao.scope=profile_nickname,profile_image,account_email \
-            -Dspring.security.oauth2.client.provider.kakao.authorization-uri=https://kauth.kakao.com/oauth/authorize \
-            -Dspring.security.oauth2.client.provider.kakao.token-uri=https://kauth.kakao.com/oauth/token \
-            -Dspring.security.oauth2.client.provider.kakao.user-info-uri=https://kapi.kakao.com/v2/user/me \
-            -Dspring.security.oauth2.client.provider.kakao.user-name-attribute=id \
-            -DMAIL_HOST=${MAIL_HOST} \
-            -DMAIL_PORT=${MAIL_PORT} \
-            -DMAIL_USERNAME=${MAIL_USERNAME} \
-            -DMAIL_PASSWORD=${MAIL_PASSWORD} \
-            -Dmail.transport.protocol=smtp \
-            -Dmail.smtp.auth=true \
-            -Dmail.smtp.starttls.enable=true \
-            -Dmail.smtp.timeout=5000 \
-            -Dmail.smtp.connectiontimeout=5000 \
-            -Dmail.smtp.writetimeout=5000 \
-            -Dmail.smtp.ssl.trust=smtp.gmail.com \
-            -Dmail.smtp.ssl.protocols=TLSv1.2 \
-            -Dmail.smtp.socketFactory.class=javax.net.ssl.SSLSocketFactory \
-            -Dmail.smtp.socketFactory.fallback=false \
-            -Dmail.smtp.socketFactory.port=587 \
-            -Dmail.debug=true \
-            -Dcors.allowed-origins=https://locationcheckgo.netlify.app,https://localhost:8443,https://175.45.203.57:8443 \
-            -Dserver.tomcat.additional-tld-skip-patterns=*.jar \
-            -Dserver.tomcat.relaxed-query-chars=|,{,},[,],^,`,<,> \
-            -Dserver.tomcat.relaxed-path-chars=|,{,},[,],^,`,<,> \
-            -Dserver.tomcat.connector.protocol=${TOMCAT_CONNECTOR_PROTOCOL} \
-            -Dserver.tomcat.max-connections=${TOMCAT_CONNECTOR_MAX_CONNECTIONS} \
-            -Dserver.tomcat.accept-count=${TOMCAT_CONNECTOR_ACCEPT_COUNT} \
-            -Dserver.tomcat.connection-timeout=${TOMCAT_CONNECTOR_CONNECTION_TIMEOUT} \
-            -Dserver.tomcat.max-keep-alive-requests=${TOMCAT_CONNECTOR_MAX_KEEP_ALIVE_REQUESTS} \
-            -Dserver.tomcat.keep-alive-timeout=${TOMCAT_CONNECTOR_KEEP_ALIVE_TIMEOUT} \
-            -Dserver.tomcat.reject-illegal-header-values=false \
-            -Dserver.tomcat.uri-encoding=UTF-8
-          
+          ExecStart=/usr/lib/jvm/java-17-openjdk-amd64/bin/java \\
+            -Xms512m \\
+            -Xmx1024m \\
+            -XX:+HeapDumpOnOutOfMemoryError \\
+            -XX:HeapDumpPath=/home/${{ secrets.SERVER_USER }}/heapdump.hprof \\
+            -Dspring.output.ansi.enabled=always \\
+            -Dlogging.file.name=/home/${{ secrets.SERVER_USER }}/logs/willgo.log \\
+            -Dlogging.pattern.console='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \\
+            -Dlogging.pattern.file='%%d{yyyy-MM-dd HH:mm:ss} [%%p] - %%m%%n' \\
+            -jar Location-based-target-authentication-0.0.1-SNAPSHOT.jar \\
+            --spring.config.import=optional:application-local.properties,optional:application-secret.properties \\
+            --spring.profiles.active=\${SPRING_PROFILES_ACTIVE} \\
+            --server.port=\${SERVER_PORT} \\
+            --server.http.port=\${SERVER_HTTP_PORT} \\
+            --server.address=\${SERVER_ADDRESS} \\
+            --server.ssl.enabled=\${SERVER_SSL_ENABLED} \\
+            --server.ssl.key-store=\${SERVER_SSL_KEY_STORE} \\
+            --server.ssl.key-store-password=\${SERVER_SSL_KEY_STORE_PASSWORD} \\
+            --server.ssl.key-store-type=\${SERVER_SSL_KEY_STORE_TYPE} \\
+            --server.ssl.key-alias=\${SERVER_SSL_KEY_ALIAS} \\
+            --security.require-ssl=\${SECURITY_REQUIRE_SSL} \\
+            --springdoc.swagger-ui.path=\${SPRINGDOC_SWAGGER_UI_PATH} \\
+            --springdoc.api-docs.path=\${SPRINGDOC_API_DOCS_PATH} \\
+            --springdoc.swagger-ui.enabled=\${SPRINGDOC_SWAGGER_UI_ENABLED} \\
+            --springdoc.api-docs.enabled=\${SPRINGDOC_API_DOCS_ENABLED} \\
+            --springdoc.swagger-ui.configUrl=/v3/api-docs/swagger-config \\
+            --springdoc.swagger-ui.url=/v3/api-docs \\
+            --logging.level.root=\${LOGGING_LEVEL_ROOT} \\
+            --logging.level.com.swyp=\${LOGGING_LEVEL_COM_SWYP} \\
+            --logging.level.org.springframework.security=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY} \\
+            --logging.level.org.springframework.web=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB} \\
+            --logging.level.org.springframework.oauth2=\${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_OAUTH2} \\
+            --logging.level.org.springframework.web.cors=TRACE \\
+            --debug=true \\
+            --trace=true \\
+            --spring.mail.host=\${SPRING_MAIL_HOST} \\
+            --spring.mail.port=\${SPRING_MAIL_PORT} \\
+            --spring.mail.username=\${SPRING_MAIL_USERNAME} \\
+            --spring.mail.password=\${SPRING_MAIL_PASSWORD} \\
+            --spring.mail.properties.mail.smtp.auth=true \\
+            --spring.mail.properties.mail.smtp.starttls.enable=true \\
+            --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\
+            --spring.mail.properties.mail.smtp.ssl.protocols=TLSv1.2 \\
+            --spring.mail.properties.mail.debug=true \\
+            --cors.allowed-origins=https://locationcheckgo.netlify.app,http://localhost:8080,https://willgo6.duckdns.org,http://158.180.87.205:8080
+
           Restart=always
+          RestartSec=10
 
           [Install]
           WantedBy=multi-user.target
           EOF
+          
+          # 방화벽 설정 - 포트 개방
+          sudo ufw allow 443/tcp
+          sudo ufw allow 8080/tcp
+          
+          # 로그 디렉토리 생성
+          sudo mkdir -p /home/${{ secrets.SERVER_USER }}/logs
+          sudo chown -R ${{ secrets.SERVER_USER }}:${{ secrets.SERVER_USER }} /home/${{ secrets.SERVER_USER }}/logs
 
+          # Java 버전 확인
+          /usr/lib/jvm/java-17-openjdk-amd64/bin/java -version
+          
           # 서비스 시작
           sudo systemctl daemon-reload
+          sudo systemctl enable willgo
           sudo systemctl restart willgo
+          sleep 3
           sudo systemctl status willgo
+          
+          # 로그 확인
+          echo "Checking system logs..."
+          sudo journalctl -u willgo -n 50 --no-pager

@@ -172,11 +172,8 @@ public class PointController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
-
     private AuthUser findAuthUser(Long userId) {
         return userRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
-
-
 }

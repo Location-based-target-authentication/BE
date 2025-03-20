@@ -531,31 +531,49 @@ public class GoalRestController {
             @RequestBody GoalAchieveRequestDto requestDto
     ) {
         try {
+            // 필수 파라미터 검증
+            if (requestDto.getUserId() == null) {
+                return new ResponseEntity<>(new CompleteResponseDto("사용자 ID가 입력되지 않았습니다."), HttpStatus.BAD_REQUEST);
+            }
+            if (requestDto.getLatitude() == null || requestDto.getLongitude() == null) {
+                return new ResponseEntity<>(new CompleteResponseDto("위치 정보(위도/경도)가 입력되지 않았습니다."), HttpStatus.BAD_REQUEST);
+            }
+            
         	// 1.위치 검증 성공시 true , 실패시 false 
         	boolean verify = goalService.validateGoalAchievement(requestDto.getUserId(), goalId, requestDto.getLatitude(), requestDto.getLongitude());
-        	// 2.사용자 정보 조회
+        	// 2. 사용자 정보 조회
             AuthUser authUser = userRepository.findById(requestDto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-            // 3.목표 조회
+            // 목표 조회
             Goal goal = goalRepository.findById(goalId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 목표입니다."));
             // 4. 응답값을 담기위한 response
             Map<String, Object> response = new HashMap<>();
-
-            if(verify) { // 위치 검증 성공 
-        		response.put("achievementStatus", "성공");
+			// (포인트) 당일, 보너스, 총 포인트 반환
+			int totalPoints = pointService.getTotalPoints(authUser);
+            if(verify) { // 위치 검증 성공
+				int dailyPoints = goalPointHandler.handleDailyAchievement(authUser, goal, true);
+				int bonusPoints = goalPointHandler.handleWeeklyGoalCompletion(authUser, goal);
+				response.put("achievementStatus", "성공");
+				response.put("totalPoints", totalPoints); // 전체 포인트
+				response.put("currentPoints", dailyPoints); // 오늘 획득한 포인트
+				response.put("bonusPoints", bonusPoints); // 보너스 포인트
+				response.put("message", "목표 인증에 성공했습니다.");
         		goalRepository.save(goal); // goal테이블의 updated_at 업데이트를 위한 save
         		return new ResponseEntity<>(response, HttpStatus.OK);
-
         	}else { // 위치 검증 실패 
         		response.put("achievementStatus", "실패");
-                goalRepository.save(goal);
+				response.put("totalPoints", totalPoints);
+				response.put("currentPoints", 0);
+				response.put("bonusPoints", 0);
+				response.put("message", "목표 위치가 현재 위치와 100m 이상 차이가 있거나, 오늘 이미 인증했습니다.");
+				goalRepository.save(goal);
         		return new ResponseEntity<>(response, HttpStatus.OK);
         	}
-
-        } catch (Exception e) {
-        	return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+		} catch (Exception e) {
+		    e.printStackTrace(); // 로그에 스택 트레이스 출력
+			return new ResponseEntity<>(new CompleteResponseDto(e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
     }
     
 
@@ -591,15 +609,14 @@ public class GoalRestController {
     	    }
     	)
     @PostMapping("/v1/goals/{goalId}/complete")
-    public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId,
-            @RequestParam("isSelectedDay") boolean isSelectedDay) {
+    public ResponseEntity<?> updateGoalStatusToComplete(@PathVariable("goalId") Long goalId,@RequestParam("userId") Long userId) {
     	try {
         // Long 타입의 userId로 사용자 찾기
         AuthUser authUser = userRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + userId));
         Goal goal = goalRepository.findById(goalId).orElseThrow(() -> new IllegalArgumentException("목표를 찾을 수 없습니다."));
         // 목표 상태 COMPLETE로 변경 (목표 횟수 달성 시)
         // userId를 authUser에서 가져와 전달
-        Goal updatedGoal = goalService.updateGoalStatusToComplete(goal.getId(), authUser.getUserId(), isSelectedDay);
+        Goal updatedGoal = goalService.updateGoalStatusToComplete(goalId, userId);
         goalRepository.save(updatedGoal);
         return new ResponseEntity<>(new CompleteResponseDto("목표 달성 완료"), HttpStatus.OK);
     	}catch (IllegalStateException e) {

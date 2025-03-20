@@ -1,6 +1,7 @@
 package com.swyp.point.controller;
 import com.swyp.point.dto.PointHistoryResponse;
 import com.swyp.point.entity.PointHistory;
+import com.swyp.point.repository.PointHistoryRepository;
 import com.swyp.point.service.PointService;
 import com.swyp.social_login.entity.AuthUser;
 import com.swyp.social_login.repository.UserRepository;
@@ -21,6 +22,8 @@ public class PointHistoryController {
 
     private final PointService pointService;
     private final UserRepository userRepository;
+    private final PointHistoryRepository pointHistoryRepository;
+
     @Operation(summary = "포인트 이력 조회")
     @GetMapping("/{user_id}")
     public ResponseEntity<PointHistoryResponse> getPointHistory(@PathVariable("user_id") Long userId) {
@@ -34,9 +37,13 @@ public class PointHistoryController {
         return ResponseEntity.ok(response);
     }
 
-    private AuthUser findAuthUser(Long userId) {
-        return userRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    private AuthUser findAuthUser(Long id) {
+        System.out.println("요청한 userId: " + id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> {
+                    System.out.println("사용자를 찾을 수 없음.. " + id);
+                    return new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+                });
     }
 }
 

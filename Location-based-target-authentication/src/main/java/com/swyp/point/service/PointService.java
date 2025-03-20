@@ -22,11 +22,12 @@ public class PointService {
     @Transactional
     public Point getOrCreatePoint(AuthUser authUser) {
         return pointRepository.findByAuthUserUserId(authUser.getId())
-                .orElseGet(() -> {
-                    Point newPoint = new Point(authUser);
-                    newPoint.addPoints(2000); // 초기 포인트 지급
-                    return pointRepository.save(newPoint);
-                });
+                .orElseGet(() ->
+                    new Point(authUser));
+//                    Point newPoint = new Point(authUser);
+//                    newPoint.addPoints(2000); // 초기 포인트 지급
+//                    return pointRepository.save(newPoint);
+
     }
 
     //포인트 조회
@@ -34,11 +35,17 @@ public class PointService {
         Point point = getOrCreatePoint(authUser);
         return point.getTotalPoints();
     }
+
+    public int getTotalPoints(AuthUser authUser) {
+            Integer totalPoints = pointHistoryRepository.getTotalPointsByAuthUser(authUser);
+            return totalPoints != null ? totalPoints : 0; // 포인트가 없으면 0 반환
+        }
+
+
     //포인트 지급
     @Transactional
     public void addPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
         Point point = getOrCreatePoint(authUser);
-        point.addPoints(points);
         pointRepository.save(point);
         // 포인트 이력 저장
         pointHistoryRepository.save(new PointHistory(authUser, points, pointType, description, goalId));
@@ -53,7 +60,6 @@ public class PointService {
         try {
             pointRepository.save(point);
             pointHistoryRepository.save(new PointHistory(authUser, -points, pointType, description, goalId));
-            
             // 쿠폰 지급은 별도의 API를 통해서만 가능하도록 수정
             if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
                 throw new IllegalArgumentException("쿠폰 지급은 별도의 API를 통해서만 가능합니다.");

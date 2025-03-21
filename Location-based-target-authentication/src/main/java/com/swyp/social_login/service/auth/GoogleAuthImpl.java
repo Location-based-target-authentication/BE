@@ -12,6 +12,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.swyp.global.cache.AuthRequestCacheService;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,130 +40,122 @@ public class GoogleAuthImpl implements GoogleAuthService {
     private String redirectUrlLocal;
 
     private final HttpServletRequest request;
+    private final AuthRequestCacheService cacheService;
 
-    public GoogleAuthImpl(HttpServletRequest request) {
+    public GoogleAuthImpl(HttpServletRequest request, AuthRequestCacheService cacheService) {
         this.request = request;
+        this.cacheService = cacheService;
     }
 
     @Override
     public String getAccessToken(String code) {
-        log.info("[GoogleAuthImpl] getAccessToken 시작 - code: {}", code);
+        log.info("구글 인증 코드: {}", code);
+        
+        // 캐시에서 코드에 해당하는 액세스 토큰 찾기
+        String cachedToken = cacheService.getAccessTokenByCode(code);
+        if (cachedToken != null) {
+            log.info("캐시에서 액세스 토큰을 찾았습니다. 새로운 API 요청을 하지 않습니다.");
+            return cachedToken;
+        }
         
         for (int retryCount = 0; retryCount <= MAX_RETRY_COUNT; retryCount++) {
             try {
                 if (retryCount > 0) {
                     long backoffTime = INITIAL_BACKOFF_MS * (long) Math.pow(2, retryCount - 1);
-                    log.info("[GoogleAuthImpl] 재시도 #{} - {}ms 대기 후 시도합니다.", retryCount, backoffTime);
+                    log.info("[GoogleAuth] 재시도 #{} - {}ms 대기 후 시도합니다.", retryCount, backoffTime);
                     TimeUnit.MILLISECONDS.sleep(backoffTime);
                 }
                 
                 RestTemplate restTemplate = new RestTemplate();
                 HttpHeaders headers = new HttpHeaders();
                 headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-                headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-                String finalRedirectUrl = redirectUrl;
-                log.info("[GoogleAuthImpl] 선택된 redirectUrl: {}", finalRedirectUrl);
-
+                
+                String referer = request.getHeader("Referer");
+                String finalRedirectUrl = (referer != null && referer.contains("localhost")) 
+                    ? redirectUrlLocal 
+                    : redirectUrl;
+                log.info("[GoogleAuth] 리다이렉트 URL 설정: {}", finalRedirectUrl);
+                
                 MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-                params.add("grant_type", "authorization_code");
+                params.add("code", code);
                 params.add("client_id", clientId);
                 params.add("client_secret", clientSecret);
                 params.add("redirect_uri", finalRedirectUrl);
-                params.add("code", code);
-
-                HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-                ResponseEntity<String> response = restTemplate.exchange(GOOGLE_TOKEN_URL, HttpMethod.POST, request, String.class);
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(response.getBody());
-                String accessToken = jsonNode.get("access_token").asText();
-                log.info("[GoogleAuthImpl] Access Token 발급 성공");
-                return accessToken;
-            } catch (HttpClientErrorException e) {
-                if (e.getStatusCode().value() == 429) { // Too Many Requests
-                    if (retryCount == MAX_RETRY_COUNT) {
-                        log.error("[GoogleAuthImpl] 최대 재시도 횟수({})를 초과했습니다. 요청 속도 제한(429)으로 실패", MAX_RETRY_COUNT);
-                        throw new RuntimeException("구글 API 요청 속도 제한 초과", e);
-                    }
-                    log.warn("[GoogleAuthImpl] 요청 속도 제한(429) 발생, 재시도 #{}", retryCount + 1);
-                } else if (e.getStatusCode().value() == 400) {
-                    log.error("[GoogleAuthImpl] 잘못된 요청 (400): {}", e.getResponseBodyAsString());
-                    throw new RuntimeException("구글 Access Token 요청 실패: 잘못된 요청 - " + e.getResponseBodyAsString(), e);
-                } else {
-                    log.error("[GoogleAuthImpl] Access Token 발급 실패: HTTP 오류 {}", e.getStatusCode());
-                    throw new RuntimeException("구글 Access Token 요청 실패: " + e.getMessage(), e);
+                params.add("grant_type", "authorization_code");
+                
+                HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(params, headers);
+                log.info("[GoogleAuth] 구글 Access Token 요청 시작");
+                
+                ResponseEntity<String> response = restTemplate.exchange(GOOGLE_TOKEN_URL, HttpMethod.POST, requestEntity, String.class);
+                
+                if (response.getStatusCode() == HttpStatus.OK) {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    JsonNode jsonNode = objectMapper.readTree(response.getBody());
+                    String accessToken = jsonNode.get("access_token").asText();
+                    
+                    // 액세스 토큰을 캐시에 저장
+                    cacheService.cacheAccessTokenByCode(code, accessToken);
+                    
+                    log.info("[GoogleAuth] 구글 Access Token 발급 성공");
+                    return accessToken;
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("[GoogleAuthImpl] 재시도 대기 중 인터럽트 발생");
-                throw new RuntimeException("구글 Access Token 요청 중단", e);
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                    log.warn("[GoogleAuth] API 요청 한도 초과, 재시도 {}/{}", retryCount, MAX_RETRY_COUNT);
+                    if (retryCount == MAX_RETRY_COUNT) {
+                        log.error("[GoogleAuth] 최대 재시도 횟수 초과: {}", e.getMessage());
+                        throw new RuntimeException("구글 API 요청 한도를 초과했습니다.", e);
+                    }
+                    // 다음 재시도를 위해 계속
+                    continue;
+                } else {
+                    log.error("[GoogleAuth] HTTP 에러: {}", e.getMessage());
+                    throw new RuntimeException("구글 API 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
+                }
             } catch (Exception e) {
-                log.error("[GoogleAuthImpl] Access Token 발급 실패: {}", e.getMessage());
-                throw new RuntimeException("구글 Access Token 요청 실패", e);
+                log.error("[GoogleAuth] 일반 에러: {}", e.getMessage());
+                throw new RuntimeException("구글 API 통신 중 오류가 발생했습니다: " + e.getMessage(), e);
             }
         }
-        throw new RuntimeException("구글 Access Token 요청 실패 - 재시도 후에도 실패");
+        
+        throw new RuntimeException("구글 액세스 토큰을 가져오는데 실패했습니다.");
     }
 
     @Override
     public Map<String, Object> getUserInfo(String accessToken) {
-        log.info("[GoogleAuthImpl] getUserInfo 시작");
-        
-        for (int retryCount = 0; retryCount <= MAX_RETRY_COUNT; retryCount++) {
-            try {
-                if (retryCount > 0) {
-                    long backoffTime = INITIAL_BACKOFF_MS * (long) Math.pow(2, retryCount - 1);
-                    log.info("[GoogleAuthImpl] 사용자 정보 조회 재시도 #{} - {}ms 대기 후 시도합니다.", retryCount, backoffTime);
-                    TimeUnit.MILLISECONDS.sleep(backoffTime);
-                }
-                
-                RestTemplate restTemplate = new RestTemplate();
-                HttpHeaders headers = new HttpHeaders();
-                headers.setBearerAuth(accessToken);
-                headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
-
-                HttpEntity<Void> entity = new HttpEntity<>(headers);
-                ResponseEntity<String> response = restTemplate.exchange(GOOGLE_USERINFO_URL, HttpMethod.GET, entity, String.class);
-
-                ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode jsonNode = objectMapper.readTree(response.getBody());
-
-                Map<String, Object> userInfo = new HashMap<>();
-                String socialId = jsonNode.get("id").asText();
-                String email = jsonNode.get("email").asText();
-                String username = jsonNode.get("name").asText();
-                
-                log.info("[GoogleAuthImpl] 사용자 정보 파싱 결과: socialId={}, email={}, username={}", 
-                        socialId, email, username);
-                
-                userInfo.put("socialId", socialId);
-                userInfo.put("email", email);
-                userInfo.put("username", username);
-
-                log.info("[GoogleAuthImpl] 사용자 정보 조회 성공");
-                return userInfo;
-            } catch (HttpClientErrorException e) {
-                if (e.getStatusCode().value() == 429) { // Too Many Requests
-                    if (retryCount == MAX_RETRY_COUNT) {
-                        log.error("[GoogleAuthImpl] 사용자 정보 조회 - 최대 재시도 횟수({})를 초과했습니다. 요청 속도 제한(429)으로 실패", MAX_RETRY_COUNT);
-                        throw new RuntimeException("구글 API 요청 속도 제한 초과", e);
-                    }
-                    log.warn("[GoogleAuthImpl] 사용자 정보 조회 - 요청 속도 제한(429) 발생, 재시도 #{}", retryCount + 1);
-                } else {
-                    log.error("[GoogleAuthImpl] 사용자 정보 조회 실패: HTTP 오류 {}", e.getStatusCode());
-                    throw new RuntimeException("구글 사용자 정보 요청 실패: " + e.getMessage(), e);
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                log.error("[GoogleAuthImpl] 사용자 정보 조회 - 재시도 대기 중 인터럽트 발생");
-                throw new RuntimeException("구글 사용자 정보 요청 중단", e);
-            } catch (Exception e) {
-                log.error("[GoogleAuthImpl] 사용자 정보 조회 실패: {}", e.getMessage());
-                log.error("[GoogleAuthImpl] 응답 내용: {}", e.getMessage());
-                throw new RuntimeException("구글 사용자 정보 요청 실패", e);
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + accessToken);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+            
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(GOOGLE_USERINFO_URL, HttpMethod.GET, entity, String.class);
+            
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+            
+            // 사용자 식별자 (이후 캐싱을 위해 사용)
+            String socialId = rootNode.path("id").asText();
+            String email = rootNode.path("email").asText();
+            String username = rootNode.path("name").asText();
+            String picture = rootNode.path("picture").asText();
+            
+            // 인증 정보에 성공하면 사용자 ID로 토큰을 캐싱
+            if (!socialId.isEmpty()) {
+                cacheService.cacheAccessTokenByUserId(socialId, accessToken);
             }
+            
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("socialId", socialId);
+            userInfo.put("email", email);
+            userInfo.put("username", username);
+            userInfo.put("profileImage", picture);
+            
+            return userInfo;
+        } catch (Exception e) {
+            log.error("[GoogleAuth] 사용자 정보 요청 중 오류: {}", e.getMessage());
+            throw new RuntimeException("구글 API에서 사용자 정보를 가져오는 중 오류가 발생했습니다: " + e.getMessage(), e);
         }
-        throw new RuntimeException("구글 사용자 정보 요청 실패 - 재시도 후에도 실패");
     }
 }

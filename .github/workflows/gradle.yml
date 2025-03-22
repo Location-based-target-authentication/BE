@@ -182,10 +182,10 @@ jobs:
           Environment=JWT_REFRESH_TOKEN_EXPIRATION=604800000
           Environment=kakao.local.search.url=https://dapi.kakao.com/v2/local/search/keyword.json
           Environment=kakao.api.key=${{ secrets.KAKAO_API_KEY }}
-          Environment=SPRING_MAIL_HOST=${{ secrets.MAIL_HOST }}
-          Environment=SPRING_MAIL_PORT=${{ secrets.MAIL_PORT }}
-          Environment=SPRING_MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
-          Environment=SPRING_MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
+          Environment=MAIL_HOST=${{ secrets.MAIL_HOST }}
+          Environment=MAIL_PORT=${{ secrets.MAIL_PORT }}
+          Environment=MAIL_USERNAME=${{ secrets.MAIL_USERNAME }}
+          Environment=MAIL_PASSWORD=${{ secrets.MAIL_PASSWORD }}
           Environment=SERVER_PORT=443
           Environment=SERVER_HTTP_PORT=8080
           Environment=SERVER_ADDRESS=0.0.0.0
@@ -254,10 +254,10 @@ jobs:
             --logging.level.org.springframework.web.cors=TRACE \\
             --debug=true \\
             --trace=true \\
-            --spring.mail.host=\${SPRING_MAIL_HOST} \\
-            --spring.mail.port=\${SPRING_MAIL_PORT} \\
-            --spring.mail.username=\${SPRING_MAIL_USERNAME} \\
-            --spring.mail.password=\${SPRING_MAIL_PASSWORD} \\
+            --spring.mail.host=\${MAIL_HOST} \\
+            --spring.mail.port=\${MAIL_PORT} \\
+            --spring.mail.username=\${MAIL_USERNAME} \\
+            --spring.mail.password=\${MAIL_PASSWORD} \\
             --spring.mail.properties.mail.smtp.auth=true \\
             --spring.mail.properties.mail.smtp.starttls.enable=true \\
             --spring.mail.properties.mail.smtp.ssl.trust=smtp.gmail.com \\

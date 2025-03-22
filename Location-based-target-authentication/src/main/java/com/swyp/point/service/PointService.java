@@ -115,26 +115,31 @@ public class PointService {
             String userName = authUser.getName();
             
             if (userEmail == null || userEmail.isEmpty()) {
-                throw new IllegalArgumentException("사용자 이메일 정보가 없습니다.");
+                System.out.println("사용자 이메일 정보가 없어 쿠폰 발송을 건너뜁니다.");
+                return;
             }
             
             // 쿠폰 발송 처리
-            mailService.sendCouponEmail(
-                userEmail, 
-                userName, 
-                couponInfo.type, 
-                couponInfo.code, 
-                points
-            );
-            
-            // 로그 기록
-            System.out.println("쿠폰 발행 완료: " + couponInfo.type + ", 코드: " + couponInfo.code + 
-                               ", 사용자: " + userName + ", 이메일: " + userEmail);
+            try {
+                mailService.sendCouponEmail(
+                    userEmail, 
+                    userName, 
+                    couponInfo.type, 
+                    couponInfo.code, 
+                    points
+                );
+                
+                // 로그 기록
+                System.out.println("쿠폰 발행 완료: " + couponInfo.type + ", 코드: " + couponInfo.code + 
+                                 ", 사용자: " + userName + ", 이메일: " + userEmail);
+            } catch (Exception emailEx) {
+                // 이메일 전송 실패 시 로그만 남기고 예외를 표시하지 않음
+                System.out.println("이메일 전송 실패했지만 포인트 차감은 정상적으로 처리됨: " + emailEx.getMessage());
+            }
                                
         } catch (Exception e) {
-            // 쿠폰 발행 실패 시에도 포인트 차감은 유지하되 로그 기록
-            System.err.println("쿠폰 발행 실패: " + e.getMessage());
-            e.printStackTrace();
+            // 쿠폰 정보 생성 실패 시 로그만 남기고 계속 진행
+            System.out.println("쿠폰 정보 생성 실패했지만 포인트 차감은 정상적으로 처리됨: " + e.getMessage());
         }
     }
     

@@ -17,4 +17,7 @@ public interface UserRepository extends JpaRepository<AuthUser, Long> {
 
     // 소셜 로그인 플랫폼의 고유 ID와 타입으로 사용자 검색
     Optional<AuthUser> findBySocialIdAndSocialType(String socialId, SocialType socialType);
+    
+    // 이메일로 사용자 검색
+    Optional<AuthUser> findByEmail(String email);
 }

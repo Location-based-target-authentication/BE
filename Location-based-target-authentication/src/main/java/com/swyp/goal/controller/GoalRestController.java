@@ -242,16 +242,33 @@ public class GoalRestController {
     	List<Goal> goalList = goalService.getGoalList(userId);
     	List<GoalAllSearchDto> goalAllDto = new ArrayList<>();
     	for(Goal goal : goalList) {
-    		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId());
+    		List<LocalDate> calender = goalService.DateRangeCalculator(goal.getId()); // 목표 달력을 위한 전체 날짜값(today가 startDate의 주에 속하면 이번 주 + 다음 주 ,  today가 startDate의 주에 속하지 않으면 지난주 + 이번 주) 
     		System.out.println(calender);
-    		List<GoalDateDto> goalDateDto = new ArrayList<>();
-    		List<GoalAchievementsLog> logs = goalAchievementLogRepository.findByGoal_IdAndAchievedSuccessIsTrue(goal.getId());
+    		List<GoalDateDto> goalDateDto = new ArrayList<>(); // 목표 달력을 위한 인증 날짜값
+    		
+            // 목표의 시작일부터 종료일까지의 모든 날짜를 생성
+            LocalDate startDate = goal.getStartDate();
+            LocalDate endDate = goal.getEndDate();
+            List<LocalDate> allDates = new ArrayList<>();
+            LocalDate currentDate = startDate;
+            while (!currentDate.isAfter(endDate)) {
+                allDates.add(currentDate);
+                currentDate = currentDate.plusDays(1);
+            }
 
+            // 인증 성공한 날짜들을 Set으로 변환 (속도 떄문에)
+            Set<LocalDate> successDates = new HashSet<>();
+            List<GoalAchievementsLog> achievementLogs = goalAchievementLogRepository
+                    .findByGoal_IdAndAchievedSuccessIsTrue(goal.getId());
+            for (GoalAchievementsLog log : achievementLogs) {
+                successDates.add(log.getAchievedAt());
+            }
 
-    		 for (GoalAchievementsLog log : logs) {
-    	            GoalDateDto dto = new GoalDateDto(log.getAchievedAt(), log.isAchievedSuccess());
-    	            goalDateDto.add(dto);
-    	        }
+            // 모든 날짜에 대해 인증 상태를 확인하여 DTO 생성 , 인증 성공한 날짜 확인 후 인증 날짜 값 추가
+            for (LocalDate date : allDates) {
+                GoalDateDto dto = new GoalDateDto(date, successDates.contains(date));
+                goalDateDto.add(dto);
+            }
     		 
     		// goalDays : 요일 String값으로 가공
      		List<GoalDay> goalDays = goalDayRepository.findByGoalId(goal.getId());
@@ -266,8 +283,8 @@ public class GoalRestController {
     		 
     		 GoalAllSearchDto dto = new GoalAllSearchDto(goal.getId(),goal.getId(),goal.getName(),goal.getStatus(),goal.getStartDate(),goal.getEndDate(),goal.getLocationName(),goal.getLatitude(),goal.getLongitude(),goal.getRadius(),goal.getTargetCount(),goal.getAchievedCount(),
                      goalDateDto,  // 인증된 날짜들
-                     calender
-                     ,days.toString());   // 날짜 값들
+                     calender     // 날짜 값들
+                     ,days.toString());   
              
     		 goalAllDto.add(dto);
     		 

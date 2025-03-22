@@ -87,31 +87,31 @@ public class GoalService {
         // 목표 개수 제한 검증
         List<GoalStatus> statuses = List.of(GoalStatus.DRAFT, GoalStatus.ACTIVE);
         long count = goalRepository.countByAuthUserIdAndStatusIn(request.getUserId(), statuses);
-        if (count >= 3) {
-            throw new IllegalArgumentException("목표는 최대 3개까지만 생성할 수 있습니다.");
-        }
+        // if (count >= 3) {
+        //     throw new IllegalArgumentException("목표는 최대 3개까지만 생성할 수 있습니다.");
+        // }
 
-        // 목표 이름 유효성 검사
-        if (name == null || name.isEmpty()) {
-            throw new IllegalArgumentException("목표 이름은 필수 입력 사항입니다.");
-        }
-        if (name.length() > 20 || name.length() < 2) {
-            throw new IllegalArgumentException("목표 이름은 2~20자 이내여야 합니다.");
-        }
+        // // 목표 이름 유효성 검사
+        // if (name == null || name.isEmpty()) {
+        //     throw new IllegalArgumentException("목표 이름은 필수 입력 사항입니다.");
+        // }
+        // if (name.length() > 20 || name.length() < 2) {
+        //     throw new IllegalArgumentException("목표 이름은 2~20자 이내여야 합니다.");
+        // }
 
-        // 시작일과 종료일 유효성 검사
-        if (startDate.isBefore(LocalDate.now())) {
-            throw new IllegalArgumentException("시작일은 오늘 이후여야 합니다.");
-        }
-        if (endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
-        }
-        if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
-            throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
-        }
-        if (ChronoUnit.DAYS.between(startDate, endDate) > 90) {
-            throw new IllegalArgumentException("종료일은 시작일 기준으로 최대 3개월 이내여야 합니다.");
-        }
+        // // 시작일과 종료일 유효성 검사
+        // if (startDate.isBefore(LocalDate.now())) {
+        //     throw new IllegalArgumentException("시작일은 오늘 이후여야 합니다.");
+        // }
+        // if (endDate.isBefore(startDate)) {
+        //     throw new IllegalArgumentException("종료일은 시작일 이후여야 합니다.");
+        // }
+        // if (ChronoUnit.DAYS.between(startDate, endDate) < 7) {
+        //     throw new IllegalArgumentException("종료일은 시작일 기준으로 최소 1주일 뒤여야 합니다.");
+        // }
+        // if (ChronoUnit.DAYS.between(startDate, endDate) > 90) {
+        //     throw new IllegalArgumentException("종료일은 시작일 기준으로 최대 3개월 이내여야 합니다.");
+        // }
 
         // Goal 객체 생성 후 데이터 설정
         Goal goal = new Goal();
@@ -391,10 +391,10 @@ public class GoalService {
             baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
         }
 
-        // 기준 주(일요일~토요일) 추가
+        // 저번 주(일요일~토요일) 추가
+        addWeek(dateList, baseWeekStart.minusWeeks(1));
+        // 이번 주(일요일~토요일) 추가
         addWeek(dateList, baseWeekStart);
-        // 다음 주(일요일~토요일) 추가
-        addWeek(dateList, baseWeekStart.plusWeeks(1));
 
         System.out.println("최종 날짜 리스트 크기: " + dateList.size());
         return dateList;

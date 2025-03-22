@@ -379,14 +379,9 @@ public class GoalService {
         LocalDate thisWeekStart = today.minusDays(today.getDayOfWeek().getValue());
 
         // startDate가 오늘 이후라면, startDate가 속한 주의 시작일을 기준으로 설정
-        // 단, startDate가 일요일인 경우는 startDate 그대로 사용
         LocalDate baseWeekStart;
         if (startDate.isAfter(today)) {
-            if (startDate.getDayOfWeek() == java.time.DayOfWeek.SUNDAY) {
-                baseWeekStart = startDate; // startDate가 일요일인 경우, 그대로 사용
-            } else {
-                baseWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
-            }
+            baseWeekStart = startDate.minusDays(startDate.getDayOfWeek().getValue());
         } else {
             baseWeekStart = thisWeekStart; // startDate가 오늘 이전이거나 오늘 포함인 경우
         }

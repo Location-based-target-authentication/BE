@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +20,27 @@ public class PointService {
     private final PointRepository pointRepository;
     private final PointHistoryRepository pointHistoryRepository;
     private final MailService mailService;
+    
+    /**
+     * 쿠폰 정보를 담는 내부 클래스
+     */
+    private static class CouponInfo {
+        private final String type;
+        private final String code;
+        private final int amount;
+
+        public CouponInfo(String type, int amount) {
+            this.type = type;
+            this.code = generateCouponCode();
+            this.amount = amount;
+        }
+
+        private String generateCouponCode() {
+            // 실제 쿠폰 코드 생성 로직 (간단한 예시)
+            return "WILLGO-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        }
+    }
+    
     @Transactional
     public Point getOrCreatePoint(AuthUser authUser) {
         return pointRepository.findByAuthUserUserId(authUser.getId())
@@ -54,21 +76,82 @@ public class PointService {
     @Transactional
     public boolean deductPoints(AuthUser authUser, int points, PointType pointType, String description, Long goalId){
         Point point = getOrCreatePoint(authUser);
+        // 포인트 부족 확인
         if(!point.subtractPoints(points)){
-            throw new IllegalArgumentException("포인트가 부족합니다.");
+            throw new IllegalArgumentException("포인트가 부족합니다. 현재 포인트: " + point.getTotalPoints() + ", 필요 포인트: " + points);
         }
+        
         try {
+            // 포인트 저장
             pointRepository.save(point);
+            
+            // 포인트 이력 저장
             pointHistoryRepository.save(new PointHistory(authUser, -points, pointType, description, goalId));
-            // 쿠폰 지급은 별도의 API를 통해서만 가능하도록 수정
+            
+            // 쿠폰 타입인 경우 쿠폰 발행 및 이메일 발송
             if (pointType == PointType.GIFT_STARBUCKS || pointType == PointType.GIFT_COUPON) {
-                throw new IllegalArgumentException("쿠폰 지급은 별도의 API를 통해서만 가능합니다.");
+                processCouponIssuance(authUser, pointType, points, description);
             }
+            
             return true;
         } catch (Exception e) {
-            throw new RuntimeException("포인트 차감 중 오류 발생", e);
+            // 상세 오류 로깅
+            System.err.println("포인트 차감 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("포인트 차감 중 오류 발생: " + e.getMessage(), e);
         }
     }
+    
+    /**
+     * 쿠폰 발급 및 이메일 발송 처리
+     */
+    private void processCouponIssuance(AuthUser authUser, PointType pointType, int points, String description) {
+        try {
+            // 쿠폰 정보 생성
+            CouponInfo couponInfo = createCouponInfo(pointType, points);
+            
+            // 사용자 정보 확인
+            String userEmail = authUser.getEmail();
+            String userName = authUser.getName();
+            
+            if (userEmail == null || userEmail.isEmpty()) {
+                throw new IllegalArgumentException("사용자 이메일 정보가 없습니다.");
+            }
+            
+            // 쿠폰 발송 처리
+            mailService.sendCouponEmail(
+                userEmail, 
+                userName, 
+                couponInfo.type, 
+                couponInfo.code, 
+                points
+            );
+            
+            // 로그 기록
+            System.out.println("쿠폰 발행 완료: " + couponInfo.type + ", 코드: " + couponInfo.code + 
+                               ", 사용자: " + userName + ", 이메일: " + userEmail);
+                               
+        } catch (Exception e) {
+            // 쿠폰 발행 실패 시에도 포인트 차감은 유지하되 로그 기록
+            System.err.println("쿠폰 발행 실패: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * 쿠폰 정보 생성
+     */
+    private CouponInfo createCouponInfo(PointType pointType, int points) {
+        switch (pointType) {
+            case GIFT_STARBUCKS:
+                return new CouponInfo("스타벅스 기프티콘", points);
+            case GIFT_COUPON:
+                return new CouponInfo("편의점 기프티콘", points);
+            default:
+                throw new IllegalArgumentException("지원하지 않는 쿠폰 타입입니다: " + pointType);
+        }
+    }
+
     // 포인트 이력 조회 메서드
     public List<PointHistory> getPointHistory(Long id) {
         return pointHistoryRepository.findByAuthUser_Id(id);

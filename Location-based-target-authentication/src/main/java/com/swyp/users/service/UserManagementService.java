@@ -40,13 +40,29 @@ public class UserManagementService {
             throw new IllegalArgumentException("유효하지 않은 사용자 ID입니다.");
         }
         
-        // 먼저 ID로 조회 시도
+        // 먼저 ID로 조회 시도 (AuthUser 정보와 함께)
         Optional<User> userById = userRepository.findByIdWithAuthUser(id);
         if (userById.isPresent()) {
-            return userById.get();
+            User user = userById.get();
+            // LazyLoading 초기화 - AuthUser를 확실히 로드합니다
+            if (user.getAuthUser() != null) {
+                Hibernate.initialize(user.getAuthUser());
+            }
+            return user;
         }
         
-        // 사용자 조회 시도
+        // userId로 조회 시도
+        Optional<User> userByUserId = userRepository.findByUserId(id);
+        if (userByUserId.isPresent()) {
+            User user = userByUserId.get();
+            // LazyLoading 초기화
+            if (user.getAuthUser() != null) {
+                Hibernate.initialize(user.getAuthUser());
+            }
+            return user;
+        }
+        
+        // 사용자 조회 시도 (마지막 방법)
         return userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. ID: " + id));
     }

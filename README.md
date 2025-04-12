@@ -4,6 +4,7 @@
 - [프로젝트 소개](#프로젝트-소개)
 - [개요](#개요)
 - [주요 기능](#주요-기능)
+- [화면 구성](#화면-구성)
 - [기술 스택](#기술-스택)
 - [주요 구현 기능](#주요-구현-기능)
 - [시작하기](#시작하기)
@@ -34,7 +35,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
 ### 💻 Backend 개발 담당
 | 개발자 | 담당 업무 |
 |--------|-----------|
-| 김준형 | 위치 API, 사용자, 설정 관련 API, Swagger를 통한 API 문서화, 배포 환경 구축 |
+| 김준형 | 위치 API, 사용자 및 설정 관련 API, Swagger를 통한 API 문서화, 배포 환경 및 DB 구축 |
 | 장민지 | 로그인 API, 포인트 API |
 | 하지혁 | 목표 인증 API |
 
@@ -59,6 +60,41 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
 - 리워드 신청: 
   - 커피쿠폰(5,000p)
   - 편의점쿠폰(10,000p)
+
+## 📱 화면 구성
+
+<div align="center">
+  <h3>로그인 화면</h3>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/login.jpg" width="200" alt="로그인 화면"/>
+  
+  <h3>메인 화면</h3>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/main.jpg" width="200" alt="메인 화면"/>
+  
+  <h3>설정 화면</h3>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/main_2.jpeg" width="200" alt="설정 화면"/>
+  
+  <h3>목표 관리</h3>
+  <div style="display: flex; justify-content: center; gap: 20px;">
+    <div>
+      <h4>목표 추가</h4>
+      <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_1.jpg" width="200" alt="목표 추가"/>
+    </div>
+    <div>
+      <h4>목표 완료</h4>
+      <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_2.jpg" width="200" alt="목표 완료"/>
+    </div>
+    <div>
+      <h4>목표 확인</h4>
+      <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_3.jpg" width="200" alt="목표 확인"/>
+    </div>
+  </div>
+  
+  <h3>위치 인증</h3>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/location.png" width="200" alt="위치 인증"/>
+  
+  <h3>리워드 신청</h3>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/point.png" width="200" alt="리워드 신청"/>
+</div>
 
 ## 🔧 기술 스택
 ### Backend

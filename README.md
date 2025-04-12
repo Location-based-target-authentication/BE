@@ -1,20 +1,20 @@
 # WillGO - 위치기반 목표 달성 서비스
 
 ## 📑 목차
-- [프로젝트 소개](#프로젝트-소개)
-- [개요](#개요)
-- [주요 기능](#주요-기능)
-- [화면 구성](#화면-구성)
-- [기술 스택](#기술-스택)
-- [주요 구현 기능](#주요-구현-기능)
-- [시작하기](#시작하기)
-- [API 문서](#api-문서)
-- [지원](#지원)
+- [프로젝트 소개](#project-intro)
+- [개요](#overview)
+- [주요 기능](#main-features)
+- [화면 구성](#screens)
+- [기술 스택](#tech-stack)
+- [주요 구현 기능](#implementations)
+- [시작하기](#getting-started)
+- [API 문서](#api-docs)
+- [지원](#support)
 
-## 📝 프로젝트 소개
+## 📝 프로젝트 소개 <a id="project-intro"></a>
 WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자가 설정한 목표 장소에 방문하여 GPS를 통해 자동으로 인증하고 포인트 시스템과 푸시 알림으로 동기부여를 강화하는 위치기반 목표인증 서비스입니다.
 
-## 📊 개요
+## 📊 개요 <a id="overview"></a>
 
 ### 🏷️ 프로젝트 정보
 | 항목 | 내용 |
@@ -39,7 +39,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
 | 장민지 | 로그인 API, 포인트 API |
 | 하지혁 | 목표 인증 API |
 
-## 🚀 주요 기능
+## 🚀 주요 기능 <a id="main-features"></a>
 ### 1. 목표 관리
 - 목표명, 목표기간, 목표요일 설정
 - 종 3개의 목표 생성 가능
@@ -61,7 +61,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
   - 커피쿠폰(5,000p)
   - 편의점쿠폰(10,000p)
 
-## 📱 화면 구성
+## 📱 화면 구성 <a id="screens"></a>
 
 <div align="center">
   <h3>로그인 화면</h3>
@@ -76,27 +76,27 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
   <h3>목표 관리</h3>
   <div style="display: flex; justify-content: center; gap: 20px;">
     <div>
-      <h4>목표 추가</h4>
+      <h5>목표 추가</h5>
       <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_1.jpg" width="200" alt="목표 추가"/>
     </div>
     <div>
-      <h4>목표 완료</h4>
+      <h5>목표 완료</h5>
       <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_2.jpg" width="200" alt="목표 완료"/>
     </div>
     <div>
-      <h4>목표 확인</h4>
+      <h5>목표 확인</h5>
       <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_3.jpg" width="200" alt="목표 확인"/>
     </div>
   </div>
   
-  <h3>위치 인증</h3>
+  <h3>목표 위치 인증</h3>
   <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/location.png" width="200" alt="위치 인증"/>
   
   <h3>리워드 신청</h3>
   <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/point.png" width="200" alt="리워드 신청"/>
 </div>
 
-## 🔧 기술 스택
+## 🔧 기술 스택 <a id="tech-stack"></a>
 ### Backend
 - Java 17
 - Spring Boot 3.2.1
@@ -123,7 +123,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
 - Ubuntu
 - Github Actions (CI/CD)
 
-## 🛠️ 주요 구현 기능
+## 🛠️ 주요 구현 기능 <a id="implementations"></a>
 
 ### 1. 카카오맵 API 연동
 - 목표위치 장소 검색 기능
@@ -146,7 +146,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
 - CORS 설정을 통한 안전한 API 통신
 - 민감한 사용자 정보 암호화 처리
 
-## 🚀 시작하기
+## 🚀 시작하기 <a id="getting-started"></a>
 
 ### 요구사항
 - Java 17 이상
@@ -170,7 +170,7 @@ cd BE/Location-based-target-authentication
 ./gradlew bootRun
 ```
 
-## 📚 API 문서
+## 📚 API 문서 <a id="api-docs"></a>
 
 ### 주요 API
 
@@ -216,6 +216,6 @@ cd BE/Location-based-target-authentication
 - `GET /api/v1/system/terms`: 서비스 약관 조회
 - `GET /api/v1/system/privacy-policy`: 개인정보 처리방침 조회
 
-## 📧 지원
+## 📧 지원 <a id="support"></a>
 
 [![Gmail Badge](https://img.shields.io/badge/Gmail-d14836?style=for-the-badge&logo=Gmail&logoColor=white&link=mailto:kjunh972@gmail.com)](mailto:kjunh972@gmail.com)

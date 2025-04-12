@@ -77,7 +77,11 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
   <div style="display: flex; justify-content: center; gap: 20px;">
     <div>
       <h5>목표 추가</h5>
-      <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/goal_1.jpg" width="200" alt="목표 추가"/>
+      <img src="https://github.com/Location-based-target-authentication/BE/blob/fc7684f55e70e9ca06f77a0fea8c7fbbfeeb5f3a/Location-based-target-authentication/src/main/resources/img/goal_1.jpg" width="200" alt="목표 추가"/>
+    </div>
+    <div>
+      <h5>목표 위치 등록</h5>
+      <img src="https://github.com/Location-based-target-authentication/BE/blob/fcc46152f57276f782253c82aca78e023d7e3ed2/Location-based-target-authentication/src/main/resources/img/Location2.JPG" width="200" alt="목표 위치 등록"/>
     </div>
     <div>
       <h5>목표 완료</h5>
@@ -90,7 +94,7 @@ WillGO는 위치 기반의 목표 달성을 돕는 서비스입니다. 사용자
   </div>
   
   <h3>목표 위치 인증</h3>
-  <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/location.png" width="200" alt="위치 인증"/>
+  <img src="https://github.com/Location-based-target-authentication/BE/blob/fcc46152f57276f782253c82aca78e023d7e3ed2/Location-based-target-authentication/src/main/resources/img/Location.JPG" width="200" alt="위치 인증"/>
   
   <h3>리워드 신청</h3>
   <img src="https://github.com/Location-based-target-authentication/BE/blob/df729087342116a68baeacba34b9a74fdecb33e4/Location-based-target-authentication/src/main/resources/img/point.png" width="200" alt="리워드 신청"/>

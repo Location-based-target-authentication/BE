@@ -2,15 +2,21 @@ package com.swyp.goal.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.swyp.goal.entity.DayOfWeek;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
+@Setter
 public class GoalUpdateDto {
     private String name;
     
@@ -24,4 +30,5 @@ public class GoalUpdateDto {
     private BigDecimal latitude;
     private BigDecimal longitude;
     private Integer radius;
+    private List<DayOfWeek> selectedDays;
 }

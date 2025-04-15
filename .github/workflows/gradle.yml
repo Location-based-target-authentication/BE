@@ -81,6 +81,9 @@ jobs:
         host: ${{ secrets.SERVER_IP }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
+        command_timeout: 30m
+        script_stop: false
+        timeout: 60s
         script: |
           cd /home/${{ secrets.SERVER_USER }}
           

@@ -74,10 +74,16 @@ public class KakaoAuthImpl implements KakaoAuthService {
                 headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
 
                 String referer = request.getHeader("Referer");
-                String redirectUrl = (referer != null && referer.contains("localhost")) 
-                    ? KAKAO_REDIRECT_URL_LOCAL 
-                    : KAKAO_REDIRECT_URL;
-                System.out.println("[KakaoAuth] Redirect URL 설정: " + redirectUrl);
+                String redirectUrl;
+                
+                // localhost 개발 환경에서만 로컬 리다이렉트 URL 사용, 그 외에는 기본 리다이렉트 URL 사용
+                if (referer != null && referer.contains("localhost")) {
+                    redirectUrl = KAKAO_REDIRECT_URL_LOCAL;
+                    log.info("[KakaoAuth] 로컬 환경 감지, 로컬 리다이렉트 URL 사용: {}", KAKAO_REDIRECT_URL_LOCAL);
+                } else {
+                    redirectUrl = KAKAO_REDIRECT_URL;
+                    log.info("[KakaoAuth] 프로덕션 환경, 기본 리다이렉트 URL 사용: {}", KAKAO_REDIRECT_URL);
+                }
 
                 MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
                 params.add("grant_type", "authorization_code");

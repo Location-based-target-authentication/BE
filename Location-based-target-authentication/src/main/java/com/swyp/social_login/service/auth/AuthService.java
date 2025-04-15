@@ -83,26 +83,51 @@ public class AuthService {
             cacheService.cacheAccessTokenByUserId(socialId, accessToken);
             log.info("기존 사용자 {}의 액세스 토큰이 업데이트되었습니다.", user.getUserId());
         } else {
-            // name 필드는 별도로 설정하지 않고 null로 저장
-            user = AuthUser.builder()
-                    .socialId(socialId)
-                    .username(username)
-                    .name(username)  // name 필드를 username으로 초기화
-                    .email(email)
-                    .accessToken(accessToken)
-                    .socialType(socialType)
-                    .userId(0L)  // 임시 userId 설정
-                    .build();
+            // SocialId로 찾지 못했다면 이메일로 찾아봄
+            Optional<AuthUser> userByEmail = userRepository.findByEmail(email);
             
-            user = userRepository.save(user);
-            
-            // 새 사용자의 경우 캐시에 저장
-            cacheService.cacheAccessTokenByUserId(socialId, accessToken);
-            log.info("새 사용자 {}가 등록되었습니다.", user.getUserId());
-            
-            Point point = new Point(user);
-            point.setTotalPoints(2000);
-            pointRepository.save(point);
+            if (userByEmail.isPresent()) {
+                // 동일한 이메일을 가진 사용자가 있다면 해당 사용자 정보 업데이트
+                user = userByEmail.get();
+                log.info("동일한 이메일 {}를 가진 사용자를 찾았습니다. 기존 계정에 소셜 로그인 정보를 연결합니다.", email);
+                
+                // 기존 사용자의 소셜 정보 업데이트
+                user.setSocialId(socialId);
+                user.setSocialType(socialType);
+                user.setAccessToken(accessToken);
+                
+                // 다른 정보도 업데이트 필요시 추가
+                if (user.getUsername() == null || user.getUsername().isEmpty()) {
+                    user.setUsername(username);
+                }
+                
+                user = userRepository.save(user);
+                
+                // 캐시 업데이트
+                cacheService.cacheAccessTokenByUserId(socialId, accessToken);
+                log.info("기존 사용자 {}의 소셜 로그인 정보가 업데이트되었습니다.", user.getUserId());
+            } else {
+                // 완전히 새로운 사용자인 경우
+                user = AuthUser.builder()
+                        .socialId(socialId)
+                        .username(username)
+                        .name(username)  // name 필드를 username으로 초기화
+                        .email(email)
+                        .accessToken(accessToken)
+                        .socialType(socialType)
+                        .userId(0L)  // 임시 userId 설정
+                        .build();
+                
+                user = userRepository.save(user);
+                
+                // 새 사용자의 경우 캐시에 저장
+                cacheService.cacheAccessTokenByUserId(socialId, accessToken);
+                log.info("새 사용자 {}가 등록되었습니다.", user.getUserId());
+                
+                Point point = new Point(user);
+                point.setTotalPoints(2000);
+                pointRepository.save(point);
+            }
         }
 
         // 포인트 정보 확인 및 생성

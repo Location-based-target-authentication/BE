@@ -182,6 +182,32 @@ public class GoalService {
         if (dto.getLongitude() != null) goal.setLongitude(dto.getLongitude());
         if (dto.getRadius() != null) goal.setRadius(dto.getRadius());
 
+        // 요일 데이터 업데이트
+        if (dto.getSelectedDays() != null && !dto.getSelectedDays().isEmpty()) {
+            // 기존 요일 데이터 삭제
+            goalDayRepository.deleteByGoalId(goalId);
+            
+            // 새 요일 데이터 추가
+            for (DayOfWeek day : dto.getSelectedDays()) {
+                GoalDay goalDay = new GoalDay();
+                goalDay.setGoalId(goalId);
+                goalDay.setDayOfWeek(day);
+                goalDayRepository.save(goalDay);
+            }
+        }
+
+        // 날짜 또는 요일이 변경되었을 때 목표 수행 횟수 재계산
+        boolean dateChanged = dto.getStartDate() != null || dto.getEndDate() != null;
+        boolean daysChanged = dto.getSelectedDays() != null && !dto.getSelectedDays().isEmpty();
+
+        if (dateChanged || daysChanged) {
+            LocalDate startDate = dto.getStartDate() != null ? dto.getStartDate() : goal.getStartDate();
+            LocalDate endDate = dto.getEndDate() != null ? dto.getEndDate() : goal.getEndDate();
+            List<DayOfWeek> selectedDays = dto.getSelectedDays() != null && !dto.getSelectedDays().isEmpty() ? dto.getSelectedDays() : getSelectedDays(goalId);
+                                 
+            int targetCount = calculateTargetCount(startDate, endDate, selectedDays);
+            goal.setTargetCount(targetCount);
+        }
 
         goal.setUpdatedAt(LocalDateTime.now());
 

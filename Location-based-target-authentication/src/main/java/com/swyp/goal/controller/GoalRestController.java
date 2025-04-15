@@ -401,7 +401,7 @@ public class GoalRestController {
      //임시저장된 목표 수정 (목표조회후 목표선택하여 goalid와 GoalUpdateDto을 보내줘야한다).
     @Operation(
     	    summary = "임시저장된 목표 수정 ",
-    	    description = "임시저장된 목표를 목표상세에서 goalId를 통해 불러온후 수정한 데이터 전부를 Goal 형식에 맞춰 보내야한다. 넘기는값은 goalId + goal",
+    	    description = "임시저장된 목표를 목표상세에서 goalId를 통해 불러온후 수정한 데이터 전부를 Goal 형식에 맞춰 보내야한다. ",
     	    responses = {
     	        @ApiResponse(
     	            responseCode = "200",
